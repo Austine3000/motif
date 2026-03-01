@@ -116,47 +116,47 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AGNT-01 | — | Pending |
-| AGNT-02 | — | Pending |
-| AGNT-03 | — | Pending |
-| AGNT-04 | — | Pending |
-| AGNT-05 | — | Pending |
-| TMPL-01 | — | Pending |
-| TMPL-02 | — | Pending |
-| TMPL-03 | — | Pending |
-| INST-01 | — | Pending |
-| INST-02 | — | Pending |
-| INST-03 | — | Pending |
-| INST-04 | — | Pending |
-| INST-05 | — | Pending |
-| INST-06 | — | Pending |
-| INST-07 | — | Pending |
-| INST-08 | — | Pending |
-| DIST-01 | — | Pending |
-| DIST-02 | — | Pending |
-| DIST-03 | — | Pending |
-| DIST-04 | — | Pending |
-| VERT-01 | — | Pending |
-| VERT-02 | — | Pending |
-| VERT-03 | — | Pending |
-| HOOK-01 | — | Pending |
-| HOOK-02 | — | Pending |
-| HOOK-03 | — | Pending |
-| HOOK-04 | — | Pending |
-| SCRP-01 | — | Pending |
-| SCRP-02 | — | Pending |
-| BRND-01 | — | Pending |
-| VALD-01 | — | Pending |
-| VALD-02 | — | Pending |
-| VALD-03 | — | Pending |
-| VALD-04 | — | Pending |
-| VALD-05 | — | Pending |
+| AGNT-01 | Phase 1 | Pending |
+| AGNT-02 | Phase 1 | Pending |
+| AGNT-03 | Phase 1 | Pending |
+| AGNT-04 | Phase 1 | Pending |
+| AGNT-05 | Phase 1 | Pending |
+| TMPL-01 | Phase 2 | Pending |
+| TMPL-02 | Phase 2 | Pending |
+| TMPL-03 | Phase 2 | Pending |
+| INST-01 | Phase 3 | Pending |
+| INST-02 | Phase 3 | Pending |
+| INST-03 | Phase 3 | Pending |
+| INST-04 | Phase 3 | Pending |
+| INST-05 | Phase 3 | Pending |
+| INST-06 | Phase 3 | Pending |
+| INST-07 | Phase 3 | Pending |
+| INST-08 | Phase 3 | Pending |
+| DIST-01 | Phase 4 | Pending |
+| DIST-02 | Phase 4 | Pending |
+| DIST-03 | Phase 4 | Pending |
+| DIST-04 | Phase 8 | Pending |
+| VERT-01 | Phase 5 | Pending |
+| VERT-02 | Phase 5 | Pending |
+| VERT-03 | Phase 5 | Pending |
+| HOOK-01 | Phase 6 | Pending |
+| HOOK-02 | Phase 6 | Pending |
+| HOOK-03 | Phase 6 | Pending |
+| HOOK-04 | Phase 6 | Pending |
+| SCRP-01 | Phase 6 | Pending |
+| SCRP-02 | Phase 6 | Pending |
+| BRND-01 | Phase 4 | Pending |
+| VALD-01 | Phase 7 | Pending |
+| VALD-02 | Phase 7 | Pending |
+| VALD-03 | Phase 7 | Pending |
+| VALD-04 | Phase 7 | Pending |
+| VALD-05 | Phase 7 | Pending |
 
 **Coverage:**
 - v1 requirements: 35 total
-- Mapped to phases: 0
-- Unmapped: 35 ⚠️
+- Mapped to phases: 35
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-01*
-*Last updated: 2026-03-01 after initial definition*
+*Last updated: 2026-03-01 after roadmap creation*
