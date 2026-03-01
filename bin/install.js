@@ -436,6 +436,133 @@ function printSummary(copyResult, injectResult, verifyErrors) {
   console.log('');
 }
 
+// ─── Uninstall ──────────────────────────────────────────────────
+
+function cleanEmptyDirs(dir) {
+  if (!fs.existsSync(dir)) return;
+
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      cleanEmptyDirs(path.join(dir, entry.name));
+    }
+  }
+
+  // Re-read after recursive cleanup (children may have been removed)
+  const remaining = fs.readdirSync(dir);
+  if (remaining.length === 0) {
+    fs.rmdirSync(dir);
+  }
+}
+
+function removeConfigSnippet() {
+  const cwd = process.cwd();
+  const START = '<!-- MOTIF-START -->';
+  const END = '<!-- MOTIF-END -->';
+
+  // Check both possible locations
+  const candidates = [
+    path.join(cwd, 'CLAUDE.md'),
+    path.join(cwd, '.claude', 'CLAUDE.md'),
+  ];
+
+  for (const configPath of candidates) {
+    if (!fs.existsSync(configPath)) continue;
+
+    let content = fs.readFileSync(configPath, 'utf8');
+    if (!content.includes(START) || !content.includes(END)) continue;
+
+    const regex = new RegExp(
+      `${escapeRegex(START)}[\\s\\S]*?${escapeRegex(END)}`,
+      'g'
+    );
+    content = content.replace(regex, '');
+
+    // Clean up extra blank lines (3+ consecutive newlines -> 2)
+    content = content.replace(/\n{3,}/g, '\n\n');
+    content = content.trim();
+
+    if (content.length === 0) {
+      fs.unlinkSync(configPath);
+    } else {
+      fs.writeFileSync(configPath, content + '\n', 'utf8');
+    }
+  }
+}
+
+function uninstall(flags) {
+  const cwd = process.cwd();
+  const manifestPath = path.join(cwd, '.motif-manifest.json');
+
+  if (!fs.existsSync(manifestPath)) {
+    console.error(styleText('red', 'No Motif installation found (missing .motif-manifest.json)'));
+    process.exit(1);
+  }
+
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  let removedCount = 0;
+
+  // 1. Remove installed files (skip CLAUDE.md -- handled separately via sentinel removal)
+  const claudeMdPaths = ['CLAUDE.md', path.join('.claude', 'CLAUDE.md')];
+
+  for (const filePath of Object.keys(manifest.files)) {
+    // Skip CLAUDE.md -- sentinel block removal handles it in step 3
+    if (claudeMdPaths.includes(filePath)) continue;
+
+    const fullPath = path.join(cwd, filePath);
+
+    // Validate path is within project root
+    const resolved = path.resolve(fullPath);
+    if (!resolved.startsWith(cwd + path.sep) && resolved !== cwd) {
+      console.error(styleText('red', `Path traversal detected: ${resolved}`));
+      continue;
+    }
+
+    if (!fs.existsSync(fullPath)) continue;
+
+    if (flags['dry-run']) {
+      console.log(`  Would remove: ${filePath}`);
+      removedCount++;
+      continue;
+    }
+
+    fs.unlinkSync(fullPath);
+    removedCount++;
+  }
+
+  if (flags['dry-run']) {
+    console.log(`  Would remove: CLAUDE.md sentinel block`);
+    console.log(`  Would remove: .motif-manifest.json`);
+    const backupDir = path.join(cwd, '.motif-backup');
+    if (fs.existsSync(backupDir)) {
+      console.log(`  Would remove: .motif-backup/`);
+    }
+    console.log('');
+    console.log(`Dry run complete. Would remove ${removedCount} files.`);
+    process.exit(0);
+  }
+
+  // 2. Clean up empty directories
+  const getMotifDir = path.join(cwd, '.claude', 'get-motif');
+  const commandsMotifDir = path.join(cwd, '.claude', 'commands', 'motif');
+  cleanEmptyDirs(getMotifDir);
+  cleanEmptyDirs(commandsMotifDir);
+
+  // 3. Remove CLAUDE.md sentinel block
+  removeConfigSnippet();
+
+  // 4. Remove manifest
+  fs.unlinkSync(manifestPath);
+
+  // 5. Remove .motif-backup/ if it exists
+  const backupDir = path.join(cwd, '.motif-backup');
+  if (fs.existsSync(backupDir)) {
+    fs.rmSync(backupDir, { recursive: true });
+  }
+
+  console.log(styleText('green', `Motif uninstalled successfully. Removed ${removedCount} files.`));
+}
+
 // ─── Main ──────────────────────────────────────────────────────
 
 const flags = parseFlags();
@@ -446,8 +573,8 @@ if (flags.help) {
 }
 
 if (flags.uninstall) {
-  console.error(styleText('yellow', 'Uninstall not yet implemented.'));
-  process.exit(1);
+  uninstall(flags);
+  process.exit(0);
 }
 
 const runtime = detectRuntime(flags);
