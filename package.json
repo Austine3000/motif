@@ -1,0 +1,19 @@
+{
+  "name": "motif",
+  "version": "0.1.0",
+  "description": "Domain-intelligent design system for AI coding assistants",
+  "bin": {
+    "motif": "bin/install.js"
+  },
+  "files": [
+    "bin/",
+    "core/",
+    "runtimes/",
+    "scripts/"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "license": "MIT",
+  "keywords": ["design-system", "ai", "cli", "design-tokens", "motif"]
+}
