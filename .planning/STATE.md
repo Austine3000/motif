@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 3 of 8 (Installer)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-03-01 -- Completed 03-01 (Fresh Install Pipeline)
+Last activity: 2026-03-01 -- Completed 03-02 (Upgrade Tracking & Uninstall)
 
-Progress: [██░░░░░░░░] 25%
+Progress: [███░░░░░░░] 28%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
+- Total plans completed: 7
 - Average duration: 3min
-- Total execution time: 0.35 hours
+- Total execution time: 0.42 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [██░░░░░░░░] 25%
 |-------|-------|-------|----------|
 | 01-agent-definitions | 3 | 12min | 4min |
 | 02-templates | 2 | 3min | 1.5min |
-| 03-installer | 1 | 3min | 3min |
+| 03-installer | 2 | 7min | 3.5min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (2min), 02-01 (1min), 02-02 (2min), 03-01 (3min)
+- Last 5 plans: 02-01 (1min), 02-02 (2min), 03-01 (3min), 03-02 (4min)
 - Trend: Consistent (all fast, single-wave execution)
 
 *Updated after each plan completion*
@@ -59,6 +59,8 @@ Recent decisions affecting current work:
 - Resolve {FORGE_ROOT} at install time for zero-ambiguity agent reads
 - Also resolve .claude/get-design-forge to .claude/get-motif during copy for rebrand compatibility
 - Uninstall stub deferred to Plan 02; Scripts/ directory gracefully skipped if empty
+- shouldBackup returns true when no manifest or file not in manifest -- conservative safety for unknown state
+- CLAUDE.md excluded from manifest file deletion during uninstall -- handled exclusively by sentinel stripping to preserve user content
 
 ### Pending Todos
 
@@ -71,5 +73,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 03-01-PLAN.md (Fresh Install Pipeline) -- Phase 03 in progress
-Resume file: .planning/phases/03-installer/03-01-SUMMARY.md
+Stopped at: Completed 03-02-PLAN.md (Upgrade Tracking & Uninstall) -- Phase 03 in progress
+Resume file: .planning/phases/03-installer/03-02-SUMMARY.md
