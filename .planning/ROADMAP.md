@@ -47,10 +47,11 @@ Plans:
   1. STATE-TEMPLATE.md matches the state machine format defined in `core/references/state-machine.md` and can be used by any workflow to initialize design state
   2. SUMMARY-TEMPLATE.md matches the format defined in `core/workflows/compose-screen.md` and provides the structure for screen composition summaries
   3. Token showcase HTML is a self-contained page (no external dependencies) that visually displays all design tokens -- colors, typography, spacing -- and can be opened in any browser
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 02-01: TBD
+- [ ] 02-01-PLAN.md — STATE-TEMPLATE.md + SUMMARY-TEMPLATE.md (TMPL-01, TMPL-02)
+- [ ] 02-02-PLAN.md — Token showcase HTML template (TMPL-03)
 
 ### Phase 3: Installer
 **Goal**: Users can install Motif with a single `npx` command and have a fully functional design system in their project
@@ -153,7 +154,7 @@ Note: Phases 5 and 6 can execute in parallel (independent content).
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Agent Definitions | 3/3 | ✓ Complete | 2026-03-01 |
-| 2. Templates | 0/TBD | Not started | - |
+| 2. Templates | 0/2 | Not started | - |
 | 3. Installer | 0/TBD | Not started | - |
 | 4. Rebrand and Distribution | 0/TBD | Not started | - |
 | 5. Verticals | 0/TBD | Not started | - |
