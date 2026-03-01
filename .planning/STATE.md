@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Domain-intelligent design delivered through fresh context -- a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 2 - Templates
+**Current focus:** Phase 3 - Installer
 
 ## Current Position
 
-Phase: 2 of 8 (Templates)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-03-01 -- Completed 02-02 (Token Showcase Template)
+Phase: 3 of 8 (Installer)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-03-01 -- Completed 03-01 (Fresh Install Pipeline)
 
-Progress: [██░░░░░░░░] 20%
+Progress: [██░░░░░░░░] 25%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 3min
-- Total execution time: 0.3 hours
+- Total execution time: 0.35 hours
 
 **By Phase:**
 
@@ -29,9 +29,10 @@ Progress: [██░░░░░░░░] 20%
 |-------|-------|-------|----------|
 | 01-agent-definitions | 3 | 12min | 4min |
 | 02-templates | 2 | 3min | 1.5min |
+| 03-installer | 1 | 3min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (5min), 01-03 (2min), 02-01 (1min), 02-02 (2min)
+- Last 5 plans: 01-03 (2min), 02-01 (1min), 02-02 (2min), 03-01 (3min)
 - Trend: Consistent (all fast, single-wave execution)
 
 *Updated after each plan completion*
@@ -55,6 +56,9 @@ Recent decisions affecting current work:
 - Templates use extract-and-formalize pattern: derive from source-of-truth files with sync comments
 - Placeholder convention: {UPPER_SNAKE} for orchestrator values, [description] for agent-written content
 - Token showcase template: self-contained HTML with inline CSS, 232 var(--token) references, fallback warning pattern, zero JavaScript
+- Resolve {FORGE_ROOT} at install time for zero-ambiguity agent reads
+- Also resolve .claude/get-design-forge to .claude/get-motif during copy for rebrand compatibility
+- Uninstall stub deferred to Plan 02; Scripts/ directory gracefully skipped if empty
 
 ### Pending Todos
 
@@ -67,5 +71,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 02-02-PLAN.md (Token Showcase Template) -- Phase 02 complete
-Resume file: .planning/phases/02-templates/02-02-SUMMARY.md
+Stopped at: Completed 03-01-PLAN.md (Fresh Install Pipeline) -- Phase 03 in progress
+Resume file: .planning/phases/03-installer/03-01-SUMMARY.md
