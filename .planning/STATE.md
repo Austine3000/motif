@@ -5,22 +5,22 @@
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Domain-intelligent design delivered through fresh context -- a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 1 - Agent Definitions
+**Current focus:** Phase 2 - Templates
 
 ## Current Position
 
-Phase: 1 of 8 (Agent Definitions)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-03-01 -- Completed 01-03 (Fix Agent definition)
+Phase: 2 of 8 (Templates)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-03-01 -- Completed 02-01 (Output Templates)
 
-Progress: [█░░░░░░░░░] 12%
+Progress: [██░░░░░░░░] 16%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 4min
+- Total plans completed: 4
+- Average duration: 3min
 - Total execution time: 0.2 hours
 
 **By Phase:**
@@ -28,9 +28,10 @@ Progress: [█░░░░░░░░░] 12%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-agent-definitions | 3 | 12min | 4min |
+| 02-templates | 1 | 1min | 1min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (5min), 01-02 (5min), 01-03 (2min)
+- Last 5 plans: 01-01 (5min), 01-02 (5min), 01-03 (2min), 02-01 (1min)
 - Trend: Consistent (all fast, single-wave execution)
 
 *Updated after each plan completion*
@@ -51,6 +52,8 @@ Recent decisions affecting current work:
 - Reviewer includes specific WCAG success criteria numbers for precise auditing
 - Both high-tier agents include calibration examples (good/bad patterns)
 - Fix agent uses sonnet (medium tier) per user decision, despite research suggesting haiku could suffice -- revisit in Phase 7
+- Templates use extract-and-formalize pattern: derive from source-of-truth files with sync comments
+- Placeholder convention: {UPPER_SNAKE} for orchestrator values, [description] for agent-written content
 
 ### Pending Todos
 
@@ -63,5 +66,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 01-03-PLAN.md (Fix Agent definition) -- Phase 01 complete
-Resume file: .planning/phases/01-agent-definitions/01-03-SUMMARY.md
+Stopped at: Completed 02-01-PLAN.md (Output Templates) -- Phase 02 in progress
+Resume file: .planning/phases/02-templates/02-01-SUMMARY.md
