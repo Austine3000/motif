@@ -12,7 +12,7 @@ Motif is an npm-installable design engineering system for AI coding assistants. 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Agent Definitions** - Create the 5 subagent personality definitions that make workflows executable
+- [x] **Phase 1: Agent Definitions** - Create the 5 subagent personality definitions that make workflows executable
 - [ ] **Phase 2: Templates** - Build the 3 core output templates that formalize agent outputs
 - [ ] **Phase 3: Installer** - Build the runtime-detecting installer that delivers Motif to user projects
 - [ ] **Phase 4: Rebrand and Distribution** - Rename everything from "Design Forge" to "Motif" and prepare npm package identity
@@ -35,9 +35,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Researcher + System Architect agent definitions (AGNT-01, AGNT-02)
-- [ ] 01-02-PLAN.md — Screen Composer + Design Reviewer agent definitions (AGNT-03, AGNT-04)
-- [ ] 01-03-PLAN.md — Fix Agent definition (AGNT-05)
+- [x] 01-01-PLAN.md — Researcher + System Architect agent definitions (AGNT-01, AGNT-02)
+- [x] 01-02-PLAN.md — Screen Composer + Design Reviewer agent definitions (AGNT-03, AGNT-04)
+- [x] 01-03-PLAN.md — Fix Agent definition (AGNT-05)
 
 ### Phase 2: Templates
 **Goal**: Agent outputs have standardized formats -- state tracking, screen summaries, and token visualization all follow defined structures
@@ -152,7 +152,7 @@ Note: Phases 5 and 6 can execute in parallel (independent content).
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Agent Definitions | 0/3 | Planned | - |
+| 1. Agent Definitions | 3/3 | ✓ Complete | 2026-03-01 |
 | 2. Templates | 0/TBD | Not started | - |
 | 3. Installer | 0/TBD | Not started | - |
 | 4. Rebrand and Distribution | 0/TBD | Not started | - |
