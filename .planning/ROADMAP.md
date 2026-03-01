@@ -63,12 +63,12 @@ Plans:
   3. CLAUDE.md contains the Motif config snippet between `<!-- MOTIF-START -->` and `<!-- MOTIF-END -->` sentinel markers, preserving any existing CLAUDE.md content
   4. Re-installing on an existing installation backs up modified files and updates cleanly via manifest-based content-hash diffing
   5. Post-install verification confirms zero unresolved `{FORGE_ROOT}` path variables in any installed file
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
+- [ ] 03-01-PLAN.md — package.json + bin/install.js fresh-install pipeline (INST-01, INST-02, INST-03, INST-06 partial, INST-07, INST-08)
+- [ ] 03-02-PLAN.md — Manifest-based upgrade tracking, backup, and uninstall (INST-04, INST-05, INST-06 complete)
+- [ ] 03-03-PLAN.md — End-to-end lifecycle verification (all INST requirements)
 
 ### Phase 4: Rebrand and Distribution
 **Goal**: The product ships under the "Motif" identity with all packaging required for npm distribution
@@ -155,7 +155,7 @@ Note: Phases 5 and 6 can execute in parallel (independent content).
 |-------|----------------|--------|-----------|
 | 1. Agent Definitions | 3/3 | ✓ Complete | 2026-03-01 |
 | 2. Templates | 2/2 | ✓ Complete | 2026-03-01 |
-| 3. Installer | 0/TBD | Not started | - |
+| 3. Installer | 0/3 | Not started | - |
 | 4. Rebrand and Distribution | 0/TBD | Not started | - |
 | 5. Verticals | 0/TBD | Not started | - |
 | 6. Hooks and Scripts | 0/TBD | Not started | - |
