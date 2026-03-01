@@ -19,19 +19,19 @@ Progress: [█░░░░░░░░░] 12%
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
+- Total plans completed: 3
 - Average duration: 4min
-- Total execution time: 0.12 hours
+- Total execution time: 0.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-agent-definitions | 2 | 7min | 4min |
+| 01-agent-definitions | 3 | 12min | 4min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (5min), 01-03 (2min)
-- Trend: Faster (single-task plan)
+- Last 5 plans: 01-01 (5min), 01-02 (5min), 01-03 (2min)
+- Trend: Consistent (all fast, single-wave execution)
 
 *Updated after each plan completion*
 
@@ -45,6 +45,8 @@ Recent decisions affecting current work:
 - Rebrand to "Motif" must complete before adding new verticals/hooks (avoid double work)
 - Hooks required before battle test (enforcement prevents agents from hardcoding values)
 - Phases 5 and 6 (Verticals, Hooks) can execute in parallel
+- Researcher disallowedTools: Edit (creates new files, never edits); system architect has no web tools (research already done)
+- Shared agent skeleton established: YAML frontmatter -> Role Identity -> Context Loading Profile -> Domain Expertise -> Output Format -> Quality Checklist -> Brief Example
 - Composer gets full tool set (including Edit) for token modifications; reviewer gets Edit disallowed (separation of concerns)
 - Reviewer includes specific WCAG success criteria numbers for precise auditing
 - Both high-tier agents include calibration examples (good/bad patterns)
