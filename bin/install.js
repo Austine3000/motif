@@ -100,10 +100,25 @@ function resolveContent(content, forgeRoot) {
     .replaceAll('.claude/get-design-forge', forgeRoot);
 }
 
-function walkAndCopy(srcDir, destDir, forgeRoot, flags) {
+function shouldBackup(destPath, existingManifest) {
+  if (!fs.existsSync(destPath)) return false;
+  if (!existingManifest) return true; // No manifest = unknown state, back up to be safe
+
+  const relPath = path.relative(process.cwd(), destPath);
+  const entry = existingManifest.files[relPath];
+  if (!entry) return true; // File not in manifest = unknown, back up
+
+  const currentHash = hashFile(destPath);
+  // If current hash matches what we installed, user hasn't modified it -- safe to overwrite
+  if (currentHash === entry.hash) return false;
+  // User modified this file -- back up before overwriting
+  return true;
+}
+
+function walkAndCopy(srcDir, destDir, forgeRoot, existingManifest, flags) {
   const entries = fs.readdirSync(srcDir, { withFileTypes: true });
   const cwd = process.cwd();
-  const results = { copied: 0, skipped: 0, errors: [] };
+  const results = { copied: 0, skipped: 0, backedUp: 0, errors: [] };
 
   if (!flags['dry-run']) {
     fs.mkdirSync(destDir, { recursive: true });
@@ -116,9 +131,10 @@ function walkAndCopy(srcDir, destDir, forgeRoot, flags) {
     const destPath = path.join(destDir, entry.name);
 
     if (entry.isDirectory()) {
-      const subResult = walkAndCopy(srcPath, destPath, forgeRoot, flags);
+      const subResult = walkAndCopy(srcPath, destPath, forgeRoot, existingManifest, flags);
       results.copied += subResult.copied;
       results.skipped += subResult.skipped;
+      results.backedUp += subResult.backedUp;
       results.errors.push(...subResult.errors);
       continue;
     }
@@ -131,6 +147,21 @@ function walkAndCopy(srcDir, destDir, forgeRoot, flags) {
     }
 
     const relPath = path.relative(cwd, destPath);
+
+    // Backup check for re-install (skip if --force)
+    if (!flags.force && shouldBackup(destPath, existingManifest)) {
+      if (flags['dry-run']) {
+        console.log(`  Would back up: ${relPath}`);
+      } else {
+        const backupDir = path.join(cwd, '.motif-backup');
+        fs.mkdirSync(backupDir, { recursive: true });
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupName = `${entry.name}.${timestamp}`;
+        fs.copyFileSync(destPath, path.join(backupDir, backupName));
+        console.log(`  Backed up: ${relPath} -> .motif-backup/${backupName}`);
+        results.backedUp++;
+      }
+    }
 
     if (flags['dry-run']) {
       console.log(`  Would copy: ${relPath}`);
@@ -156,8 +187,8 @@ function walkAndCopy(srcDir, destDir, forgeRoot, flags) {
   return results;
 }
 
-function copyFiles(mapping, flags) {
-  const totals = { copied: 0, skipped: 0, errors: [] };
+function copyFiles(mapping, existingManifest, flags) {
+  const totals = { copied: 0, skipped: 0, backedUp: 0, errors: [] };
 
   if (flags['dry-run']) {
     console.log('');
@@ -173,9 +204,10 @@ function copyFiles(mapping, flags) {
       continue;
     }
 
-    const result = walkAndCopy(src, dest, mapping.forgeRoot, flags);
+    const result = walkAndCopy(src, dest, mapping.forgeRoot, existingManifest, flags);
     totals.copied += result.copied;
     totals.skipped += result.skipped;
+    totals.backedUp += result.backedUp;
     totals.errors.push(...result.errors);
   }
 
@@ -372,9 +404,10 @@ function printSummary(copyResult, injectResult, verifyErrors) {
   console.log('');
   console.log(styleText('bold', 'Motif Installation Summary'));
   console.log('\u2500'.repeat(40));
-  console.log(`  Files copied:  ${copyResult.copied}`);
-  console.log(`  Files skipped: ${copyResult.skipped}`);
-  console.log(`  Config:        ${injectResult.action} (${path.relative(process.cwd(), injectResult.path)})`);
+  console.log(`  Files copied:    ${copyResult.copied}`);
+  console.log(`  Files backed up: ${copyResult.backedUp}`);
+  console.log(`  Files skipped:   ${copyResult.skipped}`);
+  console.log(`  Config:          ${injectResult.action} (${path.relative(process.cwd(), injectResult.path)})`);
 
   if (copyResult.errors.length > 0) {
     console.log('');
@@ -419,7 +452,20 @@ if (flags.uninstall) {
 
 const runtime = detectRuntime(flags);
 const mapping = resolveMapping(runtime);
-const copyResult = copyFiles(mapping, flags);
+
+// Load existing manifest for upgrade tracking (re-install detection)
+const manifestPath = path.join(process.cwd(), '.motif-manifest.json');
+let existingManifest = null;
+if (fs.existsSync(manifestPath)) {
+  try {
+    existingManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  } catch (_) {
+    // Corrupted manifest -- treat as fresh install (will back up all existing files)
+    existingManifest = null;
+  }
+}
+
+const copyResult = copyFiles(mapping, existingManifest, flags);
 const injectResult = injectConfig(mapping, flags);
 
 if (!flags['dry-run']) {
