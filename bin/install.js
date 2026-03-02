@@ -79,12 +79,12 @@ function resolveMapping(runtime) {
       { src: path.join(pkgDir, 'core', 'workflows'), dest: path.join(cwd, '.claude', 'get-motif', 'workflows') },
       { src: path.join(pkgDir, 'core', 'templates'), dest: path.join(cwd, '.claude', 'get-motif', 'templates') },
       { src: path.join(pkgDir, 'runtimes', 'claude-code', 'agents'), dest: path.join(cwd, '.claude', 'get-motif', 'agents') },
-      { src: path.join(pkgDir, 'runtimes', 'claude-code', 'commands', 'forge'), dest: path.join(cwd, '.claude', 'commands', 'motif') },
+      { src: path.join(pkgDir, 'runtimes', 'claude-code', 'commands', 'motif'), dest: path.join(cwd, '.claude', 'commands', 'motif') },
       { src: path.join(pkgDir, 'scripts'), dest: path.join(cwd, '.claude', 'get-motif', 'scripts') },
     ];
 
     return {
-      forgeRoot: '.claude/get-motif',
+      motifRoot: '.claude/get-motif',
       copies,
       snippet: path.join(pkgDir, 'runtimes', 'claude-code', 'CLAUDE-MD-SNIPPET.md'),
       configTarget: path.join(cwd, 'CLAUDE.md'),
@@ -92,12 +92,11 @@ function resolveMapping(runtime) {
   }
 }
 
-// ─── Stage 4: Copy files with {FORGE_ROOT} resolution ──────────
+// ─── Stage 4: Copy files with {MOTIF_ROOT} resolution ──────────
 
-function resolveContent(content, forgeRoot) {
+function resolveContent(content, motifRoot) {
   return content
-    .replaceAll('{FORGE_ROOT}', forgeRoot)
-    .replaceAll('.claude/get-design-forge', forgeRoot);
+    .replaceAll('{MOTIF_ROOT}', motifRoot);
 }
 
 function shouldBackup(destPath, existingManifest) {
@@ -115,7 +114,7 @@ function shouldBackup(destPath, existingManifest) {
   return true;
 }
 
-function walkAndCopy(srcDir, destDir, forgeRoot, existingManifest, flags) {
+function walkAndCopy(srcDir, destDir, motifRoot, existingManifest, flags) {
   const entries = fs.readdirSync(srcDir, { withFileTypes: true });
   const cwd = process.cwd();
   const results = { copied: 0, skipped: 0, backedUp: 0, errors: [] };
@@ -131,7 +130,7 @@ function walkAndCopy(srcDir, destDir, forgeRoot, existingManifest, flags) {
     const destPath = path.join(destDir, entry.name);
 
     if (entry.isDirectory()) {
-      const subResult = walkAndCopy(srcPath, destPath, forgeRoot, existingManifest, flags);
+      const subResult = walkAndCopy(srcPath, destPath, motifRoot, existingManifest, flags);
       results.copied += subResult.copied;
       results.skipped += subResult.skipped;
       results.backedUp += subResult.backedUp;
@@ -173,7 +172,7 @@ function walkAndCopy(srcDir, destDir, forgeRoot, existingManifest, flags) {
       const ext = path.extname(srcPath).toLowerCase();
       if (ext === '.md') {
         const content = fs.readFileSync(srcPath, 'utf8');
-        const resolvedText = resolveContent(content, forgeRoot);
+        const resolvedText = resolveContent(content, motifRoot);
         fs.writeFileSync(destPath, resolvedText, 'utf8');
       } else {
         fs.copyFileSync(srcPath, destPath);
@@ -204,7 +203,7 @@ function copyFiles(mapping, existingManifest, flags) {
       continue;
     }
 
-    const result = walkAndCopy(src, dest, mapping.forgeRoot, existingManifest, flags);
+    const result = walkAndCopy(src, dest, mapping.motifRoot, existingManifest, flags);
     totals.copied += result.copied;
     totals.skipped += result.skipped;
     totals.backedUp += result.backedUp;
@@ -226,7 +225,7 @@ function injectConfig(mapping, flags) {
   const cwd = process.cwd();
 
   const snippetContent = fs.readFileSync(mapping.snippet, 'utf8');
-  const resolvedSnippet = resolveContent(snippetContent, mapping.forgeRoot);
+  const resolvedSnippet = resolveContent(snippetContent, mapping.motifRoot);
   const block = `${START}\n${resolvedSnippet}\n${END}`;
 
   // Determine config target path
@@ -358,7 +357,7 @@ function verify(mapping) {
     }
   }
 
-  // 2. Check for unresolved {FORGE_ROOT} in installed .md files
+  // 2. Check for unresolved {MOTIF_ROOT} in installed .md files
   const dirsToCheck = [
     path.join(cwd, '.claude', 'get-motif'),
     path.join(cwd, '.claude', 'commands', 'motif'),
@@ -370,8 +369,8 @@ function verify(mapping) {
     for (const file of files) {
       if (path.extname(file) !== '.md') continue;
       const content = fs.readFileSync(file, 'utf8');
-      if (content.includes('{FORGE_ROOT}')) {
-        errors.push(`Unresolved {FORGE_ROOT} in: ${path.relative(cwd, file)}`);
+      if (content.includes('{MOTIF_ROOT}')) {
+        errors.push(`Unresolved {MOTIF_ROOT} in: ${path.relative(cwd, file)}`);
       }
     }
   }
