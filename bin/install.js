@@ -274,6 +274,63 @@ function injectConfig(mapping, flags) {
   return { action: 'created', path: configPath };
 }
 
+// ─── Stage 5b: Inject hook settings into .claude/settings.json ──
+
+function injectHookSettings(mapping, flags) {
+  const cwd = process.cwd();
+  const settingsPath = path.join(cwd, '.claude', 'settings.json');
+  let settings = {};
+
+  // Load existing settings if present
+  if (fs.existsSync(settingsPath)) {
+    try {
+      settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    } catch (_) {
+      // Corrupted settings -- start fresh for hooks section
+      settings = {};
+    }
+  }
+
+  if (flags['dry-run']) {
+    const hasMotifHooks = settings.hooks?.PostToolUse?.some(
+      g => g.matcher === 'Write|Edit' && g.hooks?.some(h => h.command?.includes('motif'))
+    );
+    if (hasMotifHooks) {
+      console.log('  Would update: Motif hooks in .claude/settings.json');
+    } else {
+      console.log('  Would add: Motif hooks to .claude/settings.json');
+    }
+    return;
+  }
+
+  // Ensure hooks structure exists
+  if (!settings.hooks) settings.hooks = {};
+  if (!settings.hooks.PostToolUse) settings.hooks.PostToolUse = [];
+
+  // Remove existing Motif matcher group (for idempotent re-install)
+  settings.hooks.PostToolUse = settings.hooks.PostToolUse.filter(
+    g => !(g.matcher === 'Write|Edit' && g.hooks?.some(h => h.command?.includes('motif')))
+  );
+
+  // Add Motif PostToolUse hooks
+  settings.hooks.PostToolUse.push({
+    matcher: 'Write|Edit',
+    hooks: [
+      { type: 'command', command: 'node "$CLAUDE_PROJECT_DIR"/.claude/get-motif/hooks/motif-token-check.js' },
+      { type: 'command', command: 'node "$CLAUDE_PROJECT_DIR"/.claude/get-motif/hooks/motif-font-check.js' },
+      { type: 'command', command: 'node "$CLAUDE_PROJECT_DIR"/.claude/get-motif/hooks/motif-aria-check.js' },
+    ],
+  });
+
+  // Add or update statusLine (Motif context monitor)
+  settings.statusLine = {
+    type: 'command',
+    command: 'node "$CLAUDE_PROJECT_DIR"/.claude/get-motif/hooks/motif-context-monitor.js',
+  };
+
+  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
+}
+
 // ─── Stage 6: Hash file helper ─────────────────────────────────
 
 function hashFile(filePath) {
@@ -395,6 +452,24 @@ function verify(mapping) {
     errors.push('Manifest file not written');
   }
 
+  // 5. Check settings.json has hook configuration
+  const settingsPath = path.join(cwd, '.claude', 'settings.json');
+  if (fs.existsSync(settingsPath)) {
+    try {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      if (!settings.hooks?.PostToolUse?.some(g => g.hooks?.some(h => h.command?.includes('motif')))) {
+        errors.push('settings.json missing Motif PostToolUse hooks');
+      }
+      if (!settings.statusLine?.command?.includes('motif')) {
+        errors.push('settings.json missing Motif statusLine');
+      }
+    } catch (_) {
+      errors.push('settings.json is not valid JSON');
+    }
+  } else {
+    errors.push('.claude/settings.json not found after installation');
+  }
+
   return errors;
 }
 
@@ -452,6 +527,47 @@ function cleanEmptyDirs(dir) {
   const remaining = fs.readdirSync(dir);
   if (remaining.length === 0) {
     fs.rmdirSync(dir);
+  }
+}
+
+function removeHookSettings(flags) {
+  const cwd = process.cwd();
+  const settingsPath = path.join(cwd, '.claude', 'settings.json');
+
+  if (!fs.existsSync(settingsPath)) return;
+
+  let settings;
+  try {
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+  } catch (_) {
+    return; // Can't parse, leave it alone
+  }
+
+  if (flags['dry-run']) {
+    console.log('  Would remove: Motif hooks from .claude/settings.json');
+    return;
+  }
+
+  // Remove Motif PostToolUse matcher group
+  if (settings.hooks?.PostToolUse) {
+    settings.hooks.PostToolUse = settings.hooks.PostToolUse.filter(
+      g => !(g.matcher === 'Write|Edit' && g.hooks?.some(h => h.command?.includes('motif')))
+    );
+    // Clean up empty arrays
+    if (settings.hooks.PostToolUse.length === 0) delete settings.hooks.PostToolUse;
+    if (Object.keys(settings.hooks).length === 0) delete settings.hooks;
+  }
+
+  // Remove Motif statusLine (only if it's the Motif one)
+  if (settings.statusLine?.command?.includes('motif')) {
+    delete settings.statusLine;
+  }
+
+  // If settings is now empty, delete the file
+  if (Object.keys(settings).length === 0) {
+    fs.unlinkSync(settingsPath);
+  } else {
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
   }
 }
 
@@ -531,6 +647,7 @@ function uninstall(flags) {
   }
 
   if (flags['dry-run']) {
+    console.log(`  Would remove: Motif hooks from .claude/settings.json`);
     console.log(`  Would remove: CLAUDE.md sentinel block`);
     console.log(`  Would remove: .motif-manifest.json`);
     const backupDir = path.join(cwd, '.motif-backup');
@@ -547,6 +664,9 @@ function uninstall(flags) {
   const commandsMotifDir = path.join(cwd, '.claude', 'commands', 'motif');
   cleanEmptyDirs(getMotifDir);
   cleanEmptyDirs(commandsMotifDir);
+
+  // 2.5 Remove hook settings from settings.json
+  removeHookSettings(flags);
 
   // 3. Remove CLAUDE.md sentinel block
   removeConfigSnippet();
@@ -594,6 +714,7 @@ if (fs.existsSync(manifestPath)) {
 
 const copyResult = copyFiles(mapping, existingManifest, flags);
 const injectResult = injectConfig(mapping, flags);
+injectHookSettings(mapping, flags);
 
 if (!flags['dry-run']) {
   writeManifest(mapping, copyResult, flags);
