@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 4 of 8 (Rebrand and Distribution) -- COMPLETE
-Plan: 3 of 3 in current phase (04-01, 04-02, 04-03 complete)
+Plan: 4 of 4 in current phase (04-01, 04-02, 04-03, 04-04 complete)
 Status: Phase Complete
-Last activity: 2026-03-02 -- Completed 04-03 (Final Verification)
+Last activity: 2026-03-02 -- Completed 04-04 (Gap Closure)
 
 Progress: [██████░░░░] 46%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 3min
-- Total execution time: 0.54 hours
+- Total execution time: 0.57 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [██████░░░░] 46%
 | 01-agent-definitions | 3 | 12min | 4min |
 | 02-templates | 2 | 3min | 1.5min |
 | 03-installer | 3 | 9min | 3min |
-| 04-rebrand-and-distribution | 3 | 5min | 1.7min |
+| 04-rebrand-and-distribution | 4 | 7min | 1.75min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02 (4min), 03-03 (2min), 04-01 (3min), 04-02 (1min), 04-03 (1min)
+- Last 5 plans: 03-03 (2min), 04-01 (3min), 04-02 (1min), 04-03 (1min), 04-04 (2min)
 - Trend: Consistent (all fast, single-wave execution)
 
 *Updated after each plan completion*
@@ -69,6 +69,8 @@ Recent decisions affecting current work:
 - Replacement map applied most-specific-first to prevent partial match corruption during sed rebrand
 - All 33 shipped files rebranded: zero forge/Design Forge/FORGE_ROOT references remain in core/, runtimes/, bin/
 - Phase 4 confirmed complete: all four requirements (BRND-01, DIST-01, DIST-02, DIST-03) verified programmatically with zero failures
+- BUILD-SPEC.md status markers updated to BUILT for agents and distribution files (verified on disk)
+- E2e test snippet resolution simplified to {MOTIF_ROOT} only (matching current installer behavior)
 
 ### Pending Todos
 
@@ -81,5 +83,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 04-03-PLAN.md (Final Verification) -- Phase 4 complete
-Resume file: .planning/phases/04-rebrand-and-distribution/04-03-SUMMARY.md
+Stopped at: Completed 04-04-PLAN.md (Gap Closure) -- Phase 4 fully complete, all UAT gaps resolved
+Resume file: .planning/phases/04-rebrand-and-distribution/04-04-SUMMARY.md
