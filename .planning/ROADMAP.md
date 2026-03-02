@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Agent Definitions** - Create the 5 subagent personality definitions that make workflows executable
 - [x] **Phase 2: Templates** - Build the 3 core output templates that formalize agent outputs
-- [ ] **Phase 3: Installer** - Build the runtime-detecting installer that delivers Motif to user projects
+- [x] **Phase 3: Installer** - Build the runtime-detecting installer that delivers Motif to user projects
 - [ ] **Phase 4: Rebrand and Distribution** - Rename everything from "Design Forge" to "Motif" and prepare npm package identity
 - [ ] **Phase 5: Verticals** - Add health, SaaS, and e-commerce domain intelligence databases
 - [ ] **Phase 6: Hooks and Scripts** - Build PostToolUse enforcement hooks and utility scripts
@@ -66,9 +66,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — package.json + bin/install.js fresh-install pipeline (INST-01, INST-02, INST-03, INST-06 partial, INST-07, INST-08)
-- [ ] 03-02-PLAN.md — Manifest-based upgrade tracking, backup, and uninstall (INST-04, INST-05, INST-06 complete)
-- [ ] 03-03-PLAN.md — End-to-end lifecycle verification (all INST requirements)
+- [x] 03-01-PLAN.md — package.json + bin/install.js fresh-install pipeline (INST-01, INST-02, INST-03, INST-06 partial, INST-07, INST-08)
+- [x] 03-02-PLAN.md — Manifest-based upgrade tracking, backup, and uninstall (INST-04, INST-05, INST-06 complete)
+- [x] 03-03-PLAN.md — End-to-end lifecycle verification (all INST requirements)
 
 ### Phase 4: Rebrand and Distribution
 **Goal**: The product ships under the "Motif" identity with all packaging required for npm distribution
@@ -155,7 +155,7 @@ Note: Phases 5 and 6 can execute in parallel (independent content).
 |-------|----------------|--------|-----------|
 | 1. Agent Definitions | 3/3 | ✓ Complete | 2026-03-01 |
 | 2. Templates | 2/2 | ✓ Complete | 2026-03-01 |
-| 3. Installer | 0/3 | Not started | - |
+| 3. Installer | 3/3 | ✓ Complete | 2026-03-02 |
 | 4. Rebrand and Distribution | 0/TBD | Not started | - |
 | 5. Verticals | 0/TBD | Not started | - |
 | 6. Hooks and Scripts | 0/TBD | Not started | - |
