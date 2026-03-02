@@ -79,11 +79,12 @@ Plans:
   2. `package.json` has name "motif", correct bin field pointing to `bin/install.js`, files whitelist (`bin/`, `core/`, `runtimes/`, `scripts/`), and engines `>=22.0.0`
   3. MIT LICENSE file exists at project root
   4. README.md contains pitch, one-command install instructions, command reference for all 10 slash commands, architecture overview, and how-it-works section
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — Complete rebrand of source files, directories, installer, and CLAUDE.md (BRND-01)
+- [ ] 04-02-PLAN.md — MIT LICENSE and comprehensive README.md (DIST-02, DIST-03)
+- [ ] 04-03-PLAN.md — End-to-end verification of all Phase 4 requirements (BRND-01, DIST-01, DIST-02, DIST-03)
 
 ### Phase 5: Verticals
 **Goal**: Motif proves domain generalizability -- three new verticals demonstrate that the system produces domain-intelligent designs beyond fintech
@@ -156,7 +157,7 @@ Note: Phases 5 and 6 can execute in parallel (independent content).
 | 1. Agent Definitions | 3/3 | ✓ Complete | 2026-03-01 |
 | 2. Templates | 2/2 | ✓ Complete | 2026-03-01 |
 | 3. Installer | 3/3 | ✓ Complete | 2026-03-02 |
-| 4. Rebrand and Distribution | 0/TBD | Not started | - |
+| 4. Rebrand and Distribution | 0/3 | In Progress | - |
 | 5. Verticals | 0/TBD | Not started | - |
 | 6. Hooks and Scripts | 0/TBD | Not started | - |
 | 7. Validation | 0/TBD | Not started | - |
