@@ -113,11 +113,12 @@ Plans:
   3. A11y-check hook flags accessibility violations: div+onClick without role/tabindex, img without alt, input without label
   4. Context-monitor hook displays current context usage percentage in the status line and warns when context exceeds 50%
   5. Contrast checker script calculates WCAG contrast ratios for any two colors using pure Node.js (no dependencies)
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md — PostToolUse compliance hooks: token-check, font-check, a11y-check (HOOK-01, HOOK-02, HOOK-03)
+- [ ] 06-02-PLAN.md — Context monitor statusLine and utility scripts (HOOK-04, SCRP-01, SCRP-02)
+- [ ] 06-03-PLAN.md — Installer integration: hooks copy mapping and settings.json injection
 
 ### Phase 7: Validation
 **Goal**: The complete Motif system works end-to-end on real projects, proving that domain intelligence, fresh context, differentiation, and brand color preservation all function as designed
@@ -161,6 +162,6 @@ Note: Phases 5 and 6 can execute in parallel (independent content).
 | 3. Installer | 3/3 | ✓ Complete | 2026-03-02 |
 | 4. Rebrand and Distribution | 4/4 | ✓ Complete | 2026-03-02 |
 | 5. Verticals | 3/3 | ✓ Complete | 2026-03-02 |
-| 6. Hooks and Scripts | 0/TBD | Not started | - |
+| 6. Hooks and Scripts | 0/3 | Not started | - |
 | 7. Validation | 0/TBD | Not started | - |
 | 8. CI and Publish | 0/TBD | Not started | - |
