@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 03-installer
 source: [03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md]
 started: 2026-03-02T07:00:00Z
@@ -61,7 +61,18 @@ skipped: 0
   reason: "User reported: There are still references of get-design-forge for opencode/gemini runtimes, .design-forge for cursor, and /forge: commands in help.md and design-inputs.md. Files and names should be consistent with app name."
   severity: major
   test: 2
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Source files in core/ and runtimes/ contain old branding verbatim. The installer's resolveContent() only resolves {FORGE_ROOT} and .claude/get-design-forge (path resolution), not brand-level renames. 30+ source files across core/workflows, core/references, runtimes/claude-code/commands/forge, and runtimes/claude-code/agents still use 'Design Forge', '/forge:', 'get-design-forge', '.design-forge'. This is Phase 4 (BRND-01) scope."
+  artifacts:
+    - path: "core/references/runtime-adapters.md"
+      issue: "Contains .opencode/get-design-forge, .gemini/get-design-forge, .design-forge, /forge: commands"
+    - path: "core/references/design-inputs.md"
+      issue: "Contains /forge:init through /forge:review throughout"
+    - path: "runtimes/claude-code/commands/forge/help.md"
+      issue: "All 10 commands listed as /forge:* instead of /motif:*"
+    - path: "runtimes/claude-code/CLAUDE-MD-SNIPPET.md"
+      issue: "Says Design Forge Rules, /forge: commands"
+  missing:
+    - "Phase 4 BRND-01: Search-and-replace 18 old strings across 30+ source files"
+    - "Phase 4: Rename runtimes/claude-code/commands/forge/ directory to commands/motif/"
+    - "Phase 4: Rename forge-*.md agent files to motif-*.md"
+  debug_session: ".planning/debug/uat-gap-old-branding-references.md"
