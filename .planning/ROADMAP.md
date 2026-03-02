@@ -130,12 +130,12 @@ Plans:
   3. Running the same vertical with two different differentiation seeds produces visibly distinct color palettes, typography choices, and component styling
   4. User-specified brand colors appear in generated tokens without being overridden or replaced by the system's palette generation
   5. Screen quality (token compliance, design coherence) remains consistent across 5+ screens composed in sequence, demonstrating fresh context isolation
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
-- [ ] 07-03: TBD
+- [ ] 07-01-PLAN.md — Build validation scripts: workflow artifact checker, token quality checker, differentiation comparator (VALD-01 through VALD-05 tooling)
+- [ ] 07-02-PLAN.md — Controlled test project end-to-end workflow validation (VALD-01)
+- [ ] 07-03-PLAN.md — CryptoPay battle test, differentiation, brand color preservation, screen consistency (VALD-02, VALD-03, VALD-04, VALD-05)
 
 ### Phase 8: CI and Publish
 **Goal**: Motif is published to npm and future releases are automated
@@ -163,5 +163,5 @@ Note: Phases 5 and 6 can execute in parallel (independent content).
 | 4. Rebrand and Distribution | 4/4 | ✓ Complete | 2026-03-02 |
 | 5. Verticals | 3/3 | ✓ Complete | 2026-03-02 |
 | 6. Hooks and Scripts | 3/3 | ✓ Complete | 2026-03-02 |
-| 7. Validation | 0/TBD | Not started | - |
+| 7. Validation | 0/3 | Not started | - |
 | 8. CI and Publish | 0/TBD | Not started | - |
