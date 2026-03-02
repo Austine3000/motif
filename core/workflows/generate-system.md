@@ -150,7 +150,7 @@ IF Starting Fresh (Type A) or no color constraints:
 ### Token File Format
 ```css
 /* ═══════════════════════════════════════
-   DESIGN FORGE — [Product] Design Tokens
+   MOTIF — [Product] Design Tokens
    Vertical: [vertical] | Generated: [date]
    ═══════════════════════════════════════ */
 

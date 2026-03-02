@@ -20,7 +20,7 @@ These files are **identical** regardless of runtime:
 | Component | Claude Code | OpenCode | Gemini CLI | Cursor/Windsurf |
 |---|---|---|---|---|
 | **Commands** | `.claude/commands/motif/*.md` | `.opencode/commands/motif/*.md` | `.gemini/commands/motif/*.md` | N/A (no slash commands) |
-| **Agent defs** | `.claude/agents/forge-*.md` | `.opencode/agents/forge-*.md` | `.gemini/agents/forge-*.md` | N/A |
+| **Agent defs** | `.claude/agents/motif-*.md` | `.opencode/agents/motif-*.md` | `.gemini/agents/motif-*.md` | N/A |
 | **Hooks** | `.claude/hooks/*.js` (PostToolUse) | Runtime-specific or skip | Runtime-specific or skip | N/A |
 | **Config injection** | Append to `.claude/CLAUDE.md` | Append to `.opencode/AGENTS.md` | Append to `GEMINI.md` | Append to `.cursorrules` |
 | **Subagent spawn** | `Task()` tool | `agent()` or equivalent | Runtime-specific | N/A (single context) |
