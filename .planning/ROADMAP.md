@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Templates** - Build the 3 core output templates that formalize agent outputs
 - [x] **Phase 3: Installer** - Build the runtime-detecting installer that delivers Motif to user projects
 - [x] **Phase 4: Rebrand and Distribution** - Rename everything from "Design Forge" to "Motif" and prepare npm package identity
-- [ ] **Phase 5: Verticals** - Add health, SaaS, and e-commerce domain intelligence databases
+- [x] **Phase 5: Verticals** - Add health, SaaS, and e-commerce domain intelligence databases
 - [ ] **Phase 6: Hooks and Scripts** - Build PostToolUse enforcement hooks and utility scripts
 - [ ] **Phase 7: Validation** - End-to-end testing on controlled and real projects
 - [ ] **Phase 8: CI and Publish** - Automate npm publishing via GitHub Actions
@@ -99,9 +99,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Health vertical design intelligence (VERT-01)
-- [ ] 05-02-PLAN.md — SaaS vertical design intelligence (VERT-02)
-- [ ] 05-03-PLAN.md — E-commerce vertical design intelligence (VERT-03)
+- [x] 05-01-PLAN.md — Health vertical design intelligence (VERT-01)
+- [x] 05-02-PLAN.md — SaaS vertical design intelligence (VERT-02)
+- [x] 05-03-PLAN.md — E-commerce vertical design intelligence (VERT-03)
 
 ### Phase 6: Hooks and Scripts
 **Goal**: Design system compliance is enforced automatically during composition, and utility scripts support agent workflows
@@ -160,7 +160,7 @@ Note: Phases 5 and 6 can execute in parallel (independent content).
 | 2. Templates | 2/2 | ✓ Complete | 2026-03-01 |
 | 3. Installer | 3/3 | ✓ Complete | 2026-03-02 |
 | 4. Rebrand and Distribution | 4/4 | ✓ Complete | 2026-03-02 |
-| 5. Verticals | 0/3 | Not started | - |
+| 5. Verticals | 3/3 | ✓ Complete | 2026-03-02 |
 | 6. Hooks and Scripts | 0/TBD | Not started | - |
 | 7. Validation | 0/TBD | Not started | - |
 | 8. CI and Publish | 0/TBD | Not started | - |
