@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 6 of 8 (Hooks and Scripts) -- IN PROGRESS
-Plan: 2 of 3 in current phase (06-02 complete)
+Plan: 2 of 3 in current phase (06-01, 06-02 complete)
 Status: Executing
-Last activity: 2026-03-02 -- Completed 06-02 (Context Monitor and Utility Scripts)
+Last activity: 2026-03-02 -- Completed 06-01 (Compliance Hooks)
 
-Progress: [███████░░░] 71%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 3min
-- Total execution time: 0.69 hours
+- Total execution time: 0.76 hours
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: [███████░░░] 71%
 | 03-installer | 3 | 9min | 3min |
 | 04-rebrand-and-distribution | 4 | 7min | 1.75min |
 | 05-verticals | 3 | 6min | 2min |
-| 06-hooks-and-scripts | 1 | 2min | 2min |
+| 06-hooks-and-scripts | 2 | 6min | 3min |
 
 **Recent Trend:**
-- Last 5 plans: 04-04 (2min), 05-03 (2min), 05-02 (2min), 05-01 (2min), 06-02 (2min)
+- Last 5 plans: 05-03 (2min), 05-02 (2min), 05-01 (2min), 06-02 (2min), 06-01 (4min)
 - Trend: Consistent (all fast, single-wave execution)
 
 *Updated after each plan completion*
@@ -88,6 +88,9 @@ Recent decisions affecting current work:
 - StatusLine context monitor uses process.stdout.write() (not console.log) to avoid trailing newline
 - WCAG 2.1 threshold 0.04045 for sRGB linearization in contrast-checker (not legacy 0.03928)
 - Binary file detection in token-counter via null byte check in first 512 bytes
+- box-shadow hook uses line-level skip function instead of regex negative lookahead to avoid backtracking false positives
+- Font-check matches both CSS font-family and JSX fontFamily property syntax since tsx/jsx are target extensions
+- border-radius skip uses parsed numeric comparison rather than string matching to avoid 10px/20px false passes
 
 ### Pending Todos
 
@@ -100,5 +103,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 06-02-PLAN.md (Context Monitor and Utility Scripts)
-Resume file: .planning/phases/06-hooks-and-scripts/06-02-SUMMARY.md
+Stopped at: Completed 06-01-PLAN.md (Compliance Hooks)
+Resume file: .planning/phases/06-hooks-and-scripts/06-01-SUMMARY.md
