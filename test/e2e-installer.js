@@ -109,7 +109,7 @@ try {
     '.claude/get-motif/references/state-machine.md',
     '.claude/get-motif/references/verticals/fintech.md',
     '.claude/get-motif/workflows/research.md',
-    '.claude/get-motif/agents/forge-researcher.md',
+    '.claude/get-motif/agents/motif-researcher.md',
     '.claude/commands/motif/init.md',
     '.claude/get-motif/templates/STATE-TEMPLATE.md',
     '.claude/get-motif/templates/token-showcase-template.html',
@@ -133,17 +133,17 @@ try {
 
   const test2StartIdx = testResults.length;
 
-  // Grep for {FORGE_ROOT} in all .md files
-  const forgeRootMatches1 = grepFiles(path.join(tmpBase, '.claude', 'get-motif'), '{FORGE_ROOT}');
-  const forgeRootMatches2 = grepFiles(path.join(tmpBase, '.claude', 'commands', 'motif'), '{FORGE_ROOT}');
-  const allForgeRootMatches = [...forgeRootMatches1, ...forgeRootMatches2];
+  // Grep for {MOTIF_ROOT} unresolved placeholders in all .md files
+  const motifRootMatches1 = grepFiles(path.join(tmpBase, '.claude', 'get-motif'), '{MOTIF_ROOT}');
+  const motifRootMatches2 = grepFiles(path.join(tmpBase, '.claude', 'commands', 'motif'), '{MOTIF_ROOT}');
+  const allMotifRootMatches = [...motifRootMatches1, ...motifRootMatches2];
 
-  assert(allForgeRootMatches.length === 0, `Zero {FORGE_ROOT} occurrences (found: ${allForgeRootMatches.length})`);
-  if (allForgeRootMatches.length > 0) {
-    console.log(`    Files with {FORGE_ROOT}: ${allForgeRootMatches.join(', ')}`);
+  assert(allMotifRootMatches.length === 0, `Zero {MOTIF_ROOT} unresolved occurrences (found: ${allMotifRootMatches.length})`);
+  if (allMotifRootMatches.length > 0) {
+    console.log(`    Files with {MOTIF_ROOT}: ${allMotifRootMatches.join(', ')}`);
   }
 
-  // Grep for .claude/get-design-forge
+  // Regression check: ensure no .claude/get-design-forge old paths survive
   const oldPathMatches1 = grepFiles(path.join(tmpBase, '.claude', 'get-motif'), '.claude/get-design-forge');
   const oldPathMatches2 = grepFiles(path.join(tmpBase, '.claude', 'commands', 'motif'), '.claude/get-design-forge');
   const allOldPathMatches = [...oldPathMatches1, ...oldPathMatches2];
@@ -195,10 +195,9 @@ try {
   // Check snippet content is between markers
   const snippetPath = path.join(PROJECT_ROOT, 'runtimes', 'claude-code', 'CLAUDE-MD-SNIPPET.md');
   const snippetContent = fs.readFileSync(snippetPath, 'utf8');
-  // The snippet content gets {FORGE_ROOT} resolved to .claude/get-motif
+  // The snippet content gets {MOTIF_ROOT} resolved to .claude/get-motif at install time
   const resolvedSnippet = snippetContent
-    .replaceAll('{FORGE_ROOT}', '.claude/get-motif')
-    .replaceAll('.claude/get-design-forge', '.claude/get-motif');
+    .replaceAll('{MOTIF_ROOT}', '.claude/get-motif');
   const betweenMarkers = claudeContent.substring(
     startIdx + '<!-- MOTIF-START -->'.length + 1,
     endIdx - 1

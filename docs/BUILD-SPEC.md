@@ -1,6 +1,6 @@
-# Design Forge — Build Specification
+# Motif — Build Specification
 
-> Complete roadmap for building Design Forge to production quality.
+> Complete roadmap for building Motif to production quality.
 > Architecture: core + runtime adapters. v1.0 ships Claude Code only.
 > Status: ██████░░░░ ~55% — Core architecture + workflows designed, needs agents + installer + verticals.
 
@@ -40,18 +40,18 @@
 
 | File | Status | Priority |
 |---|---|---|
-| `runtimes/claude-code/commands/forge/init.md` | ★ BUILT | P0 |
-| `runtimes/claude-code/commands/forge/*.md` (9 others) | ★ BUILT | P0 |
+| `runtimes/claude-code/commands/motif/init.md` | ★ BUILT | P0 |
+| `runtimes/claude-code/commands/motif/*.md` (9 others) | ★ BUILT | P0 |
 | `runtimes/claude-code/CLAUDE-MD-SNIPPET.md` | ★ BUILT | P0 |
-| `runtimes/claude-code/agents/forge-researcher.md` | ○ NOT BUILT | P1 |
-| `runtimes/claude-code/agents/forge-system-architect.md` | ○ NOT BUILT | P1 |
-| `runtimes/claude-code/agents/forge-screen-composer.md` | ○ NOT BUILT | P1 |
-| `runtimes/claude-code/agents/forge-design-reviewer.md` | ○ NOT BUILT | P1 |
-| `runtimes/claude-code/agents/forge-fix-agent.md` | ○ NOT BUILT | P1 |
-| `runtimes/claude-code/hooks/forge-token-check.js` | ○ NOT BUILT | P2 |
-| `runtimes/claude-code/hooks/forge-font-check.js` | ○ NOT BUILT | P2 |
-| `runtimes/claude-code/hooks/forge-aria-check.js` | ○ NOT BUILT | P2 |
-| `runtimes/claude-code/hooks/forge-context-monitor.js` | ○ NOT BUILT | P2 |
+| `runtimes/claude-code/agents/motif-researcher.md` | ★ BUILT | P1 |
+| `runtimes/claude-code/agents/motif-system-architect.md` | ★ BUILT | P1 |
+| `runtimes/claude-code/agents/motif-screen-composer.md` | ★ BUILT | P1 |
+| `runtimes/claude-code/agents/motif-design-reviewer.md` | ★ BUILT | P1 |
+| `runtimes/claude-code/agents/motif-fix-agent.md` | ★ BUILT | P1 |
+| `runtimes/claude-code/hooks/motif-token-check.js` | ○ NOT BUILT | P2 |
+| `runtimes/claude-code/hooks/motif-font-check.js` | ○ NOT BUILT | P2 |
+| `runtimes/claude-code/hooks/motif-aria-check.js` | ○ NOT BUILT | P2 |
+| `runtimes/claude-code/hooks/motif-context-monitor.js` | ○ NOT BUILT | P2 |
 
 ### Runtime: Other (future)
 
@@ -65,10 +65,10 @@
 
 | File | Status | Priority |
 |---|---|---|
-| `bin/install.js` | ○ NOT BUILT | P1 |
-| `package.json` | ○ NOT BUILT | P1 |
-| `README.md` | ○ NOT BUILT | P1 |
-| `LICENSE` | ○ NOT BUILT | P1 |
+| `bin/install.js` | ★ BUILT | P1 |
+| `package.json` | ★ BUILT | P1 |
+| `README.md` | ★ BUILT | P1 |
+| `LICENSE` | ★ BUILT | P1 |
 | `CHANGELOG.md` | ○ NOT BUILT | P2 |
 | `scripts/contrast-checker.js` | ○ NOT BUILT | P2 |
 | `scripts/token-counter.js` | ○ NOT BUILT | P2 |
@@ -79,7 +79,7 @@
 
 ### Milestone 1: Make It Work (Phases 1-2)
 Complete agents, templates, installer. Get a single end-to-end flow:
-`/forge:init` → `/forge:research` → `/forge:system` → `/forge:compose` → `/forge:review`
+`/motif:init` → `/motif:research` → `/motif:system` → `/motif:compose` → `/motif:review`
 
 ### Milestone 2: Make It Smart (Phase 3)
 Expand to 4 verticals (fintech + health + saas + ecommerce).
