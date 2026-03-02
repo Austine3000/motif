@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Agent Definitions** - Create the 5 subagent personality definitions that make workflows executable
 - [x] **Phase 2: Templates** - Build the 3 core output templates that formalize agent outputs
 - [x] **Phase 3: Installer** - Build the runtime-detecting installer that delivers Motif to user projects
-- [ ] **Phase 4: Rebrand and Distribution** - Rename everything from "Design Forge" to "Motif" and prepare npm package identity
+- [x] **Phase 4: Rebrand and Distribution** - Rename everything from "Design Forge" to "Motif" and prepare npm package identity
 - [ ] **Phase 5: Verticals** - Add health, SaaS, and e-commerce domain intelligence databases
 - [ ] **Phase 6: Hooks and Scripts** - Build PostToolUse enforcement hooks and utility scripts
 - [ ] **Phase 7: Validation** - End-to-end testing on controlled and real projects
@@ -85,7 +85,7 @@ Plans:
 - [x] 04-01-PLAN.md — Complete rebrand of source files, directories, installer, and CLAUDE.md (BRND-01)
 - [x] 04-02-PLAN.md — MIT LICENSE and comprehensive README.md (DIST-02, DIST-03)
 - [x] 04-03-PLAN.md — End-to-end verification of all Phase 4 requirements (BRND-01, DIST-01, DIST-02, DIST-03)
-- [ ] 04-04-PLAN.md — UAT gap closure: fix stale forge references in runtime-adapters.md, generate-system.md, BUILD-SPEC.md, e2e-installer.js
+- [x] 04-04-PLAN.md — UAT gap closure: fix stale forge references in runtime-adapters.md, generate-system.md, BUILD-SPEC.md, e2e-installer.js
 
 ### Phase 5: Verticals
 **Goal**: Motif proves domain generalizability -- three new verticals demonstrate that the system produces domain-intelligent designs beyond fintech
@@ -158,7 +158,7 @@ Note: Phases 5 and 6 can execute in parallel (independent content).
 | 1. Agent Definitions | 3/3 | ✓ Complete | 2026-03-01 |
 | 2. Templates | 2/2 | ✓ Complete | 2026-03-01 |
 | 3. Installer | 3/3 | ✓ Complete | 2026-03-02 |
-| 4. Rebrand and Distribution | 3/4 | Gap closure | - |
+| 4. Rebrand and Distribution | 4/4 | ✓ Complete | 2026-03-02 |
 | 5. Verticals | 0/TBD | Not started | - |
 | 6. Hooks and Scripts | 0/TBD | Not started | - |
 | 7. Validation | 0/TBD | Not started | - |
