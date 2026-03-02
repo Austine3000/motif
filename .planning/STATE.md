@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Domain-intelligent design delivered through fresh context -- a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 4 - Rebrand and Distribution (COMPLETE)
+**Current focus:** Phase 5 - Verticals (IN PROGRESS)
 
 ## Current Position
 
-Phase: 4 of 8 (Rebrand and Distribution) -- COMPLETE
-Plan: 4 of 4 in current phase (04-01, 04-02, 04-03, 04-04 complete)
-Status: Phase Complete
-Last activity: 2026-03-02 -- Completed 04-04 (Gap Closure)
+Phase: 5 of 8 (Verticals)
+Plan: 3 of 3 in current phase (05-03 complete)
+Status: Plan 05-03 Complete
+Last activity: 2026-03-02 -- Completed 05-03 (E-commerce Vertical)
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 56%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 3min
-- Total execution time: 0.57 hours
+- Total execution time: 0.60 hours
 
 **By Phase:**
 
@@ -31,9 +31,10 @@ Progress: [█████░░░░░] 50%
 | 02-templates | 2 | 3min | 1.5min |
 | 03-installer | 3 | 9min | 3min |
 | 04-rebrand-and-distribution | 4 | 7min | 1.75min |
+| 05-verticals | 1 | 2min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (2min), 04-01 (3min), 04-02 (1min), 04-03 (1min), 04-04 (2min)
+- Last 5 plans: 04-01 (3min), 04-02 (1min), 04-03 (1min), 04-04 (2min), 05-03 (2min)
 - Trend: Consistent (all fast, single-wave execution)
 
 *Updated after each plan completion*
@@ -71,6 +72,10 @@ Recent decisions affecting current work:
 - Phase 4 confirmed complete: all four requirements (BRND-01, DIST-01, DIST-02, DIST-03) verified programmatically with zero failures
 - BUILD-SPEC.md status markers updated to BUILT for agents and distribution files (verified on disk)
 - E2e test snippet resolution simplified to {MOTIF_ROOT} only (matching current installer behavior)
+- E-commerce vertical palette A uses #EA580C (HSL 21 deg amber) -- warm, visibly different from fintech's teal
+- E-commerce vertical follows fintech.md structure exactly: 11 H2 sections, 251 lines, XML component specs
+- Syne + Work Sans chosen as primary e-commerce font pairing (both Google Fonts); Clash Display/Gambetta noted as Fontshare alternatives
+- Layered multi-depth shadows (4 levels) for e-commerce per generate-system.md designation
 
 ### Pending Todos
 
@@ -83,5 +88,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 04-04-PLAN.md (Gap Closure) -- Phase 4 fully complete, all UAT gaps resolved
-Resume file: .planning/phases/04-rebrand-and-distribution/04-04-SUMMARY.md
+Stopped at: Completed 05-03-PLAN.md (E-commerce Vertical)
+Resume file: .planning/phases/05-verticals/05-03-SUMMARY.md
