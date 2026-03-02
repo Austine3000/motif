@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 4 of 8 (Rebrand and Distribution)
-Plan: 2 of 3 in current phase
+Plan: 2 of 3 in current phase (04-01, 04-02 complete)
 Status: Executing
-Last activity: 2026-03-02 -- Completed 04-02 (Distribution Artifacts)
+Last activity: 2026-03-02 -- Completed 04-01 (Source Rebrand)
 
-Progress: [█████░░░░░] 40%
+Progress: [█████░░░░░] 42%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 3min
-- Total execution time: 0.47 hours
+- Total execution time: 0.52 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [█████░░░░░] 40%
 | 01-agent-definitions | 3 | 12min | 4min |
 | 02-templates | 2 | 3min | 1.5min |
 | 03-installer | 3 | 9min | 3min |
-| 04-rebrand-and-distribution | 1 | 1min | 1min |
+| 04-rebrand-and-distribution | 2 | 4min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (3min), 03-02 (4min), 03-03 (2min), 04-02 (1min)
+- Last 5 plans: 03-01 (3min), 03-02 (4min), 03-03 (2min), 04-02 (1min), 04-01 (3min)
 - Trend: Consistent (all fast, single-wave execution)
 
 *Updated after each plan completion*
@@ -57,8 +57,8 @@ Recent decisions affecting current work:
 - Templates use extract-and-formalize pattern: derive from source-of-truth files with sync comments
 - Placeholder convention: {UPPER_SNAKE} for orchestrator values, [description] for agent-written content
 - Token showcase template: self-contained HTML with inline CSS, 232 var(--token) references, fallback warning pattern, zero JavaScript
-- Resolve {FORGE_ROOT} at install time for zero-ambiguity agent reads
-- Also resolve .claude/get-design-forge to .claude/get-motif during copy for rebrand compatibility
+- Resolve {MOTIF_ROOT} at install time for zero-ambiguity agent reads (rebranded from FORGE_ROOT in 04-01)
+- Removed .claude/get-design-forge fallback from resolveContent() -- no longer needed after source rebrand
 - Uninstall stub deferred to Plan 02; Scripts/ directory gracefully skipped if empty
 - shouldBackup returns true when no manifest or file not in manifest -- conservative safety for unknown state
 - CLAUDE.md excluded from manifest file deletion during uninstall -- handled exclusively by sentinel stripping to preserve user content
@@ -66,6 +66,8 @@ Recent decisions affecting current work:
 - Hash verification spot-checks 3 random manifest files for test speed balance
 - Copyright holder for LICENSE set to "SailsLab" (adjustable before publish)
 - README ~90 lines for scannability; ASCII diagram over Mermaid for universal rendering
+- Replacement map applied most-specific-first to prevent partial match corruption during sed rebrand
+- All 33 shipped files rebranded: zero forge/Design Forge/FORGE_ROOT references remain in core/, runtimes/, bin/
 
 ### Pending Todos
 
@@ -78,5 +80,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 04-02-PLAN.md (Distribution Artifacts)
-Resume file: .planning/phases/04-rebrand-and-distribution/04-02-SUMMARY.md
+Stopped at: Completed 04-01-PLAN.md (Source Rebrand)
+Resume file: .planning/phases/04-rebrand-and-distribution/04-01-SUMMARY.md
