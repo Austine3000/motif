@@ -96,11 +96,12 @@ Plans:
   2. SaaS vertical exists at `core/references/verticals/saas.md` and follows the exact structure of `fintech.md`
   3. E-commerce vertical exists at `core/references/verticals/ecommerce.md` and follows the exact structure of `fintech.md`
   4. Each vertical contains domain-specific patterns, color palettes, typography guidance, component patterns, and anti-patterns that would produce visibly different designs from fintech
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — Health vertical design intelligence (VERT-01)
+- [ ] 05-02-PLAN.md — SaaS vertical design intelligence (VERT-02)
+- [ ] 05-03-PLAN.md — E-commerce vertical design intelligence (VERT-03)
 
 ### Phase 6: Hooks and Scripts
 **Goal**: Design system compliance is enforced automatically during composition, and utility scripts support agent workflows
@@ -159,7 +160,7 @@ Note: Phases 5 and 6 can execute in parallel (independent content).
 | 2. Templates | 2/2 | ✓ Complete | 2026-03-01 |
 | 3. Installer | 3/3 | ✓ Complete | 2026-03-02 |
 | 4. Rebrand and Distribution | 4/4 | ✓ Complete | 2026-03-02 |
-| 5. Verticals | 0/TBD | Not started | - |
+| 5. Verticals | 0/3 | Not started | - |
 | 6. Hooks and Scripts | 0/TBD | Not started | - |
 | 7. Validation | 0/TBD | Not started | - |
 | 8. CI and Publish | 0/TBD | Not started | - |
