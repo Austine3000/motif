@@ -1,6 +1,6 @@
-# Design Forge — Runtime Adapter Reference
+# Motif — Runtime Adapter Reference
 
-Design Forge uses a core + adapters architecture. The core (references, workflows, templates, verticals) is shared across all runtimes. Each runtime gets a thin adapter layer that handles three things: file placement, subagent spawning, and config injection.
+Motif uses a core + adapters architecture. The core (references, workflows, templates, verticals) is shared across all runtimes. Each runtime gets a thin adapter layer that handles three things: file placement, subagent spawning, and config injection.
 
 ---
 
@@ -19,12 +19,12 @@ These files are **identical** regardless of runtime:
 
 | Component | Claude Code | OpenCode | Gemini CLI | Cursor/Windsurf |
 |---|---|---|---|---|
-| **Commands** | `.claude/commands/forge/*.md` | `.opencode/commands/forge/*.md` | `.gemini/commands/forge/*.md` | N/A (no slash commands) |
+| **Commands** | `.claude/commands/motif/*.md` | `.opencode/commands/motif/*.md` | `.gemini/commands/motif/*.md` | N/A (no slash commands) |
 | **Agent defs** | `.claude/agents/forge-*.md` | `.opencode/agents/forge-*.md` | `.gemini/agents/forge-*.md` | N/A |
 | **Hooks** | `.claude/hooks/*.js` (PostToolUse) | Runtime-specific or skip | Runtime-specific or skip | N/A |
 | **Config injection** | Append to `.claude/CLAUDE.md` | Append to `.opencode/AGENTS.md` | Append to `GEMINI.md` | Append to `.cursorrules` |
 | **Subagent spawn** | `Task()` tool | `agent()` or equivalent | Runtime-specific | N/A (single context) |
-| **Core files installed to** | `.claude/get-design-forge/` | `.opencode/get-design-forge/` | `.gemini/get-design-forge/` | `.design-forge/` |
+| **Core files installed to** | `.claude/get-motif/` | `.opencode/get-motif/` | `.gemini/get-motif/` | `.motif/` |
 
 ---
 
@@ -87,51 +87,51 @@ function detectRuntime() {
 
 ### Flags
 ```
-npx design-forge@latest                    # Auto-detect
-npx design-forge@latest --runtime claude-code
-npx design-forge@latest --runtime opencode
-npx design-forge@latest --runtime gemini
-npx design-forge@latest --runtime cursor
+npx motif@latest                    # Auto-detect
+npx motif@latest --runtime claude-code
+npx motif@latest --runtime opencode
+npx motif@latest --runtime gemini
+npx motif@latest --runtime cursor
 ```
 
 ### Install Mapping
 
 **Claude Code (--runtime claude-code):**
 ```
-core/references/     → .claude/get-design-forge/references/
-core/workflows/      → .claude/get-design-forge/workflows/
-core/templates/      → .claude/get-design-forge/templates/
-scripts/             → .claude/get-design-forge/scripts/
-runtimes/claude-code/commands/forge/ → .claude/commands/forge/
-runtimes/claude-code/agents/         → .claude/get-design-forge/agents/
+core/references/     → .claude/get-motif/references/
+core/workflows/      → .claude/get-motif/workflows/
+core/templates/      → .claude/get-motif/templates/
+scripts/             → .claude/get-motif/scripts/
+runtimes/claude-code/commands/motif/ → .claude/commands/motif/
+runtimes/claude-code/agents/         → .claude/get-motif/agents/
 runtimes/claude-code/hooks/          → .claude/hooks/ (merge, don't overwrite)
 runtimes/claude-code/CLAUDE-MD-SNIPPET.md → append to .claude/CLAUDE.md
 ```
 
 **OpenCode (--runtime opencode):**
 ```
-core/references/     → .opencode/get-design-forge/references/
-core/workflows/      → .opencode/get-design-forge/workflows/
-core/templates/      → .opencode/get-design-forge/templates/
-scripts/             → .opencode/get-design-forge/scripts/
-runtimes/opencode/commands/forge/ → .opencode/commands/forge/
-runtimes/opencode/agents/         → .opencode/get-design-forge/agents/
+core/references/     → .opencode/get-motif/references/
+core/workflows/      → .opencode/get-motif/workflows/
+core/templates/      → .opencode/get-motif/templates/
+scripts/             → .opencode/get-motif/scripts/
+runtimes/opencode/commands/motif/ → .opencode/commands/motif/
+runtimes/opencode/agents/         → .opencode/get-motif/agents/
 runtimes/opencode/config-snippet.md → append to .opencode/AGENTS.md
 ```
 
 **Gemini CLI (--runtime gemini):**
 ```
-core/*               → .gemini/get-design-forge/
-runtimes/gemini/commands/forge/ → .gemini/commands/forge/
+core/*               → .gemini/get-motif/
+runtimes/gemini/commands/motif/ → .gemini/commands/motif/
 runtimes/gemini/config-snippet.md → append to GEMINI.md
 ```
 
 **Cursor/Windsurf (--runtime cursor):**
 ```
-core/*               → .design-forge/
+core/*               → .motif/
 runtimes/cursor/rules-snippet.md → append to .cursorrules or .windsurfrules
 ```
-Note: No commands, no agents, no hooks. The rules snippet contains condensed Design Forge instructions that work in single-context mode.
+Note: No commands, no agents, no hooks. The rules snippet contains condensed Motif instructions that work in single-context mode.
 
 ---
 
@@ -139,9 +139,9 @@ Note: No commands, no agents, no hooks. The rules snippet contains condensed Des
 
 The thin command files in each runtime need to point to the core workflows at the correct installed path. This is the ONE thing that differs in command files across runtimes:
 
-**Claude Code:** `Load and follow the workflow at .claude/get-design-forge/workflows/research.md`
-**OpenCode:** `Load and follow the workflow at .opencode/get-design-forge/workflows/research.md`
-**Gemini:** `Load and follow the workflow at .gemini/get-design-forge/workflows/research.md`
+**Claude Code:** `Load and follow the workflow at .claude/get-motif/workflows/research.md`
+**OpenCode:** `Load and follow the workflow at .opencode/get-motif/workflows/research.md`
+**Gemini:** `Load and follow the workflow at .gemini/get-motif/workflows/research.md`
 
 The installer handles this by either:
 1. Generating command files at install time with the correct path prefix, OR
@@ -172,7 +172,7 @@ Add `runtimes/gemini/` when Gemini CLI stabilizes.
 To add support for a new runtime:
 
 1. Create `runtimes/{runtime-name}/`
-2. Copy command files from `runtimes/claude-code/commands/forge/` and update the workflow path prefix
+2. Copy command files from `runtimes/claude-code/commands/motif/` and update the workflow path prefix
 3. Create agent definitions adapted to the runtime's agent format (or skip if no agent support)
 4. Create a config snippet in the runtime's format
 5. Create hooks in the runtime's format (or skip if no hook support)

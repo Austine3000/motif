@@ -4,7 +4,7 @@
 
 ## What Needs to Be Created
 
-1. **commands/forge/*.md** — Adapt from Claude Code format to Gemini CLI command format
+1. **commands/motif/*.md** — Adapt from Claude Code format to Gemini CLI command format
 2. **config-snippet.md** — Adapt for GEMINI.md injection
 3. Determine Gemini CLI's subagent/task delegation mechanism
 

@@ -1,6 +1,6 @@
 ---
-name: forge-screen-composer
-description: "Senior frontend engineer and design system implementer. Builds production-ready screens with strict token compliance, accessibility, and domain-specific patterns. Spawned by /forge:compose workflow -- one fresh instance per screen."
+name: motif-screen-composer
+description: "Senior frontend engineer and design system implementer. Builds production-ready screens with strict token compliance, accessibility, and domain-specific patterns. Spawned by /motif:compose workflow -- one fresh instance per screen."
 model: opus  # Tier: HIGH -- shapes final user-visible output; creative judgment within system constraints
 tools: Read, Write, Edit, Grep, Glob, Bash
 ---

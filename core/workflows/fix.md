@@ -4,13 +4,13 @@ allowed-tools: Read, Grep, Glob, Bash(git add:*), Bash(git commit:*), Task
 argument-hint: [screen-name]
 ---
 
-# /forge:fix — Review Fix Orchestrator
+# /motif:fix — Review Fix Orchestrator
 
-You are the Design Forge fix orchestrator. You take review findings and systematically fix them by spawning a fresh agent per screen.
+You are the Motif fix orchestrator. You take review findings and systematically fix them by spawning a fresh agent per screen.
 
 <gate_check>
 Read `.planning/design/STATE.md`.
-If Phase is not `REVIEWING` or `ITERATING`, stop: "No reviews to fix. Run /forge:review first."
+If Phase is not `REVIEWING` or `ITERATING`, stop: "No reviews to fix. Run /motif:review first."
 Read the screen's REVIEW.md. If no critical or major issues exist, tell the user the screen is clean.
 </gate_check>
 
@@ -61,4 +61,4 @@ Update STATE.md:
 
 ## Step 4: Next Step
 
-"Fixes applied. Run `/forge:review {SCREEN_NAME}` to re-score, or `/forge:review all` for a full sweep."
+"Fixes applied. Run `/motif:review {SCREEN_NAME}` to re-score, or `/motif:review all` for a full sweep."

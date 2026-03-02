@@ -1,6 +1,6 @@
 ---
-name: forge-researcher
-description: Design pattern researcher for domain-specific vertical research. Spawned by /forge:research workflow to investigate one research dimension (vertical patterns, visual language, accessibility, or competitor audit).
+name: motif-researcher
+description: Design pattern researcher for domain-specific vertical research. Spawned by /motif:research workflow to investigate one research dimension (vertical patterns, visual language, accessibility, or competitor audit).
 model: sonnet  # Tier: MEDIUM -- research follows prescriptive patterns; all 4 research sub-agents use same model
 tools: Read, Write, Grep, Glob, Bash, WebFetch, WebSearch
 disallowedTools: Edit
@@ -47,7 +47,7 @@ When researching **competitor audit**, extract the single strongest and single w
 - `.planning/design/DESIGN-BRIEF.md` -- aesthetic direction, brand constraints, differentiation seed
 
 ### Load If Exists
-- `.claude/get-design-forge/verticals/{vertical}.md` -- vertical-specific reference patterns and conventions
+- `.claude/get-motif/verticals/{vertical}.md` -- vertical-specific reference patterns and conventions
 
 ### Never Load
 - `tokens.css` -- does not exist yet; you run before the design system

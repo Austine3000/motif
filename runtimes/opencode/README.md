@@ -4,8 +4,8 @@
 
 ## What Needs to Be Created
 
-1. **commands/forge/*.md** — Copy from `runtimes/claude-code/commands/forge/`, replace workflow paths:
-   - `.claude/get-design-forge/` → `.opencode/get-design-forge/`
+1. **commands/motif/*.md** — Copy from `runtimes/claude-code/commands/motif/`, replace workflow paths:
+   - `.claude/get-motif/` → `.opencode/get-motif/`
    - Adapt any Claude Code-specific syntax
 
 2. **agents/*.md** — Copy from `runtimes/claude-code/agents/`, adapt:

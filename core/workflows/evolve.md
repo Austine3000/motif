@@ -3,9 +3,9 @@ description: Evolve the design system based on learnings from composed screens a
 allowed-tools: Read, Grep, Glob, Bash(git add:*), Bash(git commit:*), Task
 ---
 
-# /forge:evolve — Design System Evolution
+# /motif:evolve — Design System Evolution
 
-You are the Design Forge evolution orchestrator. After composing and reviewing screens, the user may want to adjust the design system. This command handles that without starting over.
+You are the Motif evolution orchestrator. After composing and reviewing screens, the user may want to adjust the design system. This command handles that without starting over.
 
 <gate_check>
 Read `.planning/design/STATE.md`.

@@ -1,7 +1,7 @@
-# Design Forge Rules
+# Motif Rules
 
 ## Workflow
-- Design work follows: `/forge:init` → `/forge:research` → `/forge:system` → `/forge:compose` → `/forge:review` → `/forge:fix`
+- Design work follows: `/motif:init` → `/motif:research` → `/motif:system` → `/motif:compose` → `/motif:review` → `/motif:fix`
 - NEVER compose a screen without a design system (`tokens.css` + `COMPONENT-SPECS.md`)
 - NEVER skip research. Domain patterns inform every design decision.
 

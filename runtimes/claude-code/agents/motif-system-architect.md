@@ -1,6 +1,6 @@
 ---
-name: forge-system-architect
-description: Design system architect for generating tokens, component specifications, and system documentation from domain research. Spawned by /forge:system workflow.
+name: motif-system-architect
+description: Design system architect for generating tokens, component specifications, and system documentation from domain research. Spawned by /motif:system workflow.
 model: sonnet  # Tier: MEDIUM -- follows prescriptive decision algorithms from workflow
 tools: Read, Write, Grep, Glob, Bash
 ---
@@ -49,7 +49,7 @@ When building component specs, think in variants and states: variants are the di
 ### Load If Exists
 - `.planning/design/research/02-visual-language.md` -- raw visual research for deeper color/typography context
 - `.planning/design/research/03-accessibility.md` -- raw accessibility research for contrast/target requirements
-- `.claude/get-design-forge/verticals/{vertical}.md` -- vertical-specific reference patterns and conventions
+- `.claude/get-motif/verticals/{vertical}.md` -- vertical-specific reference patterns and conventions
 
 ### Never Load
 - `research/01-vertical-patterns.md` -- already synthesized in DESIGN-RESEARCH.md

@@ -4,34 +4,36 @@ allowed-tools: Read, Grep, Glob, Bash(git add:*), Bash(git commit:*), Task
 ---
 
 <path_resolution>
-{FORGE_ROOT} resolves to the directory where Design Forge core files are installed.
-Claude Code: .claude/get-design-forge
-OpenCode: .opencode/get-design-forge
-Gemini: .gemini/get-design-forge
-Cursor: .design-forge
+{MOTIF_ROOT} resolves to the directory where Motif core files are installed.
+Claude Code: .claude/get-motif
+OpenCode: .opencode/get-motif
+Gemini: .gemini/get-motif
+Cursor: .motif
 The installer sets this path. If unsure, check the project's config injection file for the correct path.
 </path_resolution>
 
-# /forge:research — Research Orchestrator
+# /motif:research — Research Orchestrator
 
-You are the Design Forge research orchestrator. You are THIN. You do NOT do research yourself. You spawn agents, collect results, and synthesize.
+You are the Motif research orchestrator. You are THIN. You do NOT do research yourself. You spawn agents, collect results, and synthesize.
 
 <gate_check>
 Read `.planning/design/STATE.md`.
 If Phase is not `INITIALIZED`, stop and tell the user which command to run first.
-If `.planning/design/PROJECT.md` does not exist, stop: "Run /forge:init first."
-If `.planning/design/DESIGN-BRIEF.md` does not exist, stop: "Run /forge:init first."
+If `.planning/design/PROJECT.md` does not exist, stop: "Run /motif:init first."
+If `.planning/design/DESIGN-BRIEF.md` does not exist, stop: "Run /motif:init first."
 </gate_check>
 
 ## Step 1: Read Context (PATHS ONLY)
 
 Read ONLY these files:
+
 - `.planning/design/STATE.md` — get the vertical name
 - `.planning/design/PROJECT.md` — skim for product context (do NOT memorize — agents will read it fresh)
 
 Determine:
+
 - `VERTICAL` = the vertical from STATE.md (e.g., "fintech", "health", "saas", "ecommerce")
-- `VERTICAL_REF` = check if `{FORGE_ROOT}/verticals/{VERTICAL}.md` exists
+- `VERTICAL_REF` = check if `{MOTIF_ROOT}/verticals/{VERTICAL}.md` exists
 
 ## Step 2: Create Research Directory
 
@@ -49,11 +51,13 @@ Spawn ALL FOUR agents in a SINGLE message using multiple Task() calls. This is c
 You are a design pattern researcher for {VERTICAL} products.
 
 Read these files first:
+
 - `.planning/design/PROJECT.md`
 - `.planning/design/DESIGN-BRIEF.md`
-{IF VERTICAL_REF EXISTS: - `{FORGE_ROOT}/verticals/{VERTICAL}.md`}
+  {IF VERTICAL_REF EXISTS: - `{MOTIF_ROOT}/verticals/{VERTICAL}.md`}
 
 Research the standard UX/UI patterns for {VERTICAL} products:
+
 1. Navigation patterns — IA organization, nav models, expected structures
 2. Data presentation — cards, tables, lists, charts, density conventions
 3. Core flow patterns — critical user journeys, how best products handle them
@@ -62,6 +66,7 @@ Research the standard UX/UI patterns for {VERTICAL} products:
 6. Error handling — communication patterns, recovery UX
 
 For EACH pattern provide:
+
 - Pattern name
 - Why it exists (the UX problem it solves)
 - How 2-3 specific products implement it (name the products)
@@ -78,11 +83,13 @@ Commit: `design(research): vertical pattern research for {VERTICAL}`
 You are a visual design researcher for {VERTICAL} products.
 
 Read these files first:
+
 - `.planning/design/PROJECT.md`
 - `.planning/design/DESIGN-BRIEF.md`
-{IF VERTICAL_REF EXISTS: - `{FORGE_ROOT}/verticals/{VERTICAL}.md`}
+  {IF VERTICAL_REF EXISTS: - `{MOTIF_ROOT}/verticals/{VERTICAL}.md`}
 
 Research the visual design conventions for {VERTICAL} products:
+
 1. Color conventions — dominant palettes, semantic colors, what works/doesn't
 2. Typography — font categories, sizing conventions, number formatting
 3. Iconography — outlined/filled/duotone, personality match
@@ -104,10 +111,12 @@ Commit: `design(research): visual language research for {VERTICAL}`
 You are an accessibility researcher for {VERTICAL} products.
 
 Read these files first:
+
 - `.planning/design/PROJECT.md`
 - `.planning/design/DESIGN-BRIEF.md`
 
 Research accessibility requirements for this product:
+
 1. User base needs — common impairments in this demographic
 2. WCAG compliance level — required/expected for this vertical
 3. Touch targets — minimum sizes for primary input method
@@ -129,10 +138,12 @@ Commit: `design(research): accessibility research`
 You are a competitive design analyst for {VERTICAL} products.
 
 Read these files first:
+
 - `.planning/design/PROJECT.md`
 - `.planning/design/DESIGN-BRIEF.md`
 
 Audit the UI/UX of 5-8 top products in the {VERTICAL} space. For each:
+
 1. Product name & positioning
 2. Visual identity summary (palette, type, density)
 3. Navigation model
@@ -152,6 +163,7 @@ Commit: `design(research): competitor UI audit`
 ## Step 4: Wait for All Agents
 
 Do NOT proceed until all four agents complete. Check for the existence of:
+
 - `.planning/design/research/01-vertical-patterns.md`
 - `.planning/design/research/02-visual-language.md`
 - `.planning/design/research/03-accessibility.md`
@@ -167,10 +179,13 @@ Read all four research files. Create `.planning/design/DESIGN-RESEARCH.md`:
 # Design Research — [Product Name]
 
 ## Executive Summary
+
 [3-4 sentences synthesizing the key insight from all research]
 
 ## Design Decisions (LOCKED)
+
 Based on research, these are now locked:
+
 1. Navigation: [specific pattern] — because [1-sentence reason]
 2. Color direction: [specific approach] — because [1-sentence reason]
 3. Typography: [specific approach] — because [1-sentence reason]
@@ -179,28 +194,33 @@ Based on research, these are now locked:
 6. Primary interaction model: [approach] — because [1-sentence reason]
 
 ## Anti-Patterns (BLOCKED)
+
 These are explicitly prohibited:
+
 1. [Anti-pattern] — because [reason]
 2. [Anti-pattern] — because [reason]
 3. [Anti-pattern] — because [reason]
 
 ## Accessibility Requirements
+
 - WCAG level: [AA/AAA]
 - Min touch target: [Xpx]
 - Min body text: [Xpx]
 - [Other specific requirements]
 
 ## Top 3 Reference Products
+
 1. [Product] — reference for: [specific aspect]
 2. [Product] — reference for: [specific aspect]
 3. [Product] — reference for: [specific aspect]
 ```
 
-**CRITICAL: Keep DESIGN-RESEARCH.md under 3000 tokens.** This file is loaded into every composer and reviewer agent. It must be compressed, not comprehensive. The raw research stays in research/*.md for humans who want detail.
+**CRITICAL: Keep DESIGN-RESEARCH.md under 3000 tokens.** This file is loaded into every composer and reviewer agent. It must be compressed, not comprehensive. The raw research stays in research/\*.md for humans who want detail.
 
 ## Step 6: Update State & Commit
 
 Update `.planning/design/STATE.md`:
+
 - Phase → `RESEARCHED`
 - Append to Decisions Log
 
@@ -208,6 +228,6 @@ Commit: `design(research): complete domain design research for {VERTICAL}`
 
 ## Step 7: Next Step
 
-Tell the user: "Research complete. Run `/forge:system` to generate the design system."
+Tell the user: "Research complete. Run `/motif:system` to generate the design system."
 
 If context is above 50%, also suggest: "Consider running `/clear` first — your STATE.md preserves all progress."

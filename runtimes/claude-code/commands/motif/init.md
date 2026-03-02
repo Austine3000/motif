@@ -1,15 +1,15 @@
 ---
-description: Initialize a new Design Forge project with domain-aware design intelligence. Supports --auto mode for quick starts.
+description: Initialize a new Motif project with domain-aware design intelligence. Supports --auto mode for quick starts.
 allowed-tools: Read, Write, Bash(mkdir:*), Bash(git add:*), Bash(git commit:*)
 argument-hint: [--auto --vertical X --stack Y --theme Z]
 ---
 
-# /forge:init — Project Initialization
+# /motif:init — Project Initialization
 
-You are the Design Forge initializer. This command runs in the MAIN context (not a subagent) because it requires user interaction.
+You are the Motif initializer. This command runs in the MAIN context (not a subagent) because it requires user interaction.
 
 <gate_check>
-If `.planning/design/PROJECT.md` already exists, stop: "Project already initialized. Delete `.planning/design/` to restart, or run `/forge:research` to continue."
+If `.planning/design/PROJECT.md` already exists, stop: "Project already initialized. Delete `.planning/design/` to restart, or run `/motif:research` to continue."
 </gate_check>
 
 ## Auto Mode
@@ -20,11 +20,11 @@ If `$ARGUMENTS` contains `--auto` OR contains flags like `--vertical`, `--stack`
 - Use sensible defaults for anything not specified
 - Generate files immediately
 
-Example: `/forge:init --auto --vertical fintech --stack react --theme dark`
+Example: `/motif:init --auto --vertical fintech --stack react --theme dark`
 
 ## Interactive Mode (Default)
 
-Read `.claude/get-design-forge/references/design-inputs.md` before starting the interview. It defines how to handle visual references, brand constraints, Figma files, and differentiation.
+Read `.claude/get-motif/references/design-inputs.md` before starting the interview. It defines how to handle visual references, brand constraints, Figma files, and differentiation.
 
 ### Interview Structure
 
@@ -174,7 +174,7 @@ mkdir -p .planning/design
 ### 3. STATE.md
 
 ```markdown
-# Design Forge State
+# Motif State
 
 ## Phase
 INITIALIZED
@@ -209,23 +209,23 @@ INITIALIZED
 ### Inject CLAUDE.md Rules
 
 Check if `.claude/CLAUDE.md` or `CLAUDE.md` exists in the project root.
-- If it exists: check if Design Forge rules already present (search for "Design Forge"). If not, append the snippet from `templates/CLAUDE-MD-SNIPPET.md`.
-- If it doesn't exist: create it with the Design Forge snippet.
+- If it exists: check if Motif rules already present (search for "Motif"). If not, append the snippet from `templates/CLAUDE-MD-SNIPPET.md`.
+- If it doesn't exist: create it with the Motif snippet.
 
 ### Commit
 
 ```bash
 git add .planning/design/
-git commit -m "design(init): initialize Design Forge project — [vertical]"
+git commit -m "design(init): initialize Motif project — [vertical]"
 ```
 
 ### Next Step
 
-"Project initialized. Run `/forge:research` to study design patterns for your vertical."
+"Project initialized. Run `/motif:research` to study design patterns for your vertical."
 
 ## Rules
 
 1. **Be opinionated.** After the interview, take a clear position. "Based on what you described, I'm classifying this as fintech with an emerging-market secondary context. Here's why..."
 2. **Enforce brevity.** PROJECT.md and DESIGN-BRIEF.md have token budgets. Be concise.
 3. **Push for specificity.** "Modern" is not a design direction. Push until you understand what they mean.
-4. **Never generate design system files here.** That's /forge:system's job. Init only captures intent.
+4. **Never generate design system files here.** That's /motif:system's job. Init only captures intent.

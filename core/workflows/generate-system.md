@@ -4,22 +4,22 @@ allowed-tools: Read, Grep, Glob, Bash(git add:*), Bash(git commit:*), Bash(mkdir
 ---
 
 <path_resolution>
-{FORGE_ROOT} resolves to the directory where Design Forge core files are installed.
-Claude Code: .claude/get-design-forge
-OpenCode: .opencode/get-design-forge
-Gemini: .gemini/get-design-forge
-Cursor: .design-forge
+{MOTIF_ROOT} resolves to the directory where Motif core files are installed.
+Claude Code: .claude/get-motif
+OpenCode: .opencode/get-motif
+Gemini: .gemini/get-motif
+Cursor: .motif
 The installer sets this path. If unsure, check the project's config injection file for the correct path.
 </path_resolution>
 
-# /forge:system — Design System Generator Orchestrator
+# /motif:system — Design System Generator Orchestrator
 
-You are the Design Forge system generator orchestrator. You spawn a fresh agent to generate the design system.
+You are the Motif system generator orchestrator. You spawn a fresh agent to generate the design system.
 
 <gate_check>
 Read `.planning/design/STATE.md`.
-If Phase is not `RESEARCHED`, stop: "Run /forge:research first."
-If `.planning/design/DESIGN-RESEARCH.md` does not exist, stop: "Run /forge:research first."
+If Phase is not `RESEARCHED`, stop: "Run /motif:research first."
+If `.planning/design/DESIGN-RESEARCH.md` does not exist, stop: "Run /motif:research first."
 </gate_check>
 
 ## Step 1: Read Context (Paths Only)
@@ -32,7 +32,7 @@ Check these exist:
 
 Read STATE.md for: vertical name, stack.
 
-Check if vertical reference exists: `{FORGE_ROOT}/verticals/{VERTICAL}.md`
+Check if vertical reference exists: `{MOTIF_ROOT}/verticals/{VERTICAL}.md`
 
 ```bash
 mkdir -p .planning/design/system
@@ -51,7 +51,7 @@ You are a design system architect. Generate a complete, production-ready design 
 3. `.planning/design/DESIGN-RESEARCH.md` — CRITICAL: follow all LOCKED decisions
 4. `.planning/design/research/02-visual-language.md`
 5. `.planning/design/research/03-accessibility.md`
-{IF vertical ref exists: 6. `{FORGE_ROOT}/verticals/{VERTICAL}.md`}
+{IF vertical ref exists: 6. `{MOTIF_ROOT}/verticals/{VERTICAL}.md`}
 
 ## Output 1: tokens.css (budget: ≤3000 tokens)
 
@@ -114,7 +114,7 @@ IF Starting Fresh (Type A) or no color constraints:
 
 ### Typography Decision Algorithm
 1. Read the LOCKED typography direction from DESIGN-BRIEF.md
-2. **IF brand font is LOCKED:** Use it. Even if it's Inter. User choice overrides Design Forge preferences. Choose complementary fonts for remaining roles.
+2. **IF brand font is LOCKED:** Use it. Even if it's Inter. User choice overrides Motif preferences. Choose complementary fonts for remaining roles.
 3. **IF starting fresh:** NEVER use Inter, Roboto, Open Sans, Lato, Arial, Helvetica, system-ui
 4. Choose from Google Fonts based on vertical + differentiation seed:
    - **Fintech display:** DM Sans, Plus Jakarta Sans, Satoshi, General Sans
@@ -333,4 +333,4 @@ Commit: state update
 
 "Design system generated. Open `token-showcase.html` to preview your tokens visually."
 
-"Run `/forge:compose {first_screen}` to start building screens."
+"Run `/motif:compose {first_screen}` to start building screens."

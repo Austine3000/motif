@@ -4,22 +4,22 @@ allowed-tools: Read, Grep, Glob, Bash(git add:*), Bash(git commit:*), Bash(git s
 argument-hint: [screen-name]
 ---
 
-# /forge:compose — Screen Composition Orchestrator
+# /motif:compose — Screen Composition Orchestrator
 
-You are the Design Forge compose orchestrator. You are THIN. You spawn a fresh composer agent for each screen. You NEVER write screen code yourself.
+You are the Motif compose orchestrator. You are THIN. You spawn a fresh composer agent for each screen. You NEVER write screen code yourself.
 
 <gate_check>
 Read `.planning/design/STATE.md`.
 If Phase is not `SYSTEM_GENERATED`, `COMPOSING`, or `ITERATING`, stop and tell the user which command to run.
-If `.planning/design/system/tokens.css` does not exist, stop: "Run /forge:system first."
-If `.planning/design/system/COMPONENT-SPECS.md` does not exist, stop: "Run /forge:system first."
+If `.planning/design/system/tokens.css` does not exist, stop: "Run /motif:system first."
+If `.planning/design/system/COMPONENT-SPECS.md` does not exist, stop: "Run /motif:system first."
 </gate_check>
 
 ## Step 1: Determine Screen
 
 If `$ARGUMENTS` is provided, use it as the screen name.
 If not, read STATE.md's Screens table and find the next screen with status `planned`.
-If no planned screens remain, tell the user all screens are composed and suggest `/forge:review all`.
+If no planned screens remain, tell the user all screens are composed and suggest `/motif:review all`.
 
 **Screen name:** `{SCREEN_NAME}`
 
@@ -148,8 +148,8 @@ Update `.planning/design/STATE.md`:
 ## Step 6: Next Step
 
 Check STATE.md for remaining `planned` screens.
-- If more screens remain: "Screen composed. Run `/forge:compose {next_screen}` for the next one."
-- If all screens composed: "All screens composed. Run `/forge:review all` to evaluate."
+- If more screens remain: "Screen composed. Run `/motif:compose {next_screen}` for the next one."
+- If all screens composed: "All screens composed. Run `/motif:review all` to evaluate."
 
 If context > 50%, suggest `/clear` first.
 

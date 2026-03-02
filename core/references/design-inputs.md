@@ -1,15 +1,15 @@
-# Design Forge — Design Input System
+# Motif — Design Input System
 
-This reference defines how Design Forge handles visual inputs, brand constraints, and design differentiation. Every workflow that generates visual decisions MUST consult this file.
+This reference defines how Motif handles visual inputs, brand constraints, and design differentiation. Every workflow that generates visual decisions MUST consult this file.
 
 ---
 
 ## 1. Input Types
 
-Design Forge accepts four types of design input. They're detected during `/forge:init` and stored in `DESIGN-BRIEF.md` under a structured `## Inputs` section.
+Motif accepts four types of design input. They're detected during `/motif:init` and stored in `DESIGN-BRIEF.md` under a structured `## Inputs` section.
 
 ### Type A: Starting Fresh (No Inputs)
-User has no existing brand, no colors, no references. Design Forge makes all visual decisions based on vertical research + a differentiation algorithm.
+User has no existing brand, no colors, no references. Motif makes all visual decisions based on vertical research + a differentiation algorithm.
 
 ### Type B: Brand Constraints
 User provides specific values: "My brand color is #1A73E8" or "We use Poppins for our logo." These are hard constraints — the system builds AROUND them, never overrides them.
@@ -18,11 +18,11 @@ User provides specific values: "My brand color is #1A73E8" or "We use Poppins fo
 User provides screenshots, URLs, or product names as inspiration: "I want it to feel like Linear but warmer" or "Here's a screenshot of a UI I love." These are soft constraints — they inform direction but don't lock specific values.
 
 ### Type D: Figma/Design File
-User has a Figma file, screenshot of a complete design, or an existing UI to implement faithfully. This is an implementation task — Design Forge extracts the design system from the file rather than generating one.
+User has a Figma file, screenshot of a complete design, or an existing UI to implement faithfully. This is an implementation task — Motif extracts the design system from the file rather than generating one.
 
 ---
 
-## 2. Detection During /forge:init
+## 2. Detection During /motif:init
 
 The init interview MUST include this question (Round 2):
 
@@ -72,10 +72,10 @@ Based on the answer, the DESIGN-BRIEF.md gets a structured Inputs section:
 
 When the user provides specific colors or fonts, they become LOCKED constraints that cascade through every downstream step.
 
-### In /forge:research
+### In /motif:research
 Research agents are told: "The brand's primary color is #[hex]. Research must consider how this color works within [vertical] conventions. Do NOT suggest replacing it — suggest how to complement it."
 
-### In /forge:system (Color Algorithm Override)
+### In /motif:system (Color Algorithm Override)
 
 When brand colors are provided, the Color Decision Algorithm changes:
 
@@ -100,7 +100,7 @@ IF brand_font PROVIDED:
   1. Use as --font-display or --font-body (user specifies which)
   2. Choose complementary fonts for the other roles
   3. If the brand font is Inter/Roboto/system-default, STILL USE IT — the user chose it intentionally
-     NOTE: The "never use Inter" rule applies only when Design Forge is choosing. User choice overrides.
+     NOTE: The "never use Inter" rule applies only when Motif is choosing. User choice overrides.
   4. Ensure the brand font is available (Google Fonts, or user provides files)
 
 IF brand_secondary_color PROVIDED:
@@ -109,10 +109,10 @@ IF brand_secondary_color PROVIDED:
   3. Ensure sufficient contrast between primary and secondary
 ```
 
-### In /forge:compose
+### In /motif:compose
 Composer agents receive the brand constraints through tokens.css (which already encodes them). No additional handling needed — the token system IS the constraint carrier.
 
-### In /forge:review
+### In /motif:review
 Reviewer checks: "Are brand-constrained tokens used correctly? Is the user's primary color actually showing up as the primary action color, or did the composer drift?"
 
 ---
@@ -123,8 +123,8 @@ Reviewer checks: "Are brand-constrained tokens used correctly? Is the user's pri
 
 When the user provides a screenshot or image:
 
-1. **During /forge:init**: Save the image path to DESIGN-BRIEF.md under Inputs
-2. **During /forge:research**: The visual language research agent is given the image and told:
+1. **During /motif:init**: Save the image path to DESIGN-BRIEF.md under Inputs
+2. **During /motif:research**: The visual language research agent is given the image and told:
    ```
    The user provided this screenshot as a reference. Analyze:
    - Color palette (extract approximate hex values for primary, secondary, surface, text)
@@ -138,14 +138,14 @@ When the user provides a screenshot or image:
    Output a structured extraction in the visual-language research file.
    These become SOFT CONSTRAINTS — inform the design direction, don't copy pixel-for-pixel.
    ```
-3. **During /forge:system**: The system generator receives the extracted analysis as input alongside the research. It uses the reference's characteristics as starting points, then adapts for the project's vertical and differentiation seed.
+3. **During /motif:system**: The system generator receives the extracted analysis as input alongside the research. It uses the reference's characteristics as starting points, then adapts for the project's vertical and differentiation seed.
 
 ### Handling Product Name References
 
 When the user says "I want it to feel like Linear" or "Stripe's checkout is beautiful":
 
-1. **During /forge:research**: The competitor audit agent is told to prioritize these products in its analysis. Extract specific design decisions from them.
-2. **During /forge:system**: The "Reference Products" section of DESIGN-RESEARCH.md carries these forward with specific aspects to draw from.
+1. **During /motif:research**: The competitor audit agent is told to prioritize these products in its analysis. Extract specific design decisions from them.
+2. **During /motif:system**: The "Reference Products" section of DESIGN-RESEARCH.md carries these forward with specific aspects to draw from.
 
 ### Handling Figma Files
 
@@ -156,16 +156,16 @@ User has a complete Figma design and wants it built exactly.
 
 ```
 Workflow changes:
-- /forge:research → SKIP (design decisions are already made)
-- /forge:system → EXTRACT mode:
+- /motif:research → SKIP (design decisions are already made)
+- /motif:system → EXTRACT mode:
   - Analyze the Figma file/screenshots
   - Extract: color palette, typography, spacing, radii, shadows
   - Generate tokens.css that matches the design, not the vertical conventions
   - Generate COMPONENT-SPECS.md from the components visible in the design
-- /forge:compose → IMPLEMENT mode:
+- /motif:compose → IMPLEMENT mode:
   - Reference the design file alongside tokens + specs
   - Goal is fidelity to the design, not vertical conventions
-- /forge:review → Checks against the Figma, not against heuristics
+- /motif:review → Checks against the Figma, not against heuristics
   - "Does this match the design?" replaces "Does this follow vertical patterns?"
 ```
 
@@ -174,14 +174,14 @@ User has a partial Figma design or mood board and wants the system to extend it.
 
 ```
 Workflow changes:
-- /forge:research → RUNS but researcher is told "The user has an existing design direction. 
+- /motif:research → RUNS but researcher is told "The user has an existing design direction. 
   Research should validate and extend it, not replace it."
-- /forge:system → HYBRID mode:
+- /motif:system → HYBRID mode:
   - Extract tokens from the design file
   - Fill gaps from vertical research (e.g., design shows colors but no error states → derive from vertical)
   - Generate missing component specs from vertical conventions
-- /forge:compose → Normal but with design file as additional reference
-- /forge:review → Normal (heuristics + vertical patterns apply where the design didn't specify)
+- /motif:compose → Normal but with design file as additional reference
+- /motif:review → Normal (heuristics + vertical patterns apply where the design didn't specify)
 ```
 
 #### D3: Extract Tokens Only
@@ -189,7 +189,7 @@ User has a design they like and wants the token system extracted, but will compo
 
 ```
 Workflow changes:
-- /forge:system → EXTRACT mode only
+- /motif:system → EXTRACT mode only
 - Everything else → Normal flow
 ```
 
@@ -197,7 +197,7 @@ Workflow changes:
 
 If the user has Figma MCP connected:
 ```
-1. /forge:init asks for the Figma file URL
+1. /motif:init asks for the Figma file URL
 2. Use Figma MCP to fetch:
    - Color styles → map to token palette
    - Text styles → map to typography tokens
@@ -210,7 +210,7 @@ If the user has Figma MCP connected:
 Without Figma MCP (screenshot-based):
 ```
 1. User provides screenshots of key screens
-2. System analyzes screenshots visually during /forge:system
+2. System analyzes screenshots visually during /motif:system
 3. Extracts approximate values (less precise than MCP, but functional)
 4. Notes uncertainty: "Color extracted approximately as #2563EB — verify against your design file"
 ```
@@ -223,7 +223,7 @@ This is the solution to "every fintech app looks the same." The differentiation 
 
 ### The Differentiation Seed
 
-Every project gets a differentiation seed during /forge:init. It's a set of attributes that push the design away from the vertical's center of gravity.
+Every project gets a differentiation seed during /motif:init. It's a set of attributes that push the design away from the vertical's center of gravity.
 
 ```markdown
 ### Differentiation Seed
@@ -265,7 +265,7 @@ If the user doesn't want to answer all of these, detect from context:
 
 ### How the Seed Affects Color Selection
 
-The Color Decision Algorithm in `/forge:system` uses the seed to SHIFT the hue, saturation, and approach:
+The Color Decision Algorithm in `/motif:system` uses the seed to SHIFT the hue, saturation, and approach:
 
 ```
 Fintech base: HSL 170-220° (blue-teal)
@@ -352,7 +352,7 @@ Even with the same vertical and similar seeds, two projects must not converge. T
 
 3. **Hue randomization within ranges.** Instead of "fintech → 180°", it's "fintech with seed personality:7 → 250-290° range → randomly select within range, then fine-tune." The range narrows the possibilities; the seed + project context picks the specific value.
 
-4. **Explicit anti-clone check.** During /forge:system, if the user mentioned competitor products during init, the system checks: "Would my generated palette be confused with [competitor]? If yes, shift."
+4. **Explicit anti-clone check.** During /motif:system, if the user mentioned competitor products during init, the system checks: "Would my generated palette be confused with [competitor]? If yes, shift."
 
 ---
 
@@ -414,8 +414,8 @@ The brief now includes structured input and differentiation data:
 
 | Step | Type A (Fresh) | Type B (Brand) | Type C (References) | Type D (Figma) |
 |---|---|---|---|---|
-| `/forge:init` | Full interview + seed | Interview + lock colors/fonts | Interview + save refs | Interview + set fidelity mode |
-| `/forge:research` | Full research | Research considers brand | Refs prioritized in audit | Skip (D1) or validate (D2) |
-| `/forge:system` | Generate from seed + research | Build around locked values | Use refs as starting points | Extract from design file |
-| `/forge:compose` | Normal | Normal (tokens carry constraints) | Normal (tokens carry direction) | Implement against design |
-| `/forge:review` | Full 4-lens | Full + brand compliance check | Full 4-lens | Fidelity check (D1) or full (D2) |
+| `/motif:init` | Full interview + seed | Interview + lock colors/fonts | Interview + save refs | Interview + set fidelity mode |
+| `/motif:research` | Full research | Research considers brand | Refs prioritized in audit | Skip (D1) or validate (D2) |
+| `/motif:system` | Generate from seed + research | Build around locked values | Use refs as starting points | Extract from design file |
+| `/motif:compose` | Normal | Normal (tokens carry constraints) | Normal (tokens carry direction) | Implement against design |
+| `/motif:review` | Full 4-lens | Full + brand compliance check | Full 4-lens | Fidelity check (D1) or full (D2) |

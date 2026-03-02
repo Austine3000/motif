@@ -4,14 +4,14 @@
 
 ## What Needs to Be Created
 
-1. **rules-snippet.md** — Condensed Design Forge instructions for `.cursorrules` / `.windsurfrules`
+1. **rules-snippet.md** — Condensed Motif instructions for `.cursorrules` / `.windsurfrules`
    - No slash commands (these editors don't support them)
    - No subagent spawning (single context only)
-   - The entire Design Forge workflow compressed into rules-file instructions
+   - The entire Motif workflow compressed into rules-file instructions
    - Include: vertical detection, token generation logic, review checklist
    
 2. **install mapping** — Simpler than Claude Code:
-   - `core/*` → `.design-forge/` (just drop it in the project)
+   - `core/*` → `.motif/` (just drop it in the project)
    - Append rules snippet to `.cursorrules` or `.windsurfrules`
 
 ## Limitations

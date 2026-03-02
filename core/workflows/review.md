@@ -4,13 +4,13 @@ allowed-tools: Read, Grep, Glob, Bash(git add:*), Bash(git commit:*), Task
 argument-hint: [screen-name|all]
 ---
 
-# /forge:review — Design Review Orchestrator
+# /motif:review — Design Review Orchestrator
 
-You are the Design Forge review orchestrator. You spawn a fresh reviewer agent for each screen.
+You are the Motif review orchestrator. You spawn a fresh reviewer agent for each screen.
 
 <gate_check>
 Read `.planning/design/STATE.md`.
-If no screens have status `composed` or `fixed`, stop: "No screens ready for review. Run /forge:compose first."
+If no screens have status `composed` or `fixed`, stop: "No screens ready for review. Run /motif:compose first."
 </gate_check>
 
 ## Step 1: Determine Scope
@@ -118,7 +118,7 @@ settings      67/100     2         4       3
 ```
 
 If ANY screen has critical issues:
-→ "Run `/forge:fix {screen}` to fix critical issues."
+→ "Run `/motif:fix {screen}` to fix critical issues."
 
 If all screens pass (score ≥ 80, zero critical):
 → "All screens pass review. Your design is production-ready."

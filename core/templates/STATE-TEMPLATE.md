@@ -1,6 +1,6 @@
 <!-- Source of truth: core/references/state-machine.md -- keep in sync -->
 
-# Design Forge State
+# Motif State
 
 ## Phase
 INITIALIZED

@@ -1,6 +1,6 @@
-# Design Forge State Machine
+# Motif State Machine
 
-This file defines the legal state transitions for a Design Forge project. Every command MUST check state before executing and MUST update state after completing. No exceptions.
+This file defines the legal state transitions for a Motif project. Every command MUST check state before executing and MUST update state after completing. No exceptions.
 
 ## Phases
 
@@ -16,12 +16,12 @@ UNINITALIZED → INITIALIZED → RESEARCHED → SYSTEM_GENERATED → COMPOSING �
 | Phase | Set By | Prerequisites | Artifacts Created |
 |---|---|---|---|
 | `UNINITIALIZED` | (default) | None | None |
-| `INITIALIZED` | `/forge:init` | None | PROJECT.md, DESIGN-BRIEF.md, STATE.md |
-| `RESEARCHED` | `/forge:research` | INITIALIZED | DESIGN-RESEARCH.md, research/*.md |
-| `SYSTEM_GENERATED` | `/forge:system` | RESEARCHED | system/tokens.css, system/DESIGN-SYSTEM.md, system/COMPONENT-SPECS.md, system/token-showcase.html |
-| `COMPOSING` | `/forge:compose` | SYSTEM_GENERATED | screens/[name].*, screens/[name]-SUMMARY.md |
-| `REVIEWING` | `/forge:review` | ≥1 screen composed | reviews/[name]-REVIEW.md |
-| `ITERATING` | `/forge:fix` | ≥1 review exists | Updated screen files, updated reviews |
+| `INITIALIZED` | `/motif:init` | None | PROJECT.md, DESIGN-BRIEF.md, STATE.md |
+| `RESEARCHED` | `/motif:research` | INITIALIZED | DESIGN-RESEARCH.md, research/*.md |
+| `SYSTEM_GENERATED` | `/motif:system` | RESEARCHED | system/tokens.css, system/DESIGN-SYSTEM.md, system/COMPONENT-SPECS.md, system/token-showcase.html |
+| `COMPOSING` | `/motif:compose` | SYSTEM_GENERATED | screens/[name].*, screens/[name]-SUMMARY.md |
+| `REVIEWING` | `/motif:review` | ≥1 screen composed | reviews/[name]-REVIEW.md |
+| `ITERATING` | `/motif:fix` | ≥1 review exists | Updated screen files, updated reviews |
 
 ## Gate Checks
 
@@ -29,51 +29,51 @@ Every command reads STATE.md and validates before executing:
 
 ```xml
 <gate_check>
-  <command>/forge:init</command>
+  <command>/motif:init</command>
   <requires_phase>UNINITIALIZED</requires_phase>
   <blocks_if>PROJECT.md already exists. Tell user to delete .planning/design/ to restart.</blocks_if>
 </gate_check>
 
 <gate_check>
-  <command>/forge:research</command>
+  <command>/motif:research</command>
   <requires_phase>INITIALIZED</requires_phase>
-  <blocks_if>PROJECT.md or DESIGN-BRIEF.md missing. Tell user to run /forge:init first.</blocks_if>
+  <blocks_if>PROJECT.md or DESIGN-BRIEF.md missing. Tell user to run /motif:init first.</blocks_if>
 </gate_check>
 
 <gate_check>
-  <command>/forge:system</command>
+  <command>/motif:system</command>
   <requires_phase>RESEARCHED</requires_phase>
-  <blocks_if>DESIGN-RESEARCH.md missing. Tell user to run /forge:research first.</blocks_if>
+  <blocks_if>DESIGN-RESEARCH.md missing. Tell user to run /motif:research first.</blocks_if>
 </gate_check>
 
 <gate_check>
-  <command>/forge:compose</command>
+  <command>/motif:compose</command>
   <requires_phase>SYSTEM_GENERATED or COMPOSING or ITERATING</requires_phase>
-  <blocks_if>tokens.css or COMPONENT-SPECS.md missing. Tell user to run /forge:system first.</blocks_if>
+  <blocks_if>tokens.css or COMPONENT-SPECS.md missing. Tell user to run /motif:system first.</blocks_if>
 </gate_check>
 
 <gate_check>
-  <command>/forge:review</command>
+  <command>/motif:review</command>
   <requires_phase>COMPOSING or REVIEWING or ITERATING</requires_phase>
-  <blocks_if>No composed screens exist. Tell user to run /forge:compose first.</blocks_if>
+  <blocks_if>No composed screens exist. Tell user to run /motif:compose first.</blocks_if>
 </gate_check>
 
 <gate_check>
-  <command>/forge:fix</command>
+  <command>/motif:fix</command>
   <requires_phase>REVIEWING or ITERATING</requires_phase>
-  <blocks_if>No reviews exist. Tell user to run /forge:review first.</blocks_if>
+  <blocks_if>No reviews exist. Tell user to run /motif:review first.</blocks_if>
 </gate_check>
 
 <gate_check>
-  <command>/forge:evolve</command>
+  <command>/motif:evolve</command>
   <requires_phase>COMPOSING or REVIEWING or ITERATING</requires_phase>
   <blocks_if>No composed screens exist. Need at least one screen to learn from.</blocks_if>
 </gate_check>
 
 <gate_check>
-  <command>/forge:quick</command>
+  <command>/motif:quick</command>
   <requires_phase>ANY except UNINITIALIZED</requires_phase>
-  <blocks_if>No PROJECT.md. Tell user to run /forge:init first (or use without Design Forge).</blocks_if>
+  <blocks_if>No PROJECT.md. Tell user to run /motif:init first (or use without Motif).</blocks_if>
   <note>Quick mode works with or without a full design system, but warns about consistency risk if tokens.css is missing.</note>
 </gate_check>
 ```
@@ -81,7 +81,7 @@ Every command reads STATE.md and validates before executing:
 ## STATE.md Format
 
 ```markdown
-# Design Forge State
+# Motif State
 
 ## Phase
 [UNINITIALIZED|INITIALIZED|RESEARCHED|SYSTEM_GENERATED|COMPOSING|REVIEWING|ITERATING]

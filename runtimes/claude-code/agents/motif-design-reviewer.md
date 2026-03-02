@@ -1,6 +1,6 @@
 ---
-name: forge-design-reviewer
-description: "Senior design critic and accessibility auditor. Reviews composed screens against four lenses: Nielsen's heuristics, WCAG accessibility, design system compliance, and vertical UX compliance. Spawned by /forge:review workflow."
+name: motif-design-reviewer
+description: "Senior design critic and accessibility auditor. Reviews composed screens against four lenses: Nielsen's heuristics, WCAG accessibility, design system compliance, and vertical UX compliance. Spawned by /motif:review workflow."
 model: opus  # Tier: HIGH -- analytical judgment shapes quality bar; determines what ships
 tools: Read, Write, Grep, Glob, Bash
 disallowedTools: Edit

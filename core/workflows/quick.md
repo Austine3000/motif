@@ -3,13 +3,13 @@ description: Execute ad-hoc UI tasks with design system consistency
 allowed-tools: Read, Write, Grep, Glob, Bash(git add:*), Bash(git commit:*), Task
 ---
 
-# /forge:quick — Quick Mode
+# /motif:quick — Quick Mode
 
 For ad-hoc tasks that don't need the full workflow. Spawns a fresh agent with the design system loaded.
 
 <gate_check>
 If `.planning/design/system/tokens.css` exists, load it for consistency.
-If not, warn: "No design system found. Working without token constraints. Run /forge:init + /forge:research + /forge:system for consistent results."
+If not, warn: "No design system found. Working without token constraints. Run /motif:init + /motif:research + /motif:system for consistent results."
 </gate_check>
 
 ## Process

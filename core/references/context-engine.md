@@ -1,6 +1,6 @@
-# Design Forge Context Engine
+# Motif Context Engine
 
-This file defines the context management strategy for Design Forge. Every orchestrator and agent MUST follow these rules. Context discipline is what separates Design Forge from a long-form prompt.
+This file defines the context management strategy for Motif. Every orchestrator and agent MUST follow these rules. Context discipline is what separates Motif from a long-form prompt.
 
 ## Core Principle
 
@@ -48,7 +48,7 @@ Different commands need different slices of context. These profiles define exact
     .planning/design/DESIGN-BRIEF.md
   </always_load>
   <load_if_exists>
-    .claude/get-design-forge/verticals/{vertical}.md
+    .claude/get-motif/verticals/{vertical}.md
   </load_if_exists>
   <never_load>
     tokens.css
@@ -69,7 +69,7 @@ Different commands need different slices of context. These profiles define exact
   <load_if_exists>
     .planning/design/research/02-visual-language.md
     .planning/design/research/03-accessibility.md
-    .claude/get-design-forge/verticals/{vertical}.md
+    .claude/get-motif/verticals/{vertical}.md
   </load_if_exists>
   <never_load>
     research/01-vertical-patterns.md (already synthesized in DESIGN-RESEARCH.md)

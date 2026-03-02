@@ -1,5 +1,5 @@
 ---
-description: Show current Design Forge project status and next steps
+description: Show current Motif project status and next steps
 ---
 Read `.planning/design/STATE.md` and display:
 1. Current phase
@@ -8,4 +8,4 @@ Read `.planning/design/STATE.md` and display:
 4. Recent decisions
 5. Recommended next command
 
-If STATE.md doesn't exist: "No project initialized. Run /forge:init."
+If STATE.md doesn't exist: "No project initialized. Run /motif:init."
