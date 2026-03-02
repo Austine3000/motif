@@ -80,6 +80,7 @@ function resolveMapping(runtime) {
       { src: path.join(pkgDir, 'core', 'templates'), dest: path.join(cwd, '.claude', 'get-motif', 'templates') },
       { src: path.join(pkgDir, 'runtimes', 'claude-code', 'agents'), dest: path.join(cwd, '.claude', 'get-motif', 'agents') },
       { src: path.join(pkgDir, 'runtimes', 'claude-code', 'commands', 'motif'), dest: path.join(cwd, '.claude', 'commands', 'motif') },
+      { src: path.join(pkgDir, 'runtimes', 'claude-code', 'hooks'), dest: path.join(cwd, '.claude', 'get-motif', 'hooks') },
       { src: path.join(pkgDir, 'scripts'), dest: path.join(cwd, '.claude', 'get-motif', 'scripts') },
     ];
 
