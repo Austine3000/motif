@@ -158,7 +158,7 @@ function checkTokenStructure(content) {
   const categories = {
     color: /--color-/,
     font: /--font-/,
-    spacing: /--spacing-/,
+    spacing: /--(?:spacing|space)-/,
     radius: /--radius-/,
   };
 
