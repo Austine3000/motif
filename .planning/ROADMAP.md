@@ -162,7 +162,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 08.1-01-PLAN.md — Fix vertical paths, CI action versions, stale package name references, and init.md snippet reference
+- [x] 08.1-01-PLAN.md — Fix vertical paths, CI action versions, stale package name references, and init.md snippet reference
 
 ## Progress
 
@@ -181,4 +181,4 @@ Note: Phase 8.1 is an INSERTED gap closure phase; after completion, resume Phase
 | 6. Hooks and Scripts | 3/3 | ✓ Complete | 2026-03-02 |
 | 7. Validation | 3/3 | ✓ Complete | 2026-03-03 |
 | 8. CI and Publish | 1/2 | In Progress | - |
-| 8.1 Pre-Publish Integration Fixes | 0/1 | Not started | - |
+| 8.1 Pre-Publish Integration Fixes | 1/1 | ✓ Complete | 2026-03-03 |
