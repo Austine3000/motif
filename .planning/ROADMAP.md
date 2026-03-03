@@ -143,7 +143,7 @@ Plans:
 **Requirements**: DIST-04
 **Success Criteria** (what must be TRUE):
   1. GitHub Actions workflow triggers on git tag creation and publishes the package to npm automatically
-  2. `npx @sailslab/motif@latest` installs the published package from npm and completes the installation flow successfully
+  2. `npx motif-design@latest` installs the published package from npm and completes the installation flow successfully
 **Plans:** 2 plans
 
 Plans:
