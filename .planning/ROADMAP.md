@@ -147,14 +147,29 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Pre-publish package preparation: .gitignore, package.json identity, CI workflow, README update (DIST-04)
+- [x] 08-01-PLAN.md — Pre-publish package preparation: .gitignore, package.json identity, CI workflow, README update (DIST-04)
 - [ ] 08-02-PLAN.md — GitHub repo setup, npm trusted publishing, first publish, end-to-end install verification (DIST-04)
+
+### Phase 8.1: Pre-Publish Integration Fixes (INSERTED)
+**Goal**: All cross-phase integration gaps identified by milestone audit are resolved before publishing — vertical paths load correctly, CI workflow runs, and package name references are consistent
+**Depends on**: Phase 8 Plan 01 (fixes target files created/modified in 08-01)
+**Gap Closure**: Closes gaps from v1.0-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. Workflow and agent vertical references resolve to the actual installed path (`{MOTIF_ROOT}/references/verticals/`) — vertical intelligence loads successfully
+  2. `.github/workflows/publish.yml` uses `actions/checkout@v4` and `actions/setup-node@v4` (versions that exist)
+  3. Zero `npx motif@latest` references remain in any shipped file — all updated to `npx motif-design@latest`
+  4. `init.md` Post-Generation section does not reference a file (`CLAUDE-MD-SNIPPET.md`) that is absent from the installer copy mapping
+**Plans:** 1 plan
+
+Plans:
+- [ ] 08.1-01-PLAN.md — Fix vertical paths, CI action versions, stale package name references, and init.md snippet reference
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 --> 2 --> 3 --> 4 --> 5 --> 6 --> 7 --> 8
+Phases execute in numeric order: 1 --> 2 --> 3 --> 4 --> 5 --> 6 --> 7 --> 8 --> 8.1 --> 8 (resume 08-02)
 Note: Phases 5 and 6 can execute in parallel (independent content).
+Note: Phase 8.1 is an INSERTED gap closure phase; after completion, resume Phase 8 Plan 02.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -165,4 +180,5 @@ Note: Phases 5 and 6 can execute in parallel (independent content).
 | 5. Verticals | 3/3 | ✓ Complete | 2026-03-02 |
 | 6. Hooks and Scripts | 3/3 | ✓ Complete | 2026-03-02 |
 | 7. Validation | 3/3 | ✓ Complete | 2026-03-03 |
-| 8. CI and Publish | 0/2 | Not started | - |
+| 8. CI and Publish | 1/2 | In Progress | - |
+| 8.1 Pre-Publish Integration Fixes | 0/1 | Not started | - |
