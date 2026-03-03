@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Domain-intelligent design delivered through fresh context -- a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 8 - Distribution/Launch
+**Current focus:** Phase 8.1 - Pre-Publish Integration Fixes (gap closure)
 
 ## Current Position
 
-Phase: 8 of 8 (CI and Publish)
-Plan: 1 of 2 in current phase (08-01 complete)
-Status: Executing Phase 8 -- 08-01 complete, 08-02 next
-Last activity: 2026-03-03 -- Completed 08-01 (Pre-Publish Package Preparation)
+Phase: 8.1 of 8.1 (Pre-Publish Integration Fixes)
+Plan: 1 of 1 in current phase (08.1-01 complete)
+Status: Phase 8.1 complete -- all 4 integration gaps resolved
+Last activity: 2026-03-03 -- Completed 08.1-01 (Pre-Publish Integration Fixes)
 
-Progress: [█████████░] 95%
+Progress: [██████████] 97%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
+- Total plans completed: 22
 - Average duration: 3min
-- Total execution time: 0.86 hours
+- Total execution time: 0.89 hours
 
 **By Phase:**
 
@@ -35,9 +35,10 @@ Progress: [█████████░] 95%
 | 06-hooks-and-scripts | 3 | 8min | 2.7min |
 | 07-validation | 3 | human-paced | human-paced |
 | 08-ci-and-publish | 1 | 1min | 1min |
+| 08.1-pre-publish-integration-fixes | 1 | 2min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 06-03 (2min), 06-02 (2min), 06-01 (4min), 07-01 (3min), 08-01 (1min)
+- Last 5 plans: 06-02 (2min), 06-01 (4min), 07-01 (3min), 08-01 (1min), 08.1-01 (2min)
 - Trend: Consistent (all fast, single-wave execution)
 
 *Updated after each plan completion*
@@ -126,5 +127,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 08-01-PLAN.md (Pre-Publish Package Preparation)
-Resume file: .planning/phases/08-ci-and-publish/08-01-SUMMARY.md
+Stopped at: Completed 08.1-01-PLAN.md (Pre-Publish Integration Fixes)
+Resume file: .planning/phases/08.1-pre-publish-integration-fixes/08.1-01-SUMMARY.md
