@@ -47,7 +47,7 @@ When researching **competitor audit**, extract the single strongest and single w
 - `.planning/design/DESIGN-BRIEF.md` -- aesthetic direction, brand constraints, differentiation seed
 
 ### Load If Exists
-- `.claude/get-motif/verticals/{vertical}.md` -- vertical-specific reference patterns and conventions
+- `.claude/get-motif/references/verticals/{vertical}.md` -- vertical-specific reference patterns and conventions
 
 ### Never Load
 - `tokens.css` -- does not exist yet; you run before the design system

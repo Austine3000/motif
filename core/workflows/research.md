@@ -33,7 +33,7 @@ Read ONLY these files:
 Determine:
 
 - `VERTICAL` = the vertical from STATE.md (e.g., "fintech", "health", "saas", "ecommerce")
-- `VERTICAL_REF` = check if `{MOTIF_ROOT}/verticals/{VERTICAL}.md` exists
+- `VERTICAL_REF` = check if `{MOTIF_ROOT}/references/verticals/{VERTICAL}.md` exists
 
 ## Step 2: Create Research Directory
 
@@ -54,7 +54,7 @@ Read these files first:
 
 - `.planning/design/PROJECT.md`
 - `.planning/design/DESIGN-BRIEF.md`
-  {IF VERTICAL_REF EXISTS: - `{MOTIF_ROOT}/verticals/{VERTICAL}.md`}
+  {IF VERTICAL_REF EXISTS: - `{MOTIF_ROOT}/references/verticals/{VERTICAL}.md`}
 
 Research the standard UX/UI patterns for {VERTICAL} products:
 
@@ -86,7 +86,7 @@ Read these files first:
 
 - `.planning/design/PROJECT.md`
 - `.planning/design/DESIGN-BRIEF.md`
-  {IF VERTICAL_REF EXISTS: - `{MOTIF_ROOT}/verticals/{VERTICAL}.md`}
+  {IF VERTICAL_REF EXISTS: - `{MOTIF_ROOT}/references/verticals/{VERTICAL}.md`}
 
 Research the visual design conventions for {VERTICAL} products:
 

@@ -49,7 +49,7 @@ When building component specs, think in variants and states: variants are the di
 ### Load If Exists
 - `.planning/design/research/02-visual-language.md` -- raw visual research for deeper color/typography context
 - `.planning/design/research/03-accessibility.md` -- raw accessibility research for contrast/target requirements
-- `.claude/get-motif/verticals/{vertical}.md` -- vertical-specific reference patterns and conventions
+- `.claude/get-motif/references/verticals/{vertical}.md` -- vertical-specific reference patterns and conventions
 
 ### Never Load
 - `research/01-vertical-patterns.md` -- already synthesized in DESIGN-RESEARCH.md

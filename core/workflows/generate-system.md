@@ -32,7 +32,7 @@ Check these exist:
 
 Read STATE.md for: vertical name, stack.
 
-Check if vertical reference exists: `{MOTIF_ROOT}/verticals/{VERTICAL}.md`
+Check if vertical reference exists: `{MOTIF_ROOT}/references/verticals/{VERTICAL}.md`
 
 ```bash
 mkdir -p .planning/design/system
@@ -51,7 +51,7 @@ You are a design system architect. Generate a complete, production-ready design 
 3. `.planning/design/DESIGN-RESEARCH.md` — CRITICAL: follow all LOCKED decisions
 4. `.planning/design/research/02-visual-language.md`
 5. `.planning/design/research/03-accessibility.md`
-{IF vertical ref exists: 6. `{MOTIF_ROOT}/verticals/{VERTICAL}.md`}
+{IF vertical ref exists: 6. `{MOTIF_ROOT}/references/verticals/{VERTICAL}.md`}
 
 ## Output 1: tokens.css (budget: ≤3000 tokens)
 
