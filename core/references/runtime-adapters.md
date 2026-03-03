@@ -87,11 +87,11 @@ function detectRuntime() {
 
 ### Flags
 ```
-npx motif@latest                    # Auto-detect
-npx motif@latest --runtime claude-code
-npx motif@latest --runtime opencode
-npx motif@latest --runtime gemini
-npx motif@latest --runtime cursor
+npx motif-design@latest                    # Auto-detect
+npx motif-design@latest --runtime claude-code
+npx motif-design@latest --runtime opencode
+npx motif-design@latest --runtime gemini
+npx motif-design@latest --runtime cursor
 ```
 
 ### Install Mapping

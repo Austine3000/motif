@@ -28,7 +28,7 @@ function printHelp() {
 ${styleText('bold', 'motif')} - Domain-intelligent design system for AI coding assistants
 
 ${styleText('bold', 'USAGE')}
-  npx motif@latest [options]
+  npx motif-design@latest [options]
 
 ${styleText('bold', 'OPTIONS')}
   -r, --runtime <name>   Override runtime auto-detection (supported: claude-code)
@@ -38,10 +38,10 @@ ${styleText('bold', 'OPTIONS')}
   -h, --help             Show this help message
 
 ${styleText('bold', 'EXAMPLES')}
-  npx motif@latest                    Auto-detect runtime and install
-  npx motif@latest --runtime claude-code   Explicit runtime selection
-  npx motif@latest --dry-run          Preview installation without changes
-  npx motif@latest --force            Overwrite all existing files
+  npx motif-design@latest                    Auto-detect runtime and install
+  npx motif-design@latest --runtime claude-code   Explicit runtime selection
+  npx motif-design@latest --dry-run          Preview installation without changes
+  npx motif-design@latest --force            Overwrite all existing files
 `);
 }
 

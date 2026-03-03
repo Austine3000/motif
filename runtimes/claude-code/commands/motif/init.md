@@ -206,11 +206,9 @@ INITIALIZED
 
 ## Post-Generation
 
-### Inject CLAUDE.md Rules
+### CLAUDE.md Rules
 
-Check if `.claude/CLAUDE.md` or `CLAUDE.md` exists in the project root.
-- If it exists: check if Motif rules already present (search for "Motif"). If not, append the snippet from `templates/CLAUDE-MD-SNIPPET.md`.
-- If it doesn't exist: create it with the Motif snippet.
+The installer handles CLAUDE.md injection automatically via sentinel markers during `npx motif-design@latest`. No manual injection is needed here. If CLAUDE.md is missing Motif rules, re-run the installer.
 
 ### Commit
 
