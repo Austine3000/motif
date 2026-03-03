@@ -10,7 +10,9 @@ set -euo pipefail
 #
 # Options:
 #   --controlled DIR       Path to controlled test project (VALD-01)
+#   --controlled-screens   Comma-separated screen names (default: login,dashboard,settings)
 #   --cryptopay DIR        Path to CryptoPay test project (VALD-02, VALD-04, VALD-05)
+#   --cryptopay-screens    Comma-separated screen names (default: wallet,send,receive,history,profile)
 #   --diff-a TOKENS_A      Path to first tokens.css for differentiation (VALD-03)
 #   --diff-b TOKENS_B      Path to second tokens.css for differentiation (VALD-03)
 # ─────────────────────────────────────────────────────────────
@@ -19,7 +21,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # ─── Argument parsing ───
 CONTROLLED_DIR=""
+CONTROLLED_SCREENS="login,dashboard,settings"
 CRYPTOPAY_DIR=""
+CRYPTOPAY_SCREENS="wallet,send,receive,history,profile"
 TOKENS_A=""
 TOKENS_B=""
 
@@ -29,8 +33,16 @@ while [[ $# -gt 0 ]]; do
       CONTROLLED_DIR="$2"
       shift 2
       ;;
+    --controlled-screens)
+      CONTROLLED_SCREENS="$2"
+      shift 2
+      ;;
     --cryptopay)
       CRYPTOPAY_DIR="$2"
+      shift 2
+      ;;
+    --cryptopay-screens)
+      CRYPTOPAY_SCREENS="$2"
       shift 2
       ;;
     --diff-a)
@@ -97,7 +109,7 @@ if [[ -n "$CONTROLLED_DIR" ]]; then
   VALD01_FAIL=0
 
   echo "[VALD-01a] Workflow artifacts check..."
-  if node "$SCRIPT_DIR/validate-workflow.js" "$CONTROLLED_DIR" --screens login,dashboard,settings; then
+  if node "$SCRIPT_DIR/validate-workflow.js" "$CONTROLLED_DIR" --screens "$CONTROLLED_SCREENS"; then
     echo "  >> Workflow artifacts: PASS"
   else
     echo "  >> Workflow artifacts: FAIL"
@@ -133,7 +145,7 @@ if [[ -n "$CRYPTOPAY_DIR" ]]; then
   VALD02_FAIL=0
 
   echo "[VALD-02a] CryptoPay workflow artifacts check..."
-  if node "$SCRIPT_DIR/validate-workflow.js" "$CRYPTOPAY_DIR" --screens wallet,send,receive,history,profile; then
+  if node "$SCRIPT_DIR/validate-workflow.js" "$CRYPTOPAY_DIR" --screens "$CRYPTOPAY_SCREENS"; then
     echo "  >> CryptoPay workflow artifacts: PASS"
   else
     echo "  >> CryptoPay workflow artifacts: FAIL"
@@ -183,7 +195,7 @@ if [[ -n "$CRYPTOPAY_DIR" ]]; then
   echo ""
 
   VALD05_FAIL=0
-  SCREENS=("wallet" "send" "receive" "history" "profile")
+  IFS=',' read -ra SCREENS <<< "$CRYPTOPAY_SCREENS"
   SCREEN_COUNT=0
   SUMMARY_FOUND=0
   TOKENS_CSS="$CRYPTOPAY_DIR/.planning/design/system/tokens.css"
@@ -222,13 +234,11 @@ if [[ -n "$CRYPTOPAY_DIR" ]]; then
     SUMMARY_FILE="$SCREENS_DIR/${screen}-SUMMARY.md"
     if [[ -f "$SUMMARY_FILE" ]]; then
       # Count lines in screen file
-      LINES=$(wc -l < "$SUMMARY_FILE" 2>/dev/null || echo "0")
+      LINES=$(wc -l < "$SUMMARY_FILE" | xargs)
       TOTAL_LINES=$((TOTAL_LINES + LINES))
 
       # Check for hardcoded hex colors (not inside var() or comments)
-      HARDCODED=$(grep -cE '#[0-9a-fA-F]{3,8}' "$SUMMARY_FILE" 2>/dev/null || echo "0")
-      # Subtract lines that are inside var() references or comments
-      VAR_REFS=$(grep -cE 'var\(--' "$SUMMARY_FILE" 2>/dev/null || echo "0")
+      HARDCODED=$(grep -cE '#[0-9a-fA-F]{3,8}' "$SUMMARY_FILE" || true)
       TOTAL_HARDCODED=$((TOTAL_HARDCODED + HARDCODED))
     fi
   done
