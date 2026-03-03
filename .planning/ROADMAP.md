@@ -143,11 +143,12 @@ Plans:
 **Requirements**: DIST-04
 **Success Criteria** (what must be TRUE):
   1. GitHub Actions workflow triggers on git tag creation and publishes the package to npm automatically
-  2. `npx motif@latest` installs the published package from npm and completes the installation flow successfully
-**Plans**: TBD
+  2. `npx @sailslab/motif@latest` installs the published package from npm and completes the installation flow successfully
+**Plans:** 2 plans
 
 Plans:
-- [ ] 08-01: TBD
+- [ ] 08-01-PLAN.md — Pre-publish package preparation: .gitignore, package.json identity, CI workflow, README update (DIST-04)
+- [ ] 08-02-PLAN.md — GitHub repo setup, npm trusted publishing, first publish, end-to-end install verification (DIST-04)
 
 ## Progress
 
@@ -164,4 +165,4 @@ Note: Phases 5 and 6 can execute in parallel (independent content).
 | 5. Verticals | 3/3 | ✓ Complete | 2026-03-02 |
 | 6. Hooks and Scripts | 3/3 | ✓ Complete | 2026-03-02 |
 | 7. Validation | 3/3 | ✓ Complete | 2026-03-03 |
-| 8. CI and Publish | 0/TBD | Not started | - |
+| 8. CI and Publish | 0/2 | Not started | - |
