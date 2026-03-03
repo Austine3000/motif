@@ -7,7 +7,7 @@ AI coding tools produce generic, domain-inappropriate UI -- a fintech dashboard 
 ## Quick Start
 
 ```bash
-npx motif@latest
+npx motif-design@latest
 ```
 
 This auto-detects your AI runtime (Claude Code for v1), installs design intelligence into your project, and sets up slash commands. Start designing with `/motif:init`.

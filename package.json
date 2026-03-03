@@ -1,5 +1,5 @@
 {
-  "name": "motif",
+  "name": "motif-design",
   "version": "0.1.0",
   "description": "Domain-intelligent design system for AI coding assistants",
   "bin": {
@@ -13,6 +13,14 @@
   ],
   "engines": {
     "node": ">=22.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SailsLab/motif.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "license": "MIT",
   "keywords": ["design-system", "ai", "cli", "design-tokens", "motif"]

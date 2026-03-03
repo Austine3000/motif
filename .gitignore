@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Logs
+firebase-debug.log
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# npm pack artifact
+*.tgz
+
+# Planning debug artifacts
+.planning/debug/

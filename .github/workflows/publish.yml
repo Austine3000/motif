@@ -1,0 +1,48 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # OIDC trusted publishing requires an environment to scope the token exchange.
+    # Create this environment in GitHub: Settings -> Environments -> New environment -> "npm-publish"
+    # No environment protection rules needed (tag filter on workflow is sufficient).
+    environment: npm-publish
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install latest npm (for trusted publishing)
+        run: npm install -g npm@latest
+
+      - name: Verify package contents
+        run: npm pack --dry-run
+
+      - name: Verify tag matches package.json version
+        run: |
+          PKG_VERSION="v$(node -p "require('./package.json').version")"
+          GIT_TAG="${GITHUB_REF#refs/tags/}"
+          if [ "$PKG_VERSION" != "$GIT_TAG" ]; then
+            echo "::error::package.json version ($PKG_VERSION) does not match git tag ($GIT_TAG)"
+            exit 1
+          fi
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        # If OIDC trusted publishing is not yet configured or fails,
+        # you can fall back to a granular access token by uncommenting:
+        # env:
+        #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
