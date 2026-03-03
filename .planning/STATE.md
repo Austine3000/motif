@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Domain-intelligent design delivered through fresh context -- a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 8.1 - Pre-Publish Integration Fixes (gap closure)
+**Current focus:** All phases complete — milestone v1.0 ready
 
 ## Current Position
 
-Phase: 8.1 of 8.1 (Pre-Publish Integration Fixes)
-Plan: 1 of 1 in current phase (08.1-01 complete)
-Status: Phase 8.1 complete -- all 4 integration gaps resolved
-Last activity: 2026-03-03 -- Completed 08.1-01 (Pre-Publish Integration Fixes)
+Phase: 8 of 8 (CI and Publish) — COMPLETE
+Plan: 2 of 2 in current phase (08-02 complete)
+Status: All phases complete — motif-design@0.1.0 published to npm
+Last activity: 2026-03-04 -- Completed 08-02 (GitHub repo + npm publish + e2e verification)
 
-Progress: [██████████] 97%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22
+- Total plans completed: 23
 - Average duration: 3min
-- Total execution time: 0.89 hours
+- Total execution time: 1.03 hours
 
 **By Phase:**
 
@@ -34,12 +34,12 @@ Progress: [██████████] 97%
 | 05-verticals | 3 | 6min | 2min |
 | 06-hooks-and-scripts | 3 | 8min | 2.7min |
 | 07-validation | 3 | human-paced | human-paced |
-| 08-ci-and-publish | 1 | 1min | 1min |
+| 08-ci-and-publish | 2 | 9min | 4.5min |
 | 08.1-pre-publish-integration-fixes | 1 | 2min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 06-02 (2min), 06-01 (4min), 07-01 (3min), 08-01 (1min), 08.1-01 (2min)
-- Trend: Consistent (all fast, single-wave execution)
+- Last 5 plans: 07-01 (3min), 08-01 (1min), 08.1-01 (2min), 08-02 (8min)
+- Trend: Consistent; 08-02 longer due to human checkpoint gates
 
 *Updated after each plan completion*
 
@@ -111,7 +111,7 @@ Recent decisions affecting current work:
 - fonts.gstatic.com CDN whitelist needed in validate-workflow.js for Google Fonts token showcase -- legitimate dependency, not a violation
 - Screen name overrides pattern: run-all-validations.sh accepts actual screen names to accommodate real workflow naming
 - npm package name resolved to "motif-design" (unscoped) -- "motif" was taken by justinvdm; user chose motif-design over @sailslab/motif and motif-ai
-- Repository URL set to SailsLab/motif -- repo name stays "motif", npm package name "motif-design" does not need to match
+- Repository URL set to Austine3000/motif -- personal account, npm package name "motif-design" does not need to match repo name
 - OIDC trusted publishing as primary auth mechanism -- tokenless, more secure; commented-out NODE_AUTH_TOKEN fallback for non-OIDC scenarios
 - environment: npm-publish required in workflow YAML for OIDC token scoping -- must create this environment in GitHub repo settings
 - npm install -g npm@latest added to workflow -- Node 22.x ships npm 10.x which lacks trusted publishing support (requires >= 11.5.1)
@@ -126,6 +126,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: Completed 08.1-01-PLAN.md (Pre-Publish Integration Fixes)
-Resume file: .planning/phases/08.1-pre-publish-integration-fixes/08.1-01-SUMMARY.md
+Last session: 2026-03-04
+Stopped at: All phases complete — milestone v1.0 ready for archival
+Resume file: .planning/phases/08-ci-and-publish/08-02-SUMMARY.md

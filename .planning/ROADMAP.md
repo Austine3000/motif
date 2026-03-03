@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Verticals** - Add health, SaaS, and e-commerce domain intelligence databases
 - [x] **Phase 6: Hooks and Scripts** - Build PostToolUse enforcement hooks and utility scripts
 - [x] **Phase 7: Validation** - End-to-end testing on controlled and real projects
-- [ ] **Phase 8: CI and Publish** - Automate npm publishing via GitHub Actions
+- [x] **Phase 8: CI and Publish** - Automate npm publishing via GitHub Actions
 
 ## Phase Details
 
@@ -148,7 +148,7 @@ Plans:
 
 Plans:
 - [x] 08-01-PLAN.md — Pre-publish package preparation: .gitignore, package.json identity, CI workflow, README update (DIST-04)
-- [ ] 08-02-PLAN.md — GitHub repo setup, npm trusted publishing, first publish, end-to-end install verification (DIST-04)
+- [x] 08-02-PLAN.md — GitHub repo setup, npm trusted publishing, first publish, end-to-end install verification (DIST-04)
 
 ### Phase 8.1: Pre-Publish Integration Fixes (INSERTED)
 **Goal**: All cross-phase integration gaps identified by milestone audit are resolved before publishing — vertical paths load correctly, CI workflow runs, and package name references are consistent
@@ -180,5 +180,5 @@ Note: Phase 8.1 is an INSERTED gap closure phase; after completion, resume Phase
 | 5. Verticals | 3/3 | ✓ Complete | 2026-03-02 |
 | 6. Hooks and Scripts | 3/3 | ✓ Complete | 2026-03-02 |
 | 7. Validation | 3/3 | ✓ Complete | 2026-03-03 |
-| 8. CI and Publish | 1/2 | In Progress | - |
+| 8. CI and Publish | 2/2 | ✓ Complete | 2026-03-04 |
 | 8.1 Pre-Publish Integration Fixes | 1/1 | ✓ Complete | 2026-03-03 |
