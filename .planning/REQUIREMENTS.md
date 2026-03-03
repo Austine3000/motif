@@ -9,65 +9,65 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Agents
 
-- [ ] **AGNT-01**: Researcher agent definition with explicit context-loading profile and model selection
-- [ ] **AGNT-02**: System Architect agent definition for design system generation with context profile
-- [ ] **AGNT-03**: Screen Composer agent definition enforcing token compliance with fresh 200K context
-- [ ] **AGNT-04**: Design Reviewer agent definition for 4-lens evaluation with context profile
-- [ ] **AGNT-05**: Fix Agent definition for systematically fixing review findings with context profile
+- [x] **AGNT-01**: Researcher agent definition with explicit context-loading profile and model selection
+- [x] **AGNT-02**: System Architect agent definition for design system generation with context profile
+- [x] **AGNT-03**: Screen Composer agent definition enforcing token compliance with fresh 200K context
+- [x] **AGNT-04**: Design Reviewer agent definition for 4-lens evaluation with context profile
+- [x] **AGNT-05**: Fix Agent definition for systematically fixing review findings with context profile
 
 ### Templates
 
-- [ ] **TMPL-01**: STATE-TEMPLATE.md matching format defined in state-machine.md
-- [ ] **TMPL-02**: SUMMARY-TEMPLATE.md matching format defined in compose-screen.md
-- [ ] **TMPL-03**: Token showcase HTML — self-contained page displaying all design tokens visually
+- [x] **TMPL-01**: STATE-TEMPLATE.md matching format defined in state-machine.md
+- [x] **TMPL-02**: SUMMARY-TEMPLATE.md matching format defined in compose-screen.md
+- [x] **TMPL-03**: Token showcase HTML — self-contained page displaying all design tokens visually
 
 ### Installer
 
-- [ ] **INST-01**: `npx motif@latest` auto-detects Claude Code runtime and installs
-- [ ] **INST-02**: Copies core/ to `.claude/get-motif/` and commands to `.claude/commands/motif/`
-- [ ] **INST-03**: Injects config snippet into CLAUDE.md with sentinel markers (`<!-- MOTIF-START/END -->`)
-- [ ] **INST-04**: Backs up existing files before overwrite on re-install
-- [ ] **INST-05**: Manifest-based upgrade tracking (`.motif-manifest.json`) with content-hash diffing
-- [ ] **INST-06**: Supports `--runtime`, `--force`, `--dry-run`, `--uninstall` CLI flags
-- [ ] **INST-07**: Post-install verification confirms zero unresolved `{FORGE_ROOT}` path variables
-- [ ] **INST-08**: Resolves `{FORGE_ROOT}` to correct runtime path at install time
+- [x] **INST-01**: `npx motif@latest` auto-detects Claude Code runtime and installs
+- [x] **INST-02**: Copies core/ to `.claude/get-motif/` and commands to `.claude/commands/motif/`
+- [x] **INST-03**: Injects config snippet into CLAUDE.md with sentinel markers (`<!-- MOTIF-START/END -->`)
+- [x] **INST-04**: Backs up existing files before overwrite on re-install
+- [x] **INST-05**: Manifest-based upgrade tracking (`.motif-manifest.json`) with content-hash diffing
+- [x] **INST-06**: Supports `--runtime`, `--force`, `--dry-run`, `--uninstall` CLI flags
+- [x] **INST-07**: Post-install verification confirms zero unresolved `{FORGE_ROOT}` path variables
+- [x] **INST-08**: Resolves `{FORGE_ROOT}` to correct runtime path at install time
 
 ### Distribution
 
-- [ ] **DIST-01**: `package.json` with name "motif", bin field, files whitelist, engines >=22.0.0
-- [ ] **DIST-02**: MIT LICENSE file
-- [ ] **DIST-03**: README with pitch, install command, command reference, architecture diagram, how it works
+- [x] **DIST-01**: `package.json` with name "motif", bin field, files whitelist, engines >=22.0.0
+- [x] **DIST-02**: MIT LICENSE file
+- [x] **DIST-03**: README with pitch, install command, command reference, architecture diagram, how it works
 - [ ] **DIST-04**: GitHub Actions CI workflow for automated npm publish on git tag
 
 ### Verticals
 
-- [ ] **VERT-01**: Health vertical following fintech.md structure exactly
-- [ ] **VERT-02**: SaaS vertical following fintech.md structure exactly
-- [ ] **VERT-03**: E-commerce vertical following fintech.md structure exactly
+- [x] **VERT-01**: Health vertical following fintech.md structure exactly
+- [x] **VERT-02**: SaaS vertical following fintech.md structure exactly
+- [x] **VERT-03**: E-commerce vertical following fintech.md structure exactly
 
 ### Hooks
 
-- [ ] **HOOK-01**: Token-check PostToolUse hook flags hardcoded CSS values in .css/.tsx/.jsx/.vue/.html
-- [ ] **HOOK-02**: Font-check PostToolUse hook flags banned fonts (unless user-locked)
-- [ ] **HOOK-03**: A11y-check PostToolUse hook flags div+onClick, img without alt, inputs without labels
-- [ ] **HOOK-04**: Context-monitor statusline hook displays context %, warns at 50%
+- [x] **HOOK-01**: Token-check PostToolUse hook flags hardcoded CSS values in .css/.tsx/.jsx/.vue/.html
+- [x] **HOOK-02**: Font-check PostToolUse hook flags banned fonts (unless user-locked)
+- [x] **HOOK-03**: A11y-check PostToolUse hook flags div+onClick, img without alt, inputs without labels
+- [x] **HOOK-04**: Context-monitor statusline hook displays context %, warns at 50%
 
 ### Scripts
 
-- [ ] **SCRP-01**: Contrast checker — WCAG contrast ratio calculator, pure Node.js
-- [ ] **SCRP-02**: Token counter — approximate token count in .planning/design/ files
+- [x] **SCRP-01**: Contrast checker — WCAG contrast ratio calculator, pure Node.js
+- [x] **SCRP-02**: Token counter — approximate token count in .planning/design/ files
 
 ### Rebrand
 
-- [ ] **BRND-01**: Rename package, commands (`/forge:*` → `/motif:*`), install dirs, all references to "Motif"
+- [x] **BRND-01**: Rename package, commands (`/forge:*` → `/motif:*`), install dirs, all references to "Motif"
 
 ### Validation
 
-- [ ] **VALD-01**: End-to-end workflow completes on controlled test project (init → research → system → compose → review → fix)
-- [ ] **VALD-02**: Battle test on real project (CryptoPay fintech) — full workflow succeeds
-- [ ] **VALD-03**: Differentiation seed produces visibly different designs for same vertical
-- [ ] **VALD-04**: Brand colors flow through token generation without being overridden
-- [ ] **VALD-05**: Screen quality remains consistent across 5+ screens (fresh context works)
+- [x] **VALD-01**: End-to-end workflow completes on controlled test project (init → research → system → compose → review → fix)
+- [x] **VALD-02**: Battle test on real project (CryptoPay fintech) — full workflow succeeds
+- [x] **VALD-03**: Differentiation seed produces visibly different designs for same vertical
+- [x] **VALD-04**: Brand colors flow through token generation without being overridden
+- [x] **VALD-05**: Screen quality remains consistent across 5+ screens (fresh context works)
 
 ## v2 Requirements
 
@@ -116,41 +116,41 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AGNT-01 | Phase 1 | Pending |
-| AGNT-02 | Phase 1 | Pending |
-| AGNT-03 | Phase 1 | Pending |
-| AGNT-04 | Phase 1 | Pending |
-| AGNT-05 | Phase 1 | Pending |
-| TMPL-01 | Phase 2 | Pending |
-| TMPL-02 | Phase 2 | Pending |
-| TMPL-03 | Phase 2 | Pending |
-| INST-01 | Phase 3 | Pending |
-| INST-02 | Phase 3 | Pending |
-| INST-03 | Phase 3 | Pending |
-| INST-04 | Phase 3 | Pending |
-| INST-05 | Phase 3 | Pending |
-| INST-06 | Phase 3 | Pending |
-| INST-07 | Phase 3 | Pending |
-| INST-08 | Phase 3 | Pending |
-| DIST-01 | Phase 4 | Pending |
-| DIST-02 | Phase 4 | Pending |
-| DIST-03 | Phase 4 | Pending |
+| AGNT-01 | Phase 1 | Complete |
+| AGNT-02 | Phase 1 | Complete |
+| AGNT-03 | Phase 1 | Complete |
+| AGNT-04 | Phase 1 | Complete |
+| AGNT-05 | Phase 1 | Complete |
+| TMPL-01 | Phase 2 | Complete |
+| TMPL-02 | Phase 2 | Complete |
+| TMPL-03 | Phase 2 | Complete |
+| INST-01 | Phase 3 | Complete |
+| INST-02 | Phase 3 | Complete |
+| INST-03 | Phase 3 | Complete |
+| INST-04 | Phase 3 | Complete |
+| INST-05 | Phase 3 | Complete |
+| INST-06 | Phase 3 | Complete |
+| INST-07 | Phase 3 | Complete |
+| INST-08 | Phase 3 | Complete |
+| DIST-01 | Phase 4 | Complete |
+| DIST-02 | Phase 4 | Complete |
+| DIST-03 | Phase 4 | Complete |
 | DIST-04 | Phase 8 | Pending |
-| VERT-01 | Phase 5 | Pending |
-| VERT-02 | Phase 5 | Pending |
-| VERT-03 | Phase 5 | Pending |
-| HOOK-01 | Phase 6 | Pending |
-| HOOK-02 | Phase 6 | Pending |
-| HOOK-03 | Phase 6 | Pending |
-| HOOK-04 | Phase 6 | Pending |
-| SCRP-01 | Phase 6 | Pending |
-| SCRP-02 | Phase 6 | Pending |
-| BRND-01 | Phase 4 | Pending |
-| VALD-01 | Phase 7 | Pending |
-| VALD-02 | Phase 7 | Pending |
-| VALD-03 | Phase 7 | Pending |
-| VALD-04 | Phase 7 | Pending |
-| VALD-05 | Phase 7 | Pending |
+| VERT-01 | Phase 5 | Complete |
+| VERT-02 | Phase 5 | Complete |
+| VERT-03 | Phase 5 | Complete |
+| HOOK-01 | Phase 6 | Complete |
+| HOOK-02 | Phase 6 | Complete |
+| HOOK-03 | Phase 6 | Complete |
+| HOOK-04 | Phase 6 | Complete |
+| SCRP-01 | Phase 6 | Complete |
+| SCRP-02 | Phase 6 | Complete |
+| BRND-01 | Phase 4 | Complete |
+| VALD-01 | Phase 7 | Complete |
+| VALD-02 | Phase 7 | Complete |
+| VALD-03 | Phase 7 | Complete |
+| VALD-04 | Phase 7 | Complete |
+| VALD-05 | Phase 7 | Complete |
 
 **Coverage:**
 - v1 requirements: 35 total
@@ -159,4 +159,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-01*
-*Last updated: 2026-03-01 after roadmap creation*
+*Last updated: 2026-03-03 after Phase 7 completion*
