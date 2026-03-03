@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 7 of 8 (Validation) -- COMPLETE
-Plan: 3 of 3 in current phase (07-03 complete)
-Status: Phase complete -- ready for Phase 8
-Last activity: 2026-03-03 -- Completed 07-03 (CryptoPay Battle Test & Full Validation - ALL 5 VALD PASS)
+Phase: 8 of 8 (CI and Publish)
+Plan: 1 of 2 in current phase (08-01 complete)
+Status: Executing Phase 8 -- 08-01 complete, 08-02 next
+Last activity: 2026-03-03 -- Completed 08-01 (Pre-Publish Package Preparation)
 
-Progress: [█████████░] 90%
+Progress: [█████████░] 95%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
+- Total plans completed: 21
 - Average duration: 3min
-- Total execution time: 0.84 hours
+- Total execution time: 0.86 hours
 
 **By Phase:**
 
@@ -34,9 +34,10 @@ Progress: [█████████░] 90%
 | 05-verticals | 3 | 6min | 2min |
 | 06-hooks-and-scripts | 3 | 8min | 2.7min |
 | 07-validation | 3 | human-paced | human-paced |
+| 08-ci-and-publish | 1 | 1min | 1min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (2min), 06-03 (2min), 06-02 (2min), 06-01 (4min), 07-01 (3min)
+- Last 5 plans: 06-03 (2min), 06-02 (2min), 06-01 (4min), 07-01 (3min), 08-01 (1min)
 - Trend: Consistent (all fast, single-wave execution)
 
 *Updated after each plan completion*
@@ -108,6 +109,11 @@ Recent decisions affecting current work:
 - Phase 7 Validation COMPLETE: all 5 VALD requirements PASS (5/5), zero failures
 - fonts.gstatic.com CDN whitelist needed in validate-workflow.js for Google Fonts token showcase -- legitimate dependency, not a violation
 - Screen name overrides pattern: run-all-validations.sh accepts actual screen names to accommodate real workflow naming
+- npm package name resolved to "motif-design" (unscoped) -- "motif" was taken by justinvdm; user chose motif-design over @sailslab/motif and motif-ai
+- Repository URL set to SailsLab/motif -- repo name stays "motif", npm package name "motif-design" does not need to match
+- OIDC trusted publishing as primary auth mechanism -- tokenless, more secure; commented-out NODE_AUTH_TOKEN fallback for non-OIDC scenarios
+- environment: npm-publish required in workflow YAML for OIDC token scoping -- must create this environment in GitHub repo settings
+- npm install -g npm@latest added to workflow -- Node 22.x ships npm 10.x which lacks trusted publishing support (requires >= 11.5.1)
 
 ### Pending Todos
 
@@ -120,5 +126,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 07-03-PLAN.md (CryptoPay Battle Test & Full Validation - ALL 5 VALD PASS) -- Phase 7 COMPLETE
-Resume file: .planning/phases/07-validation/07-03-SUMMARY.md
+Stopped at: Completed 08-01-PLAN.md (Pre-Publish Package Preparation)
+Resume file: .planning/phases/08-ci-and-publish/08-01-SUMMARY.md
