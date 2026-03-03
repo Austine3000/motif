@@ -135,7 +135,7 @@ function verifyTokenShowcase(projectDir) {
   const cdnPattern = /https?:\/\/[^\s"'<>]+/g;
   const urls = content.match(cdnPattern) || [];
   const disallowedCDN = urls.filter(url => {
-    return !url.includes('fonts.google.com') && !url.includes('fonts.googleapis.com');
+    return !url.includes('fonts.google.com') && !url.includes('fonts.googleapis.com') && !url.includes('fonts.gstatic.com');
   });
 
   return {
