@@ -69,6 +69,41 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **VALD-04**: Brand colors flow through token generation without being overridden
 - [x] **VALD-05**: Screen quality remains consistent across 5+ screens (fresh context works)
 
+## v1.1 Requirements
+
+Requirements for milestone v1.1: Icon Library Integration.
+
+### Icon Reference
+
+- [ ] **IREF-01**: `icon-libraries.md` reference doc exists with 4 curated libraries (Phosphor, Lucide, Material Symbols, Tabler) including CDN URLs, usage syntax, icon count, weight variants, and license
+- [ ] **IREF-02**: Domain affinity mapping links each vertical to its recommended icon library
+- [ ] **IREF-03**: Selection algorithm documented — vertical + brand personality → library recommendation
+
+### Icon Tokens
+
+- [ ] **ITOK-01**: Icon size tokens (`--icon-sm` through `--icon-2xl`) added to the token generation pipeline
+- [ ] **ITOK-02**: Size tokens follow 8px-multiple scale (16/20/24/32/40px) matching existing component spec dimensions
+
+### Icon Vocabulary
+
+- [ ] **IVOC-01**: Fintech vertical has curated icon vocabulary (15-25 validated names by semantic category)
+- [ ] **IVOC-02**: Health vertical has curated icon vocabulary
+- [ ] **IVOC-03**: SaaS vertical has curated icon vocabulary
+- [ ] **IVOC-04**: E-commerce vertical has curated icon vocabulary
+
+### Icon Pipeline
+
+- [ ] **IPIP-01**: System architect agent selects icon library from curated set during design system generation
+- [ ] **IPIP-02**: DESIGN-SYSTEM.md output includes selected icon library, CDN link, and usage syntax
+- [ ] **IPIP-03**: ICON-CATALOG.md generated per project with vertical-specific icon mappings
+- [ ] **IPIP-04**: Screen composer agent uses concrete icon names from ICON-CATALOG.md in composed screens
+- [ ] **IPIP-05**: Token showcase template includes icon CDN link and icon preview section
+
+### Icon Enforcement
+
+- [ ] **IENF-01**: Design reviewer agent checks icon consistency and correct library usage
+- [ ] **IENF-02**: aria-check hook extended to detect icon elements and enforce accessibility attributes (aria-label on icon-only buttons, aria-hidden on decorative icons)
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -95,6 +130,13 @@ Deferred to future release. Tracked but not in current roadmap.
 
 - **INTG-01**: Figma MCP integration for design-to-code pipeline
 
+### Advanced Icons (v1.2+)
+
+- **ICON-01**: Dark mode icon weight adjustment (thicker strokes for dark backgrounds)
+- **ICON-02**: Phosphor duotone secondary color control via CSS custom properties
+- **ICON-03**: Material Symbols variable font axis tokens (fill, weight, grade, optical size)
+- **ICON-04**: Icon search/discovery tool for agents to find icon names by concept
+
 ### Polish
 
 - **PLSH-01**: CHANGELOG.md with release tracking
@@ -109,6 +151,10 @@ Deferred to future release. Tracked but not in current roadmap.
 | CSS-in-JS token output | CSS custom properties are framework-agnostic. CSS-in-JS fragments the approach. |
 | Figma plugin | MCP integration is the modern path. Plugin adds maintenance burden. |
 | Windows CI testing | macOS-only v1. Windows support deferred to community feedback. |
+| Custom icon creation/generation | Use established libraries only — reliability over creativity |
+| Icon font bundling/build step | CDN-first; user handles build integration in their project |
+| Heroicons inclusion | 316 icons insufficient, no icon font, Tailwind-coupled |
+| Icon animation tokens | Complexity without clear vertical value; defer to v2+ |
 
 ## Traceability
 
@@ -152,11 +198,33 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VALD-04 | Phase 7 | Complete |
 | VALD-05 | Phase 7 | Complete |
 
+### v1.1 Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| IREF-01 | — | Pending |
+| IREF-02 | — | Pending |
+| IREF-03 | — | Pending |
+| ITOK-01 | — | Pending |
+| ITOK-02 | — | Pending |
+| IVOC-01 | — | Pending |
+| IVOC-02 | — | Pending |
+| IVOC-03 | — | Pending |
+| IVOC-04 | — | Pending |
+| IPIP-01 | — | Pending |
+| IPIP-02 | — | Pending |
+| IPIP-03 | — | Pending |
+| IPIP-04 | — | Pending |
+| IPIP-05 | — | Pending |
+| IENF-01 | — | Pending |
+| IENF-02 | — | Pending |
+
 **Coverage:**
-- v1 requirements: 35 total
-- Mapped to phases: 35
-- Unmapped: 0
+- v1 requirements: 35 total (all complete)
+- v1.1 requirements: 16 total
+- Mapped to phases: 0
+- Unmapped: 16 ⚠️
 
 ---
 *Requirements defined: 2026-03-01*
-*Last updated: 2026-03-03 after Phase 7 completion*
+*Last updated: 2026-03-04 after v1.1 requirements definition*
