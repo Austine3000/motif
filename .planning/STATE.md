@@ -5,22 +5,22 @@
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** Domain-intelligent design delivered through fresh context -- a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 11 complete and verified (22/22 must-haves), ready for Phase 12
+**Current focus:** Phase 12 in progress -- icon enforcement and validation
 
 ## Current Position
 
-Phase: 11 of 12 (Pipeline Integration) -- COMPLETE
-Plan: 3 of 3 in current phase (all done)
-Status: Phase 11 complete — verified (22/22 must-haves passed)
-Last activity: 2026-03-04 -- Phase 11 verified, ready for Phase 12
+Phase: 12 of 12 (Enforcement and Validation) -- IN PROGRESS
+Plan: 1 of 2 in current phase (12-01 done)
+Status: Plan 12-01 complete -- reviewer icon checks + aria-check hook icon detection
+Last activity: 2026-03-04 -- Plan 12-01 executed
 
-Progress: [================================....] 90%
-(v1.0 complete: 24/24 plans | v1.1: 6/7 plans -- 11-01, 11-02, 11-03 done)
+Progress: [=================================...] 95%
+(v1.0 complete: 24/24 plans | v1.1: 7/8 plans -- 11-01, 11-02, 11-03, 12-01 done)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 30 (v1.0: 24, v1.1: 6)
+- Total plans completed: 31 (v1.0: 24, v1.1: 7)
 - Average duration: ~2.5 min
 - Total execution time: ~1 hour 15 min
 
@@ -40,6 +40,7 @@ Progress: [================================....] 90%
 | 9. Foundation | 1 | ~4 min | ~4 min |
 | 10. Vertical Migration | 2 | ~4 min | ~2 min |
 | 11. Pipeline Integration | 3/3 | ~9 min | ~3 min |
+| 12. Enforcement and Validation | 1/2 | ~3 min | ~3 min |
 
 *Updated after each plan completion*
 
@@ -75,6 +76,10 @@ Recent decisions affecting current work:
 - icon-libraries.md in never_load for composer -- only distilled catalog, not raw library metadata
 - Icon anti-slop triad: validate name against catalog, validate size token, reject bracket placeholders
 - Direct cp sync for source-to-installed file updates (no full install cycle needed for targeted syncs)
+- Lens 3 scoring: colors /6, fonts /4, radii /5, specs /5, tokens /3, icons /2 = /25 (adjusted for icon compliance)
+- Lens 4 scoring: LOCKED /8, BLOCKED /5, domain feel /5, icon vertical /2 = /20 (adjusted for icon vertical check)
+- Icon enforcement checks conditional on ICON-CATALOG.md existence -- graceful skip when absent
+- aria-check hook includes <a> alongside <button> for icon-only detection (same a11y concern)
 
 ### Pending Todos
 
@@ -83,10 +88,10 @@ None yet.
 ### Blockers/Concerns
 
 - ~~Phase 11: Context engine loading pattern for ICON-CATALOG.md needs review during planning~~ (resolved in 11-01: always_load in composer, load_if_exists in reviewer, 1000 token budget)
-- Phase 12: aria-check hook icon detection must avoid false positives on text buttons with adjacent icons
+- ~~Phase 12: aria-check hook icon detection must avoid false positives on text buttons with adjacent icons~~ (resolved in 12-01: isIconOnlyInteractive strips icon, checks for remaining visible text)
 
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Phase 11 complete and verified. Ready for Phase 12 planning.
+Stopped at: Completed 12-01-PLAN.md (icon enforcement). Ready for 12-02 (end-to-end validation).
 Resume file: --
