@@ -67,6 +67,8 @@ Recent decisions affecting current work:
 - currentColor inheritance for icon color -- no --icon-color-* tokens needed
 - Material Symbols primary column first in health/ecommerce vocabulary tables (primary library per domain affinity)
 - Bracket placeholder replacement uses vocabulary-referencing notation [icon: {role} --icon-{size}] not hardcoded names
+- Primary library column listed first in vocabulary tables (Phosphor for fintech, Lucide for SaaS)
+- 23 icons per vertical: 5 navigation + domain-specific + status/feedback + actions
 - Ecommerce descriptive icon references left unchanged (not bracket placeholders)
 
 ### Pending Todos
