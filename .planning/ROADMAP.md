@@ -219,11 +219,11 @@ Plans:
   2. The design reviewer agent checks that icon choices are appropriate for the project's vertical (e.g., medical icons in a health app, not finance icons)
   3. The aria-check hook flags icon-only buttons missing `aria-label` and decorative icons missing `aria-hidden="true"`
   4. End-to-end: running the full pipeline (`/motif:system` then `/motif:compose` then `/motif:review`) on at least one vertical produces screens with rendered icons and zero icon-related review findings
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 12-01: TBD
-- [ ] 12-02: TBD
+- [ ] 12-01-PLAN.md -- Reviewer icon checks (Lens 3 + Lens 4), aria-check hook icon detection, review workflow update (IENF-01, IENF-02)
+- [ ] 12-02-PLAN.md -- Sync source to installed copies, end-to-end pipeline verification
 
 ## Progress
 
@@ -244,4 +244,4 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12
 | 9. Foundation | v1.1 | 1/1 | Complete | 2026-03-04 |
 | 10. Vertical Migration | v1.1 | 2/2 | Complete | 2026-03-04 |
 | 11. Pipeline Integration | v1.1 | 3/3 | Complete | 2026-03-04 |
-| 12. Enforcement and Validation | v1.1 | 0/TBD | Not started | - |
+| 12. Enforcement and Validation | v1.1 | 0/2 | Not started | - |
