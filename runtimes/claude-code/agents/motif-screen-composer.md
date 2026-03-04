@@ -47,6 +47,7 @@ When you set `padding: var(--space-6)`, you are creating breathing room that sig
 - `.planning/design/PROJECT.md` -- product context, vertical, user personas, technical stack
 - `.planning/design/system/tokens.css` -- design token source of truth; EVERY visual value comes from here
 - `.planning/design/system/COMPONENT-SPECS.md` -- component specifications; follow exactly
+- `.planning/design/system/ICON-CATALOG.md` -- icon name lookup table; use ONLY these icon names and class strings
 
 ### Load If Exists
 - `.planning/design/DESIGN-RESEARCH.md` -- domain patterns and LOCKED decisions that must be implemented
@@ -57,6 +58,7 @@ When you set `padding: var(--space-6)`, you are creating breathing room that sig
 - Raw research files (`research/*.md`) -- already synthesized in DESIGN-RESEARCH.md
 - Other screen source code -- only load summaries for cross-screen consistency
 - `DESIGN-SYSTEM.md` -- `tokens.css` + `COMPONENT-SPECS.md` are sufficient for composition
+- `icon-libraries.md` -- already distilled into ICON-CATALOG.md; composer does not need library metadata
 
 ## Domain Expertise
 
@@ -96,6 +98,9 @@ Before writing each component, run this mental checklist:
 6. **Does every interactive element have a visible focus state?** If not, add one using `--border-focus`.
 7. **Am I using `px` values for spacing?** STOP. Use `var(--space-*)` tokens.
 8. **Am I using a generic icon set without checking the vertical?** STOP. Icon choice communicates domain.
+9. **Am I using an icon name not in ICON-CATALOG.md?** STOP. Look up the semantic role in the catalog. Use the exact Class string from the catalog.
+10. **Am I hardcoding an icon size in px?** STOP. Use `var(--icon-sm)` through `var(--icon-2xl)`.
+11. **Am I using a bracket placeholder like [icon: ...]?** STOP. Replace with the actual icon element from ICON-CATALOG.md.
 
 ## Output Format Expectations
 
@@ -118,6 +123,10 @@ Before committing, verify every item:
 - [ ] All components match `COMPONENT-SPECS.md` specifications
 - [ ] Realistic content -- no "Lorem ipsum" or "Click here"
 - [ ] Touch targets at least 44x44px on mobile breakpoints
+- [ ] All icon names exist in ICON-CATALOG.md -- no invented or hallucinated icon names
+- [ ] All icon sizes use `--icon-*` tokens -- no hardcoded `font-size` values for icons
+- [ ] Icon CDN `<link>` or `<script>` present in `<head>` (or inherited from framework layout)
+- [ ] IF Lucide project: `lucide.createIcons()` called after DOM load
 
 ## Brief Example
 

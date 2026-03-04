@@ -33,9 +33,13 @@ REQUIRED_FILES:
   - .planning/design/system/tokens.css
   - .planning/design/system/COMPONENT-SPECS.md
   - .planning/design/DESIGN-RESEARCH.md
+  - .planning/design/system/ICON-CATALOG.md
 
 OPTIONAL_FILES (load if they exist):
   - .planning/design/screens/*-SUMMARY.md (only the most recent 2-3)
+
+Note: If ICON-CATALOG.md does not exist, warn the user:
+"No icon catalog found -- icon names may be inconsistent. Re-run /motif:system to generate."
 ```
 
 Check `.planning/design/PROJECT.md` quickly for the technical stack (React/Next.js/Vue/HTML).
@@ -60,7 +64,8 @@ Read each of these files before writing ANY code:
 2. `.planning/design/system/tokens.css` — design tokens. EVERY color, font, spacing, radius, shadow MUST come from here. Zero hardcoded values.
 3. `.planning/design/system/COMPONENT-SPECS.md` — component specifications. Follow exactly.
 4. `.planning/design/DESIGN-RESEARCH.md` — domain patterns. The "Design Decisions (LOCKED)" section is mandatory.
-{IF previous summaries exist: 5. `.planning/design/screens/{prev}-SUMMARY.md` — for cross-screen consistency}
+5. `.planning/design/system/ICON-CATALOG.md` -- icon name lookup. Use ONLY these icon names.
+{IF previous summaries exist: 6. `.planning/design/screens/{prev}-SUMMARY.md` — for cross-screen consistency}
 
 Also read the project's CLAUDE.md if it exists for project-specific conventions.
 
@@ -84,6 +89,12 @@ Before writing code, write a brief analysis to `.planning/design/screens/{SCREEN
 6. **Accessibility:** Semantic HTML (nav, main, section, button). ARIA labels on non-obvious elements. Visible focus styles using --border-focus. All interactive elements keyboard accessible. Touch targets ≥44×44px.
 7. **Responsive:** Mobile + desktop breakpoints minimum.
 8. **Vertical patterns:** Implement the LOCKED decisions from DESIGN-RESEARCH.md that apply to this screen.
+9. **Icon compliance:** Use ONLY icon names from ICON-CATALOG.md. Every icon must use:
+   - The exact class/element syntax from the catalog's "Class" column
+   - An `--icon-{scale}` token for sizing (`--icon-sm` through `--icon-2xl`)
+   - `currentColor` for color (set via parent element's `color` property)
+   - NEVER invent icon names. If a needed icon isn't in the catalog, use the closest semantic match and note it in SUMMARY.md.
+   - NEVER use bracket placeholders like `[icon]` or `[MerchantIcon]`.
 
 ### C. Anti-Slop Check
 Before writing each component, verify:
@@ -91,6 +102,9 @@ Before writing each component, verify:
 - ❌ Am I hardcoding a color? → STOP. Find the token.
 - ❌ Am I using border-radius: 8px? → STOP. Use var(--radius-md).
 - ❌ Am I using a generic card layout? → STOP. Check what the vertical research says.
+- ❌ Am I using an icon name not in ICON-CATALOG.md? -> STOP. Look up the semantic role in the catalog. Use the exact Class string.
+- ❌ Am I hardcoding an icon size in px? -> STOP. Use var(--icon-sm) through var(--icon-2xl).
+- ❌ Am I using a bracket placeholder like [icon: ...]? -> STOP. Replace with the actual icon element from the catalog.
 - ✅ Every visual value references a CSS custom property from tokens.css.
 
 ### D. Self-Review Checklist
@@ -101,6 +115,10 @@ Before committing, verify:
 - [ ] Semantic HTML (no div-only soup)
 - [ ] Keyboard accessible (tab through all interactive elements)
 - [ ] Responsive (test at 375px and 1280px mentally)
+- [ ] All icon names exist in ICON-CATALOG.md (no invented names)
+- [ ] All icon sizes use --icon-* tokens (no hardcoded font-size for icons)
+- [ ] Icon CDN link present in <head> (or inherited from framework)
+- [ ] IF Lucide: createIcons() called after DOM load
 
 ### E. Create Summary
 Save to `.planning/design/screens/{SCREEN_NAME}-SUMMARY.md`:
