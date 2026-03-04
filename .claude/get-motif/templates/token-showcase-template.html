@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{PRODUCT_NAME} — Design Tokens</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link href="https://fonts.googleapis.com/css2?family={FONT_FAMILIES}" rel="stylesheet">
+  <!-- Icon library CDN -- agent fills based on selection algorithm -->
+  {ICON_CDN_LINK}
+  {ICON_INIT_SCRIPT}
+  <style>
+    /* ═══════════════════════════════════════
+       Token Showcase — Inline Styles
+       All presentation CSS lives here.
+       Visual values use var(--token) references
+       resolved by the sibling tokens.css file.
+       ═══════════════════════════════════════ */
+
+    /* --- Reset --- */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* --- Fallback Warning --- */
+    body::before {
+      content: "Warning: tokens.css not found. Place tokens.css in the same directory as this file.";
+      display: block;
+      padding: 1rem 1.5rem;
+      background: #fef2f2;
+      color: #991b1b;
+      border: 2px solid #fca5a5;
+      border-radius: 8px;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 0.875rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    /* Hide warning when tokens.css loads and custom properties resolve */
+    body {
+      --_tokens-loaded: var(--surface-primary);
+    }
+    body::before {
+      display: var(--_tokens-loaded, block);
+      display: none;
+    }
+
+    /* --- Body --- */
+    body {
+      font-family: var(--font-body);
+      background: var(--surface-primary);
+      color: var(--text-primary);
+      padding: var(--space-8);
+      line-height: var(--leading-normal);
+    }
+
+    /* --- Container --- */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* --- Headings --- */
+    h1, h2, h3 {
+      font-family: var(--font-display);
+    }
+    h1 {
+      font-size: var(--text-4xl);
+      font-weight: var(--weight-bold);
+      letter-spacing: -0.02em;
+      line-height: var(--leading-tight);
+    }
+    h2 {
+      font-size: var(--text-2xl);
+      font-weight: var(--weight-semibold);
+      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--border-primary);
+    }
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--weight-semibold);
+      margin-bottom: var(--space-3);
+    }
+
+    /* --- Header --- */
+    .showcase-header {
+      margin-bottom: var(--space-12);
+    }
+    .showcase-header h1 {
+      margin-bottom: var(--space-2);
+    }
+    .showcase-header .meta {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    /* --- Sections --- */
+    section {
+      margin-bottom: var(--space-16);
+    }
+
+    /* --- Swatch Grid --- */
+    .swatch-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+    }
+    .swatch-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-1);
+    }
+    .swatch {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-primary);
+    }
+    .swatch-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 90px;
+      word-break: break-all;
+    }
+
+    /* --- Subsection --- */
+    .subsection {
+      margin-bottom: var(--space-8);
+    }
+    .subsection-title {
+      font-size: var(--text-base);
+      font-weight: var(--weight-semibold);
+      margin-bottom: var(--space-3);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: var(--font-mono);
+    }
+
+    /* --- Surface Preview --- */
+    .surface-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: var(--space-4);
+    }
+    .surface-card {
+      padding: var(--space-6);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-primary);
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .surface-card .swatch-label {
+      text-align: left;
+      max-width: none;
+    }
+
+    /* --- Text Color Preview --- */
+    .text-samples {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .text-sample {
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .text-sample-text {
+      font-size: var(--text-lg);
+      font-weight: var(--weight-medium);
+    }
+    .text-sample-token {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      opacity: 0.7;
+    }
+
+    /* --- Typography Preview --- */
+    .font-family-display {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: var(--space-6);
+      margin-bottom: var(--space-8);
+    }
+    .font-family-card {
+      padding: var(--space-6);
+      background: var(--surface-secondary);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-primary);
+    }
+    .font-family-card .role {
+      font-size: var(--text-xs);
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: var(--space-2);
+    }
+    .font-family-card .sample {
+      font-size: var(--text-2xl);
+      line-height: var(--leading-tight);
+      margin-bottom: var(--space-2);
+    }
+    .font-family-card .font-name {
+      font-size: var(--text-xs);
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+    }
+
+    .type-scale {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      margin-bottom: var(--space-8);
+    }
+    .type-scale-item {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-6);
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--border-primary);
+    }
+    .type-scale-item .token-name {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      min-width: 100px;
+      flex-shrink: 0;
+    }
+    .type-scale-item .sample-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .weight-samples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-6);
+    }
+    .weight-sample {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+    .weight-sample .sample {
+      font-size: var(--text-xl);
+    }
+    .weight-sample .label {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+    }
+
+    /* --- Spacing Preview --- */
+    .spacing-scale {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    .spacing-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    .spacing-item .token-name {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      min-width: 80px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .spacing-bar {
+      height: 24px;
+      background: var(--color-primary-500, var(--text-link, #6366f1));
+      border-radius: var(--radius-sm);
+      opacity: 0.7;
+    }
+    .spacing-value {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      min-width: 60px;
+      flex-shrink: 0;
+    }
+
+    /* --- Radius Preview --- */
+    .radius-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-6);
+    }
+    .radius-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .radius-box {
+      width: 100px;
+      height: 100px;
+      background: var(--surface-secondary);
+      border: 2px solid var(--color-primary-500, var(--text-link, #6366f1));
+    }
+    .radius-item .swatch-label {
+      max-width: 120px;
+    }
+
+    /* --- Shadow Preview --- */
+    .shadow-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+    }
+    .shadow-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .shadow-box {
+      width: 140px;
+      height: 100px;
+      background: var(--surface-primary);
+      border-radius: var(--radius-md);
+    }
+    .shadow-item .swatch-label {
+      max-width: 140px;
+    }
+
+    /* --- Component Previews --- */
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--space-6);
+    }
+    .component-card {
+      padding: var(--space-6);
+      background: var(--surface-secondary);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-primary);
+    }
+    .component-card h3 {
+      font-size: var(--text-sm);
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: var(--space-4);
+    }
+    .component-card .preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      align-items: center;
+    }
+
+    /* Component: Button */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      cursor: pointer;
+      border: none;
+      line-height: var(--leading-tight);
+    }
+    .btn-primary {
+      background: var(--color-primary-500);
+      color: var(--text-inverse);
+    }
+    .btn-secondary {
+      background: var(--surface-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-primary);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-link);
+    }
+
+    /* Component: Input */
+    .input-preview {
+      width: 100%;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-primary);
+      background: var(--surface-primary);
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      color: var(--text-primary);
+      line-height: var(--leading-normal);
+    }
+    .input-preview::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    /* Component: Card */
+    .card-preview {
+      background: var(--surface-primary);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-primary);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .card-preview-body {
+      padding: var(--space-6);
+    }
+    .card-preview-title {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: var(--weight-semibold);
+      margin-bottom: var(--space-2);
+    }
+    .card-preview-text {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      line-height: var(--leading-normal);
+    }
+
+    /* Component: Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      font-family: var(--font-body);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-medium);
+      line-height: var(--leading-tight);
+    }
+    .badge-success {
+      background: var(--color-success);
+      color: var(--text-inverse);
+    }
+    .badge-error {
+      background: var(--color-error);
+      color: var(--text-inverse);
+    }
+    .badge-warning {
+      background: var(--color-warning);
+      color: var(--text-primary);
+    }
+    .badge-info {
+      background: var(--color-info);
+      color: var(--text-inverse);
+    }
+
+    /* --- Vertical-Specific Section --- */
+    .vertical-placeholder {
+      padding: var(--space-8);
+      background: var(--surface-secondary);
+      border-radius: var(--radius-md);
+      border: 2px dashed var(--border-primary);
+      text-align: center;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+    }
+
+    /* --- Icon Preview --- */
+    .icon-meta {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-4);
+    }
+    .icon-size-grid {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--space-8);
+      margin-bottom: var(--space-6);
+    }
+    .icon-size-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .icon-preview-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-6);
+    }
+    .icon-preview-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      min-width: 80px;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+      body {
+        padding: var(--space-4);
+      }
+      h1 {
+        font-size: var(--text-2xl);
+      }
+      h2 {
+        font-size: var(--text-xl);
+      }
+      .swatch {
+        width: 60px;
+        height: 60px;
+      }
+      .swatch-label {
+        max-width: 70px;
+      }
+      .font-family-display {
+        grid-template-columns: 1fr;
+      }
+      .type-scale-item {
+        flex-direction: column;
+        gap: var(--space-1);
+      }
+      .type-scale-item .token-name {
+        min-width: auto;
+      }
+      .spacing-item .token-name {
+        min-width: 60px;
+      }
+      .surface-grid {
+        grid-template-columns: 1fr;
+      }
+      .component-grid {
+        grid-template-columns: 1fr;
+      }
+      .shadow-grid {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ════════════════════════════════════
+         HEADER
+         ════════════════════════════════════ -->
+    <header class="showcase-header">
+      <h1>{PRODUCT_NAME} Design Tokens</h1>
+      <p class="meta">Vertical: {VERTICAL} | Generated: {ISO_DATE}</p>
+    </header>
+
+    <!-- ════════════════════════════════════
+         SECTION: COLORS
+         ════════════════════════════════════ -->
+    <section id="colors">
+      <h2>Color Palette</h2>
+
+      <!-- Primary Scale -->
+      <div class="subsection">
+        <p class="subsection-title">Primary Scale</p>
+        <div class="swatch-grid">
+          <!-- Agent fills in primary color swatches 50-950 -->
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-primary-50);"></div>
+            <span class="swatch-label">primary-50<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-primary-100);"></div>
+            <span class="swatch-label">primary-100<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-primary-200);"></div>
+            <span class="swatch-label">primary-200<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-primary-300);"></div>
+            <span class="swatch-label">primary-300<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-primary-400);"></div>
+            <span class="swatch-label">primary-400<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-primary-500);"></div>
+            <span class="swatch-label">primary-500<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-primary-600);"></div>
+            <span class="swatch-label">primary-600<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-primary-700);"></div>
+            <span class="swatch-label">primary-700<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-primary-800);"></div>
+            <span class="swatch-label">primary-800<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-primary-900);"></div>
+            <span class="swatch-label">primary-900<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-primary-950);"></div>
+            <span class="swatch-label">primary-950<br>{HEX}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Semantic Colors -->
+      <div class="subsection">
+        <p class="subsection-title">Semantic Colors</p>
+        <div class="swatch-grid">
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-success);"></div>
+            <span class="swatch-label">success<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-error);"></div>
+            <span class="swatch-label">error<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-warning);"></div>
+            <span class="swatch-label">warning<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--color-info);"></div>
+            <span class="swatch-label">info<br>{HEX}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Surface Colors -->
+      <div class="subsection">
+        <p class="subsection-title">Surface Colors</p>
+        <div class="surface-grid">
+          <div class="surface-card" style="background-color: var(--surface-primary);">
+            <span class="swatch-label">surface-primary<br>{HEX}</span>
+          </div>
+          <div class="surface-card" style="background-color: var(--surface-secondary);">
+            <span class="swatch-label">surface-secondary<br>{HEX}</span>
+          </div>
+          <div class="surface-card" style="background-color: var(--surface-tertiary);">
+            <span class="swatch-label">surface-tertiary<br>{HEX}</span>
+          </div>
+          <div class="surface-card" style="background-color: var(--surface-elevated);">
+            <span class="swatch-label">surface-elevated<br>{HEX}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Text Colors -->
+      <div class="subsection">
+        <p class="subsection-title">Text Colors</p>
+        <div class="text-samples">
+          <div class="text-sample" style="background: var(--surface-primary);">
+            <span class="text-sample-text" style="color: var(--text-primary);">Primary text on primary surface</span>
+            <span class="text-sample-token">--text-primary {HEX}</span>
+          </div>
+          <div class="text-sample" style="background: var(--surface-primary);">
+            <span class="text-sample-text" style="color: var(--text-secondary);">Secondary text on primary surface</span>
+            <span class="text-sample-token">--text-secondary {HEX}</span>
+          </div>
+          <div class="text-sample" style="background: var(--surface-primary);">
+            <span class="text-sample-text" style="color: var(--text-tertiary);">Tertiary text on primary surface</span>
+            <span class="text-sample-token">--text-tertiary {HEX}</span>
+          </div>
+          <div class="text-sample" style="background: var(--color-primary-500);">
+            <span class="text-sample-text" style="color: var(--text-inverse);">Inverse text on primary color</span>
+            <span class="text-sample-token" style="color: var(--text-inverse);">--text-inverse {HEX}</span>
+          </div>
+          <div class="text-sample" style="background: var(--surface-primary);">
+            <span class="text-sample-text" style="color: var(--text-link);">Link text on primary surface</span>
+            <span class="text-sample-token">--text-link {HEX}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Border Colors -->
+      <div class="subsection">
+        <p class="subsection-title">Border Colors</p>
+        <div class="swatch-grid">
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--surface-primary); border: 3px solid var(--border-primary);"></div>
+            <span class="swatch-label">border-primary<br>{HEX}</span>
+          </div>
+          <div class="swatch-item">
+            <div class="swatch" style="background-color: var(--surface-primary); border: 3px solid var(--border-focus);"></div>
+            <span class="swatch-label">border-focus<br>{HEX}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════
+         SECTION: TYPOGRAPHY
+         ════════════════════════════════════ -->
+    <section id="typography">
+      <h2>Typography Scale</h2>
+
+      <!-- Font Families -->
+      <div class="subsection">
+        <p class="subsection-title">Font Families</p>
+        <div class="font-family-display">
+          <div class="font-family-card">
+            <p class="role">Display</p>
+            <p class="sample" style="font-family: var(--font-display);">The quick brown fox</p>
+            <p class="font-name">--font-display: {FONT_DISPLAY}</p>
+          </div>
+          <div class="font-family-card">
+            <p class="role">Body</p>
+            <p class="sample" style="font-family: var(--font-body);">The quick brown fox</p>
+            <p class="font-name">--font-body: {FONT_BODY}</p>
+          </div>
+          <div class="font-family-card">
+            <p class="role">Mono</p>
+            <p class="sample" style="font-family: var(--font-mono);">The quick brown fox</p>
+            <p class="font-name">--font-mono: {FONT_MONO}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Type Scale -->
+      <div class="subsection">
+        <p class="subsection-title">Type Scale</p>
+        <div class="type-scale">
+          <div class="type-scale-item">
+            <span class="token-name">--text-xs</span>
+            <span class="sample-text" style="font-size: var(--text-xs);">The quick brown fox jumps over the lazy dog (0.75rem)</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="token-name">--text-sm</span>
+            <span class="sample-text" style="font-size: var(--text-sm);">The quick brown fox jumps over the lazy dog (0.875rem)</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="token-name">--text-base</span>
+            <span class="sample-text" style="font-size: var(--text-base);">The quick brown fox jumps over the lazy dog (1rem)</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="token-name">--text-lg</span>
+            <span class="sample-text" style="font-size: var(--text-lg);">The quick brown fox jumps over the lazy dog (1.125rem)</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="token-name">--text-xl</span>
+            <span class="sample-text" style="font-size: var(--text-xl);">The quick brown fox jumps over the lazy dog (1.25rem)</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="token-name">--text-2xl</span>
+            <span class="sample-text" style="font-size: var(--text-2xl);">The quick brown fox jumps over the lazy dog (1.5rem)</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="token-name">--text-3xl</span>
+            <span class="sample-text" style="font-size: var(--text-3xl);">The quick brown fox jumps (1.875rem)</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="token-name">--text-4xl</span>
+            <span class="sample-text" style="font-size: var(--text-4xl);">The quick brown fox (2.25rem)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weight Samples -->
+      <div class="subsection">
+        <p class="subsection-title">Font Weights</p>
+        <div class="weight-samples">
+          <div class="weight-sample">
+            <span class="sample" style="font-weight: var(--weight-normal);">Normal text</span>
+            <span class="label">--weight-normal (400)</span>
+          </div>
+          <div class="weight-sample">
+            <span class="sample" style="font-weight: var(--weight-medium);">Medium text</span>
+            <span class="label">--weight-medium (500)</span>
+          </div>
+          <div class="weight-sample">
+            <span class="sample" style="font-weight: var(--weight-semibold);">Semibold text</span>
+            <span class="label">--weight-semibold (600)</span>
+          </div>
+          <div class="weight-sample">
+            <span class="sample" style="font-weight: var(--weight-bold);">Bold text</span>
+            <span class="label">--weight-bold (700)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════
+         SECTION: SPACING
+         ════════════════════════════════════ -->
+    <section id="spacing">
+      <h2>Spacing Scale</h2>
+
+      <div class="spacing-scale">
+        <div class="spacing-item">
+          <span class="token-name">--space-1</span>
+          <div class="spacing-bar" style="width: var(--space-1);"></div>
+          <span class="spacing-value">0.25rem (4px)</span>
+        </div>
+        <div class="spacing-item">
+          <span class="token-name">--space-2</span>
+          <div class="spacing-bar" style="width: var(--space-2);"></div>
+          <span class="spacing-value">0.5rem (8px)</span>
+        </div>
+        <div class="spacing-item">
+          <span class="token-name">--space-3</span>
+          <div class="spacing-bar" style="width: var(--space-3);"></div>
+          <span class="spacing-value">0.75rem (12px)</span>
+        </div>
+        <div class="spacing-item">
+          <span class="token-name">--space-4</span>
+          <div class="spacing-bar" style="width: var(--space-4);"></div>
+          <span class="spacing-value">1rem (16px)</span>
+        </div>
+        <div class="spacing-item">
+          <span class="token-name">--space-5</span>
+          <div class="spacing-bar" style="width: var(--space-5);"></div>
+          <span class="spacing-value">1.25rem (20px)</span>
+        </div>
+        <div class="spacing-item">
+          <span class="token-name">--space-6</span>
+          <div class="spacing-bar" style="width: var(--space-6);"></div>
+          <span class="spacing-value">1.5rem (24px)</span>
+        </div>
+        <div class="spacing-item">
+          <span class="token-name">--space-8</span>
+          <div class="spacing-bar" style="width: var(--space-8);"></div>
+          <span class="spacing-value">2rem (32px)</span>
+        </div>
+        <div class="spacing-item">
+          <span class="token-name">--space-10</span>
+          <div class="spacing-bar" style="width: var(--space-10);"></div>
+          <span class="spacing-value">2.5rem (40px)</span>
+        </div>
+        <div class="spacing-item">
+          <span class="token-name">--space-12</span>
+          <div class="spacing-bar" style="width: var(--space-12);"></div>
+          <span class="spacing-value">3rem (48px)</span>
+        </div>
+        <div class="spacing-item">
+          <span class="token-name">--space-16</span>
+          <div class="spacing-bar" style="width: var(--space-16);"></div>
+          <span class="spacing-value">4rem (64px)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════
+         SECTION: BORDER RADIUS
+         ════════════════════════════════════ -->
+    <section id="radii">
+      <h2>Border Radius</h2>
+
+      <div class="radius-grid">
+        <div class="radius-item">
+          <div class="radius-box" style="border-radius: var(--radius-sm);"></div>
+          <span class="swatch-label">--radius-sm<br>{VALUE}</span>
+        </div>
+        <div class="radius-item">
+          <div class="radius-box" style="border-radius: var(--radius-md);"></div>
+          <span class="swatch-label">--radius-md<br>{VALUE}</span>
+        </div>
+        <div class="radius-item">
+          <div class="radius-box" style="border-radius: var(--radius-lg);"></div>
+          <span class="swatch-label">--radius-lg<br>{VALUE}</span>
+        </div>
+        <div class="radius-item">
+          <div class="radius-box" style="border-radius: var(--radius-xl);"></div>
+          <span class="swatch-label">--radius-xl<br>{VALUE}</span>
+        </div>
+        <div class="radius-item">
+          <div class="radius-box" style="border-radius: var(--radius-full);"></div>
+          <span class="swatch-label">--radius-full<br>9999px</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════
+         SECTION: SHADOWS
+         ════════════════════════════════════ -->
+    <section id="shadows">
+      <h2>Shadows</h2>
+
+      <div class="shadow-grid">
+        <div class="shadow-item">
+          <div class="shadow-box" style="box-shadow: var(--shadow-sm);"></div>
+          <span class="swatch-label">--shadow-sm</span>
+        </div>
+        <div class="shadow-item">
+          <div class="shadow-box" style="box-shadow: var(--shadow-md);"></div>
+          <span class="swatch-label">--shadow-md</span>
+        </div>
+        <div class="shadow-item">
+          <div class="shadow-box" style="box-shadow: var(--shadow-lg);"></div>
+          <span class="swatch-label">--shadow-lg</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════
+         SECTION: COMPONENT PREVIEWS
+         ════════════════════════════════════ -->
+    <section id="components">
+      <h2>Component Previews</h2>
+
+      <div class="component-grid">
+        <!-- Button Component -->
+        <div class="component-card">
+          <h3>Button</h3>
+          <div class="preview">
+            <!-- Agent fills in styled button variants -->
+            <button class="btn btn-primary" type="button">Primary</button>
+            <button class="btn btn-secondary" type="button">Secondary</button>
+            <button class="btn btn-ghost" type="button">Ghost</button>
+          </div>
+        </div>
+
+        <!-- Input Component -->
+        <div class="component-card">
+          <h3>Input</h3>
+          <div class="preview" style="flex-direction: column; width: 100%;">
+            <!-- Agent fills in styled input variants -->
+            <input class="input-preview" type="text" placeholder="Enter text..." readonly>
+          </div>
+        </div>
+
+        <!-- Card Component -->
+        <div class="component-card">
+          <h3>Card</h3>
+          <div class="preview" style="flex-direction: column; width: 100%;">
+            <!-- Agent fills in styled card preview -->
+            <div class="card-preview">
+              <div class="card-preview-body">
+                <p class="card-preview-title">Card Title</p>
+                <p class="card-preview-text">This is a sample card component showing surface, border, shadow, and typography tokens in context.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Badge Component -->
+        <div class="component-card">
+          <h3>Badge</h3>
+          <div class="preview">
+            <!-- Agent fills in styled badge variants -->
+            <span class="badge badge-success">Success</span>
+            <span class="badge badge-error">Error</span>
+            <span class="badge badge-warning">Warning</span>
+            <span class="badge badge-info">Info</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════
+         SECTION: ICONOGRAPHY
+         ════════════════════════════════════ -->
+    <section id="iconography">
+      <h2>Iconography</h2>
+
+      <div class="subsection">
+        <p class="subsection-title">Icon Library</p>
+        <!-- Agent fills: library name, weight, icon count -->
+        <p class="icon-meta">{LIBRARY_NAME} | {WEIGHT} | {ICON_COUNT} icons</p>
+      </div>
+
+      <div class="subsection">
+        <p class="subsection-title">Size Scale</p>
+        <div class="icon-size-grid">
+          <!-- Agent fills: same reference icon at each size token -->
+          <div class="icon-size-item">
+            {ICON_ELEMENT_SM}
+            <span class="swatch-label">--icon-sm<br>16px</span>
+          </div>
+          <div class="icon-size-item">
+            {ICON_ELEMENT_MD}
+            <span class="swatch-label">--icon-md<br>20px</span>
+          </div>
+          <div class="icon-size-item">
+            {ICON_ELEMENT_LG}
+            <span class="swatch-label">--icon-lg<br>24px</span>
+          </div>
+          <div class="icon-size-item">
+            {ICON_ELEMENT_XL}
+            <span class="swatch-label">--icon-xl<br>32px</span>
+          </div>
+          <div class="icon-size-item">
+            {ICON_ELEMENT_2XL}
+            <span class="swatch-label">--icon-2xl<br>40px</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <p class="subsection-title">Domain Icons</p>
+        <div class="icon-preview-grid">
+          <!-- Agent fills: 8-10 key icons from the vertical vocabulary -->
+          {ICON_PREVIEW_ITEMS}
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════
+         SECTION: VERTICAL-SPECIFIC
+         ════════════════════════════════════ -->
+    <section id="vertical-specific">
+      <h2>Vertical-Specific Tokens</h2>
+
+      <!-- Agent fills in tokens unique to the detected vertical -->
+      <div class="vertical-placeholder">
+        Vertical-specific tokens will be displayed here based on the detected product vertical.
+        <!-- Examples: fintech tabular-nums, health progress indicators, SaaS data-dense components -->
+      </div>
+    </section>
+
+  </div>
+</body>
+</html>
