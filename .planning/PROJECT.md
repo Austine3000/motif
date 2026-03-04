@@ -10,38 +10,55 @@ Motif is an npm-installable design engineering system for AI coding assistants. 
 
 Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1. Without domain intelligence it's just another UI generator; without fresh context per screen, quality degrades. Both are non-negotiable.
 
+## Current Milestone: v1.1 Icon Library Integration
+
+**Goal:** Integrate established icon libraries into Motif's design system pipeline so composed screens use real, domain-appropriate icons instead of placeholders.
+
+**Target features:**
+- Curated icon library reference (3-5 vetted libraries with domain affinity mapping)
+- System architect agent selects best-fit icon library during design system generation
+- Icon size tokens (`--icon-size-*`) added to tokens.css
+- CDN reference in token showcase for icon previews
+- Component specs reference actual icon names from selected library
+- Composed screens use concrete icon names from the selected library
+
 ## Requirements
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Full rebrand from "Design Forge" to "Motif" — v1.0
+- ✓ 5 Claude Code agent definitions — v1.0
+- ✓ 3 core templates — v1.0
+- ✓ Runtime-detecting installer — v1.0
+- ✓ npm package (motif-design) — v1.0
+- ✓ MIT LICENSE — v1.0
+- ✓ 4 verticals (fintech, health, SaaS, e-commerce) — v1.0
+- ✓ 4 Claude Code hooks — v1.0
+- ✓ 2 utility scripts — v1.0
+- ✓ README — v1.0
+- ✓ GitHub Actions CI — v1.0
+- ✓ E2e validation + battle test — v1.0
+- ✓ Differentiation seed + brand color flow-through — v1.0
 
 ### Active
 
-- [ ] Full rebrand from "Design Forge" to "Motif" (package name, commands `/motif:*`, install dir `.claude/get-motif/`, all references)
-- [ ] 5 Claude Code agent definitions (researcher, system architect, screen composer, design reviewer, fix agent)
-- [ ] 3 core templates (STATE-TEMPLATE.md, SUMMARY-TEMPLATE.md, token-showcase.html)
-- [ ] Runtime-detecting installer (`bin/install.js`) with Claude Code mapping
-- [ ] `package.json` — npm package, name: "motif", bin: `{ "motif": "bin/install.js" }`, no dependencies
-- [ ] MIT LICENSE
-- [ ] 3 additional verticals (health, SaaS, e-commerce) following fintech.md format exactly
-- [ ] 4 Claude Code hooks (token-check, font-check, a11y-check, context-monitor) — required before battle test
-- [ ] 2 utility scripts (contrast-checker.js, token-counter.js)
-- [ ] README with pitch, install command, command reference, architecture diagram, how it works, contributing
-- [ ] GitHub Actions CI for automated npm publishing on tag/release
-- [ ] End-to-end test on controlled test project (sanity check)
-- [ ] End-to-end battle test on real project (CryptoPay fintech vertical)
-- [ ] Differentiation seed produces visibly different designs for same vertical
-- [ ] Brand colors flow through without being overridden
+- [ ] Curated icon library reference doc (3-5 vetted libraries)
+- [ ] System architect selects icon library during design system generation
+- [ ] Icon size tokens in tokens.css
+- [ ] CDN reference in token showcase for selected icon library
+- [ ] Component specs use actual icon names from selected library
+- [ ] Composed screens render concrete icon names from selected library
 
 ### Out of Scope
 
-- OpenCode runtime support — v1.1, core/runtime arch already supports it without refactoring
+- OpenCode runtime support — v1.1 focused on icons; runtime expansion is v1.2+
 - Cursor/Windsurf runtime support — v1.2+, same arch
 - Gemini CLI runtime support — v1.3+, same arch
-- Tailwind token export — future command, CSS custom properties only for v1
-- Social/Education/Marketplace/DevTools verticals — v2 expansion, fintech+3 proves generalizability
+- Tailwind token export — future command, CSS custom properties only
+- Social/Education/Marketplace/DevTools verticals — v2 expansion
 - CHANGELOG.md — defer to post-v1 release cycle
+- Custom icon creation/generation — use established libraries only
+- Icon font bundling — CDN-first, user handles build integration
 
 ## Context
 
@@ -99,4 +116,4 @@ Domain-intelligent design delivered through fresh context — a fintech app must
 | v1 Claude Code only | Focus. Other runtimes are just adding a directory later. | — Pending |
 
 ---
-*Last updated: 2026-03-01 after initialization*
+*Last updated: 2026-03-04 after milestone v1.1 initialization*
