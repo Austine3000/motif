@@ -6,6 +6,9 @@
   <title>{PRODUCT_NAME} — Design Tokens</title>
   <link rel="stylesheet" href="tokens.css">
   <link href="https://fonts.googleapis.com/css2?family={FONT_FAMILIES}" rel="stylesheet">
+  <!-- Icon library CDN -- agent fills based on selection algorithm -->
+  {ICON_CDN_LINK}
+  {ICON_INIT_SCRIPT}
   <style>
     /* ═══════════════════════════════════════
        Token Showcase — Inline Styles
@@ -473,6 +476,38 @@
       font-size: var(--text-sm);
     }
 
+    /* --- Icon Preview --- */
+    .icon-meta {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      margin-bottom: var(--space-4);
+    }
+    .icon-size-grid {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--space-8);
+      margin-bottom: var(--space-6);
+    }
+    .icon-size-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .icon-preview-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-6);
+    }
+    .icon-preview-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      min-width: 80px;
+    }
+
     /* --- Responsive --- */
     @media (max-width: 768px) {
       body {
@@ -924,6 +959,54 @@
             <span class="badge badge-warning">Warning</span>
             <span class="badge badge-info">Info</span>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════
+         SECTION: ICONOGRAPHY
+         ════════════════════════════════════ -->
+    <section id="iconography">
+      <h2>Iconography</h2>
+
+      <div class="subsection">
+        <p class="subsection-title">Icon Library</p>
+        <!-- Agent fills: library name, weight, icon count -->
+        <p class="icon-meta">{LIBRARY_NAME} | {WEIGHT} | {ICON_COUNT} icons</p>
+      </div>
+
+      <div class="subsection">
+        <p class="subsection-title">Size Scale</p>
+        <div class="icon-size-grid">
+          <!-- Agent fills: same reference icon at each size token -->
+          <div class="icon-size-item">
+            {ICON_ELEMENT_SM}
+            <span class="swatch-label">--icon-sm<br>16px</span>
+          </div>
+          <div class="icon-size-item">
+            {ICON_ELEMENT_MD}
+            <span class="swatch-label">--icon-md<br>20px</span>
+          </div>
+          <div class="icon-size-item">
+            {ICON_ELEMENT_LG}
+            <span class="swatch-label">--icon-lg<br>24px</span>
+          </div>
+          <div class="icon-size-item">
+            {ICON_ELEMENT_XL}
+            <span class="swatch-label">--icon-xl<br>32px</span>
+          </div>
+          <div class="icon-size-item">
+            {ICON_ELEMENT_2XL}
+            <span class="swatch-label">--icon-2xl<br>40px</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <p class="subsection-title">Domain Icons</p>
+        <div class="icon-preview-grid">
+          <!-- Agent fills: 8-10 key icons from the vertical vocabulary -->
+          {ICON_PREVIEW_ITEMS}
         </div>
       </div>
     </section>
