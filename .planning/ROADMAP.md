@@ -157,7 +157,7 @@ Plans:
 
 **Milestone Goal:** Integrate established icon libraries into Motif's design system pipeline so composed screens use real, domain-appropriate icons instead of placeholders.
 
-- [ ] **Phase 9: Foundation** - Icon library reference doc and icon size tokens
+- [x] **Phase 9: Foundation** - Icon library reference doc and icon size tokens
 - [ ] **Phase 10: Vertical Migration** - Curated icon vocabularies for all 4 verticals
 - [ ] **Phase 11: Pipeline Integration** - Architect and composer agent updates, ICON-CATALOG.md, token showcase
 - [ ] **Phase 12: Enforcement and Validation** - Reviewer agent, aria-check hook, end-to-end verification
@@ -176,7 +176,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 09-01-PLAN.md -- Icon library reference doc, domain affinity matrix, selection algorithm, and icon size tokens (IREF-01, IREF-02, IREF-03, ITOK-01, ITOK-02)
+- [x] 09-01-PLAN.md -- Icon library reference doc, domain affinity matrix, selection algorithm, and icon size tokens (IREF-01, IREF-02, IREF-03, ITOK-01, ITOK-02)
 
 ### Phase 10: Vertical Migration
 **Goal**: Every vertical has a pre-validated icon vocabulary so agents read concrete icon names from a lookup table instead of hallucinating them
@@ -241,7 +241,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12
 | 7. Validation | v1.0 | 3/3 | Complete | 2026-03-03 |
 | 8. CI and Publish | v1.0 | 2/2 | Complete | 2026-03-04 |
 | 8.1 Pre-Publish Fixes | v1.0 | 1/1 | Complete | 2026-03-03 |
-| 9. Foundation | v1.1 | 0/1 | Not started | - |
+| 9. Foundation | v1.1 | 1/1 | Complete | 2026-03-04 |
 | 10. Vertical Migration | v1.1 | 0/TBD | Not started | - |
 | 11. Pipeline Integration | v1.1 | 0/TBD | Not started | - |
 | 12. Enforcement and Validation | v1.1 | 0/TBD | Not started | - |
