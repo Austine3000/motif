@@ -59,24 +59,24 @@ Convention extraction is included in v1.2 (SCAN-05). Deeper convention learning 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCAN-01 | — | Pending |
-| SCAN-02 | — | Pending |
-| SCAN-03 | — | Pending |
-| SCAN-04 | — | Pending |
-| SCAN-05 | — | Pending |
-| TOKN-01 | — | Pending |
-| TOKN-02 | — | Pending |
-| TOKN-03 | — | Pending |
-| COMP-01 | — | Pending |
-| COMP-02 | — | Pending |
-| COMP-03 | — | Pending |
-| COMP-04 | — | Pending |
+| SCAN-01 | Phase 13 | Pending |
+| SCAN-02 | Phase 13 | Pending |
+| SCAN-03 | Phase 14 | Pending |
+| SCAN-04 | Phase 13 | Pending |
+| SCAN-05 | Phase 13 | Pending |
+| TOKN-01 | Phase 14 | Pending |
+| TOKN-02 | Phase 14 | Pending |
+| TOKN-03 | Phase 14 | Pending |
+| COMP-01 | Phase 15 | Pending |
+| COMP-02 | Phase 15 | Pending |
+| COMP-03 | Phase 15 | Pending |
+| COMP-04 | Phase 16 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 12 total
-- Mapped to phases: 0
-- Unmapped: 12 ⚠️
+- Mapped to phases: 12
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-04*
-*Last updated: 2026-03-04 after initial definition*
+*Last updated: 2026-03-04 after roadmap creation*

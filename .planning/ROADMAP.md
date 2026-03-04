@@ -4,6 +4,7 @@
 
 - v1.0 Core Design System — Phases 1-8 (shipped 2026-03-04)
 - v1.1 Icon Library Integration — Phases 9-12 (shipped 2026-03-04)
+- v1.2 Brownfield Intelligence — Phases 13-16 (in progress)
 
 ## Phases
 
@@ -42,7 +43,84 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 
 </details>
 
+### v1.2 Brownfield Intelligence (In Progress)
+
+**Milestone Goal:** Make Motif's entire pipeline project-aware — scan existing codebases, present findings to the user for decisions, and output properly decomposed components that integrate with existing project conventions.
+
+- [ ] **Phase 13: Scan Infrastructure** - Users can scan an existing project and review confirmed findings
+- [ ] **Phase 14: Token and System Integration** - Users can have their existing design tokens detected, choose a merge strategy, and see what components are missing
+- [ ] **Phase 15: Compose Integration** - Users can receive decomposed, project-aware screen output written to their actual directories
+- [ ] **Phase 16: Validation and Hardening** - Users can trust that decomposed output is validated, atomically committed, and rollback-safe
+
+## Phase Details
+
+### Phase 13: Scan Infrastructure
+**Goal**: Users can scan an existing project and review confirmed findings about its structure, components, and conventions before any generation happens
+**Depends on**: Phase 12 (v1.1 complete)
+**Requirements**: SCAN-01, SCAN-02, SCAN-04, SCAN-05
+**Success Criteria** (what must be TRUE):
+  1. User can run `/motif:scan` on an existing project and receive a structured report of framework, directory layout, CSS approach, and naming conventions
+  2. User can see a catalog of existing components found in the project with file paths and export names
+  3. User can review and confirm or correct all scan findings before any downstream generation uses them
+  4. User can see extracted conventions from existing components (recurring patterns like border-radius values, spacing scales, shadow usage)
+  5. Existing greenfield workflow (`/motif:init` without prior scan) continues to work unchanged
+**Plans**: TBD
+
+Plans:
+- [ ] 13-01: TBD
+- [ ] 13-02: TBD
+- [ ] 13-03: TBD
+
+### Phase 14: Token and System Integration
+**Goal**: Users can have their existing design tokens detected and merged with Motif's system, and see a gap analysis of which components already exist versus what the vertical needs
+**Depends on**: Phase 13
+**Requirements**: TOKN-01, TOKN-02, TOKN-03, SCAN-03
+**Success Criteria** (what must be TRUE):
+  1. User can see existing CSS custom properties or Tailwind config tokens detected and presented from their project
+  2. User can choose a token strategy (adopt existing, merge with Motif, or start fresh) through a single top-level decision
+  3. User can receive a selective token overlay that fills gaps in their existing tokens without overwriting what they already have
+  4. User can see a gap analysis comparing their existing components against the vertical-required components, showing what needs to be generated versus what already exists
+**Plans**: TBD
+
+Plans:
+- [ ] 14-01: TBD
+- [ ] 14-02: TBD
+- [ ] 14-03: TBD
+
+### Phase 15: Compose Integration
+**Goal**: Users can receive decomposed screen compositions that reuse existing project components and are written to the project's actual directories following its conventions
+**Depends on**: Phase 14
+**Requirements**: COMP-01, COMP-02, COMP-03
+**Success Criteria** (what must be TRUE):
+  1. User can receive screen output decomposed into one component per file, each in its own file with proper imports
+  2. User can have composed files written to the project's actual source directories (e.g., `src/components/`, `src/app/`) instead of only `.planning/design/screens/`
+  3. User can have existing project components imported and reused in new compositions instead of being recreated from scratch
+  4. Composed output follows the project's detected naming conventions, file structure, and framework patterns
+**Plans**: TBD
+
+Plans:
+- [ ] 15-01: TBD
+- [ ] 15-02: TBD
+- [ ] 15-03: TBD
+
+### Phase 16: Validation and Hardening
+**Goal**: Users can trust that all decomposed output passes validation checks and is committed atomically with automatic rollback on failure
+**Depends on**: Phase 15
+**Requirements**: COMP-04
+**Success Criteria** (what must be TRUE):
+  1. User can have all decomposed files from a composition committed atomically in a single git commit
+  2. User can have the commit automatically rolled back if any post-decomposition validation check fails (import cycles, naming conflicts, missing props)
+  3. Stale scan artifacts are detected before composition, preventing ghost component references from outdated scans
+**Plans**: TBD
+
+Plans:
+- [ ] 16-01: TBD
+- [ ] 16-02: TBD
+
 ## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 13 → 14 → 15 → 16
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -59,3 +137,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 | 10. Vertical Migration | v1.1 | 2/2 | Complete | 2026-03-04 |
 | 11. Pipeline Integration | v1.1 | 3/3 | Complete | 2026-03-04 |
 | 12. Enforcement and Validation | v1.1 | 2/2 | Complete | 2026-03-04 |
+| 13. Scan Infrastructure | v1.2 | 0/TBD | Not started | - |
+| 14. Token and System Integration | v1.2 | 0/TBD | Not started | - |
+| 15. Compose Integration | v1.2 | 0/TBD | Not started | - |
+| 16. Validation and Hardening | v1.2 | 0/TBD | Not started | - |
