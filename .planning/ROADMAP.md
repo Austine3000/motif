@@ -159,7 +159,7 @@ Plans:
 
 - [x] **Phase 9: Foundation** - Icon library reference doc and icon size tokens
 - [x] **Phase 10: Vertical Migration** - Curated icon vocabularies for all 4 verticals
-- [ ] **Phase 11: Pipeline Integration** - Architect and composer agent updates, ICON-CATALOG.md, token showcase
+- [x] **Phase 11: Pipeline Integration** - Architect and composer agent updates, ICON-CATALOG.md, token showcase
 - [ ] **Phase 12: Enforcement and Validation** - Reviewer agent, aria-check hook, end-to-end verification
 
 ## Phase Details
@@ -206,9 +206,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 11-01-PLAN.md -- System generation pipeline: Output 5 (ICON-CATALOG.md), expanded iconography in DESIGN-SYSTEM.md and showcase, context engine profiles, system architect agent (IPIP-01, IPIP-02, IPIP-03)
-- [ ] 11-02-PLAN.md -- Composition pipeline: composer icon compliance rules, showcase template iconography section (IPIP-04, IPIP-05)
-- [ ] 11-03-PLAN.md -- Sync core/ source files to .claude/get-motif/ installed copies
+- [x] 11-01-PLAN.md -- System generation pipeline: Output 5 (ICON-CATALOG.md), expanded iconography in DESIGN-SYSTEM.md and showcase, context engine profiles, system architect agent (IPIP-01, IPIP-02, IPIP-03)
+- [x] 11-02-PLAN.md -- Composition pipeline: composer icon compliance rules, showcase template iconography section (IPIP-04, IPIP-05)
+- [x] 11-03-PLAN.md -- Sync core/ source files to .claude/get-motif/ installed copies
 
 ### Phase 12: Enforcement and Validation
 **Goal**: Icon usage is reviewed for consistency, accessibility is enforced for icon elements, and the entire icon pipeline is verified end-to-end
@@ -243,5 +243,5 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12
 | 8.1 Pre-Publish Fixes | v1.0 | 1/1 | Complete | 2026-03-03 |
 | 9. Foundation | v1.1 | 1/1 | Complete | 2026-03-04 |
 | 10. Vertical Migration | v1.1 | 2/2 | Complete | 2026-03-04 |
-| 11. Pipeline Integration | v1.1 | 0/3 | Not started | - |
+| 11. Pipeline Integration | v1.1 | 3/3 | Complete | 2026-03-04 |
 | 12. Enforcement and Validation | v1.1 | 0/TBD | Not started | - |
