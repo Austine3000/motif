@@ -203,12 +203,12 @@ Plans:
   2. Running `/motif:system` generates an `ICON-CATALOG.md` in `.planning/design/system/` with the vertical-specific icon mappings (semantic role -> concrete icon name)
   3. Running `/motif:compose` on a screen produces HTML that uses concrete icon class names from the selected library (no bracket placeholders, no invented names)
   4. The token showcase HTML includes a CDN link for the selected icon library and an iconography section showing the vertical's key icons at each size token
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 11-01: TBD
-- [ ] 11-02: TBD
-- [ ] 11-03: TBD
+- [ ] 11-01-PLAN.md -- System generation pipeline: Output 5 (ICON-CATALOG.md), expanded iconography in DESIGN-SYSTEM.md and showcase, context engine profiles, system architect agent (IPIP-01, IPIP-02, IPIP-03)
+- [ ] 11-02-PLAN.md -- Composition pipeline: composer icon compliance rules, showcase template iconography section (IPIP-04, IPIP-05)
+- [ ] 11-03-PLAN.md -- Sync core/ source files to .claude/get-motif/ installed copies
 
 ### Phase 12: Enforcement and Validation
 **Goal**: Icon usage is reviewed for consistency, accessibility is enforced for icon elements, and the entire icon pipeline is verified end-to-end
@@ -243,5 +243,5 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12
 | 8.1 Pre-Publish Fixes | v1.0 | 1/1 | Complete | 2026-03-03 |
 | 9. Foundation | v1.1 | 1/1 | Complete | 2026-03-04 |
 | 10. Vertical Migration | v1.1 | 2/2 | Complete | 2026-03-04 |
-| 11. Pipeline Integration | v1.1 | 0/TBD | Not started | - |
+| 11. Pipeline Integration | v1.1 | 0/3 | Not started | - |
 | 12. Enforcement and Validation | v1.1 | 0/TBD | Not started | - |
