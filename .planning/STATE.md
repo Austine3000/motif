@@ -11,18 +11,18 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 
 Phase: 11 of 12 (Pipeline Integration)
 Plan: 2 of 3 in current phase
-Status: Plan 11-02 complete -- pipeline icon integration done
-Last activity: 2026-03-04 -- Plan 11-02 complete (compose workflow + composer agent + token showcase icon-aware)
+Status: Plans 11-01 and 11-02 complete -- system generation and compose pipelines icon-aware
+Last activity: 2026-03-04 -- Plan 11-01 complete (generate-system.md Output 5, context-engine, system architect icon expertise)
 
-Progress: [============================........] 83%
-(v1.0 complete: 24/24 plans | v1.1: 5/7 plans)
+Progress: [=============================.......] 87%
+(v1.0 complete: 24/24 plans | v1.1: 5/7 plans -- 11-01, 11-02 done)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 28 (v1.0: 24, v1.1: 4)
+- Total plans completed: 29 (v1.0: 24, v1.1: 5)
 - Average duration: ~2.5 min
-- Total execution time: ~1 hour 10 min
+- Total execution time: ~1 hour 13 min
 
 **By Phase (v1.0):**
 
@@ -39,7 +39,7 @@ Progress: [============================........] 83%
 | 8.1 Pre-Publish Fixes | 1 | ~2 min | ~2 min |
 | 9. Foundation | 1 | ~4 min | ~4 min |
 | 10. Vertical Migration | 2 | ~4 min | ~2 min |
-| 11. Pipeline Integration | 2/3 | ~4 min | ~2 min |
+| 11. Pipeline Integration | 2/3 | ~7 min | ~3.5 min |
 
 *Updated after each plan completion*
 
@@ -81,11 +81,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- ~~Phase 11: Context engine loading pattern for ICON-CATALOG.md needs review during planning~~ (resolved in 11-02: always_load in composer, REQUIRED_FILES in workflow)
+- ~~Phase 11: Context engine loading pattern for ICON-CATALOG.md needs review during planning~~ (resolved in 11-01: always_load in composer, load_if_exists in reviewer, 1000 token budget)
 - Phase 12: aria-check hook icon detection must avoid false positives on text buttons with adjacent icons
 
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Completed 11-02-PLAN.md -- pipeline icon integration. Plan 11-03 next.
+Stopped at: Completed 11-01-PLAN.md -- system generation pipeline icon-aware. Plan 11-03 remaining.
 Resume file: --
