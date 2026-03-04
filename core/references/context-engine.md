@@ -33,6 +33,7 @@ Every planning/design file has a maximum token budget. If a file exceeds its bud
 | COMPONENT-SPECS.md | 5,000 | Component XML specs |
 | [screen]-SUMMARY.md | 500 each | Per-screen summary |
 | [screen]-REVIEW.md | 1,000 each | Per-screen review |
+| ICON-CATALOG.md | 1,000 | Per-project icon name lookup for composer |
 
 **Total context budget for a fully-loaded subagent**: ~15,000 tokens of context files, leaving ~185,000 tokens for the actual work.
 
@@ -70,6 +71,7 @@ Different commands need different slices of context. These profiles define exact
     .planning/design/research/02-visual-language.md
     .planning/design/research/03-accessibility.md
     .claude/get-motif/verticals/{vertical}.md
+    .claude/get-motif/references/icon-libraries.md
   </load_if_exists>
   <never_load>
     research/01-vertical-patterns.md (already synthesized in DESIGN-RESEARCH.md)
@@ -86,6 +88,7 @@ Different commands need different slices of context. These profiles define exact
     .planning/design/PROJECT.md
     .planning/design/system/tokens.css
     .planning/design/system/COMPONENT-SPECS.md
+    .planning/design/system/ICON-CATALOG.md
   </always_load>
   <load_if_exists>
     .planning/design/DESIGN-RESEARCH.md
@@ -96,6 +99,7 @@ Different commands need different slices of context. These profiles define exact
     Raw research files (already synthesized)
     Other screen source code (only summaries)
     DESIGN-SYSTEM.md (tokens.css + COMPONENT-SPECS.md are sufficient)
+    icon-libraries.md (already distilled into ICON-CATALOG.md)
   </never_load>
 </context_profile>
 ```
@@ -112,6 +116,7 @@ Different commands need different slices of context. These profiles define exact
   <load_if_exists>
     .planning/design/PROJECT.md
     .planning/design/screens/{screen}-SUMMARY.md
+    .planning/design/system/ICON-CATALOG.md
   </load_if_exists>
   <never_load>
     DESIGN-BRIEF.md
