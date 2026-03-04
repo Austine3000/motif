@@ -120,7 +120,7 @@ Users need enough data to make decisions without excessive scrolling, but not so
 <component name="TransactionRow" category="data-display">
   <description>Single transaction in a list. Most-viewed component in any fintech app.</description>
   <structure>
-    Row: [MerchantIcon 40×40] [Description + Subtitle stack] [Amount right-aligned]
+    Row: [icon: merchant category --icon-lg in 40x40 --radius-full container] [Description + Subtitle stack] [Amount right-aligned]
     Description: --font-body --text-sm --weight-medium --text-primary
     Subtitle: --font-body --text-xs --text-secondary (date, category, reference)
     Amount: --font-mono --text-sm --weight-semibold, right-aligned
@@ -215,6 +215,51 @@ Users need enough data to make decisions without excessive scrolling, but not so
 | shadow-sm | 0 1px 2px rgba(0,0,0,0.05) | Subtle card elevation |
 | shadow-md | 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05) | Elevated cards, dropdowns |
 | shadow-lg | 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04) | Modals, popovers |
+
+<!-- Verified against Phosphor Icons @phosphor-icons/web@2.1.2 via GitHub phosphor-icons/core/assets/regular/ -->
+
+## Icon Vocabulary
+
+Primary library: Phosphor Icons (from icon-libraries.md domain affinity matrix)
+
+### Navigation
+| Semantic Role | Phosphor | Lucide | Material Symbols | Tabler |
+|---------------|----------|--------|-----------------|--------|
+| home | ph-house | house | home | ti-home |
+| search | ph-magnifying-glass | search | search | ti-search |
+| settings | ph-gear | settings | settings | ti-settings |
+| profile | ph-user | user | person | ti-user |
+| notifications | ph-bell | bell | notifications | ti-bell |
+
+### Finance
+| Semantic Role | Phosphor | Lucide | Material Symbols | Tabler |
+|---------------|----------|--------|-----------------|--------|
+| bank | ph-bank | landmark | account_balance | ti-building-bank |
+| wallet | ph-wallet | wallet | account_balance_wallet | ti-wallet |
+| credit-card | ph-credit-card | credit-card | credit_card | ti-credit-card |
+| money | ph-currency-dollar | dollar-sign | payments | ti-currency-dollar |
+| transfer | ph-arrows-left-right | arrow-left-right | swap_horiz | ti-transfer |
+| chart | ph-chart-line-up | trending-up | trending_up | ti-trending-up |
+| receipt | ph-receipt | receipt | receipt_long | ti-receipt |
+| coins | ph-coins | coins | toll | ti-coins |
+
+### Status & Feedback
+| Semantic Role | Phosphor | Lucide | Material Symbols | Tabler |
+|---------------|----------|--------|-----------------|--------|
+| success | ph-check-circle | check-circle | check_circle | ti-circle-check |
+| error | ph-x-circle | x-circle | cancel | ti-circle-x |
+| warning | ph-warning | alert-triangle | warning | ti-alert-triangle |
+| pending | ph-clock | clock | schedule | ti-clock |
+
+### Actions
+| Semantic Role | Phosphor | Lucide | Material Symbols | Tabler |
+|---------------|----------|--------|-----------------|--------|
+| send | ph-paper-plane-tilt | send | send | ti-send |
+| scan-qr | ph-qr-code | qr-code | qr_code_scanner | ti-qr-code |
+| security | ph-shield-check | shield-check | verified_user | ti-shield-check |
+| biometric | ph-fingerprint | fingerprint | fingerprint | ti-fingerprint |
+| copy | ph-copy | copy | content_copy | ti-copy |
+| close | ph-x | x | close | ti-x |
 
 ## Crypto-Specific Additions
 - Always show BOTH crypto amount AND fiat equivalent
