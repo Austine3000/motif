@@ -52,6 +52,7 @@ You are a design system architect. Generate a complete, production-ready design 
 4. `.planning/design/research/02-visual-language.md`
 5. `.planning/design/research/03-accessibility.md`
 {IF vertical ref exists: 6. `{MOTIF_ROOT}/references/verticals/{VERTICAL}.md`}
+7. `{MOTIF_ROOT}/references/icon-libraries.md` -- icon library metadata, selection algorithm, CDN URLs
 
 ## Output 1: tokens.css (budget: ≤3000 tokens)
 
@@ -324,7 +325,7 @@ Format per component:
 
 Human-readable documentation of the system. This is for reference, NOT loaded into composer agents (they use tokens.css + COMPONENT-SPECS.md directly).
 
-Include: color palette with contrast table, typography scale with usage, spacing guidelines, motion principles, icon style recommendation.
+Include: color palette with contrast table, typography scale with usage, spacing guidelines, motion principles, iconography (library name, CDN link, usage syntax, size scale, color rules).
 
 ## Output 4: token-showcase.html
 
@@ -333,11 +334,44 @@ Generate a standalone HTML file that visually displays all tokens:
 - Typography scale samples
 - Spacing visualization
 - Component previews (one per core component)
+- Iconography: CDN link in <head>, size scale preview (one icon at each --icon-* token), domain icon samples (8-10 key icons from vocabulary)
+- IF Lucide selected: include both CDN script AND `lucide.createIcons()` initialization
+- IF Material Symbols selected: include CSS font-variation-settings for proper rendering
 
 This file imports the tokens.css and Google Fonts. Self-contained, no dependencies.
 
 Save to `.planning/design/system/token-showcase.html`
 Open it: `open .planning/design/system/token-showcase.html` (or equivalent)
+
+## Output 5: ICON-CATALOG.md (budget: <=1000 tokens)
+
+Generate a project-specific icon catalog by:
+1. Run the Icon Library Decision Algorithm (above) to determine: library, weight, CDN URL, usage syntax
+2. Read the vertical reference file's `## Icon Vocabulary` section (`{MOTIF_ROOT}/references/verticals/{VERTICAL}.md`)
+3. Extract ONLY the column for the selected library
+4. For each icon, construct the full class/element string using the library's usage syntax
+5. Organize by the same semantic categories as the vocabulary (Navigation, Domain, Status, Actions)
+
+Save to `.planning/design/system/ICON-CATALOG.md`
+
+Format:
+```
+# Icon Catalog
+
+Library: [name]
+CDN: [url]
+Weight: [default] (emphasis: [emphasis])
+Usage: [syntax pattern]
+{IF Lucide: Requires JS: YES}
+
+## [Category]
+| Role | Icon Name | Class |
+|------|-----------|-------|
+| [role] | [name] | [full element/class string] |
+```
+
+Include ALL icons from the vertical vocabulary (typically 20-25 icons).
+Do NOT add icons not in the vocabulary. The vocabulary is the curated, validated set.
 
 Commit all: `design(system): generate design system for [vertical]`
 </agent_spawn>
@@ -349,6 +383,7 @@ After agent completes, verify these files exist:
 - `.planning/design/system/COMPONENT-SPECS.md`
 - `.planning/design/system/DESIGN-SYSTEM.md`
 - `.planning/design/system/token-showcase.html`
+- `.planning/design/system/ICON-CATALOG.md`
 
 ## Step 4: Update State
 
