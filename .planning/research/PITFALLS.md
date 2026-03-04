@@ -1,282 +1,566 @@
-# Pitfalls Research: Icon Library Integration for Motif
+# Domain Pitfalls: Brownfield Intelligence & Component Decomposition
 
-**Domain:** Adding icon library support to an AI-agent-based design system pipeline
+**Domain:** Adding project scanning, component cataloging, and component decomposition to an AI-agent-based design engineering system (Motif)
 **Researched:** 2026-03-04
-**Confidence:** HIGH (based on codebase analysis + icon library documentation + design system best practices)
+**Confidence:** HIGH (based on deep codebase analysis of existing Motif architecture, context engine constraints, and known AI agent behavior patterns)
+
+---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Icon Name Hallucination by AI Agents
-
-**What goes wrong:**
-Composer and reviewer agents generate plausible-sounding but non-existent icon names. For example, an agent composing a fintech dashboard might write `<i class="icon-merchant-store"></i>` or `<i class="icon-bank-transfer"></i>` -- names that sound reasonable for the domain but do not exist in Lucide's icon set (which uses names like `store`, `building-2`, `arrow-right-left`). This is the single highest-risk pitfall because it will produce invisible or broken icons silently -- no error, no crash, just empty space where an icon should be.
-
-**Why it happens:**
-LLMs generate icon names by pattern-matching from training data across multiple icon libraries (Font Awesome's `fa-bank`, Material's `account_balance`, Heroicons' `BuildingLibraryIcon`). Each library uses different naming conventions. The agent mixes conventions or invents names based on semantic meaning rather than looking up actual available names. The agent operates in a fresh 200K context window -- it reads `tokens.css` and `COMPONENT-SPECS.md` but has no mechanism to verify icon names against the real icon library.
-
-**How to avoid:**
-1. Create an `ICON-MANIFEST.md` reference file containing every valid icon name in the chosen library, organized by semantic category (navigation, commerce, health, data, status, etc.). This file gets loaded by the composer agent alongside `tokens.css` and `COMPONENT-SPECS.md`.
-2. Curate, do not dump. A full Lucide manifest (1700+ icons) would consume ~3000-5000 tokens. Instead, create a curated subset per vertical: ~80-120 icons relevant to the vertical, organized by function. Budget: ~800-1200 tokens per vertical manifest.
-3. Build a `motif-icon-check.js` PostToolUse hook (similar to `motif-font-check.js`) that validates every icon class name in composed HTML against a canonical list. Block writes containing icon names not in the manifest.
-
-**Warning signs:**
-- Icon names use multi-word compound names not matching the library's naming pattern (e.g., `icon-bank-transfer` instead of Lucide's kebab-case single-concept names like `arrow-right-left`)
-- Icon names match a different library's conventions (e.g., `fa-` prefix, `Outlined` suffix, PascalCase)
-- Component specs reference generic placeholders like `[MerchantIcon]` rather than specific icon names
-- Composed HTML renders with invisible gaps where icons should appear
-
-**Phase to address:**
-Phase 1 (Icon Library Selection + Manifest Creation). The manifest must exist before any agent attempts to use icon names. The hook must be deployed before the first compose operation.
+Mistakes that cause rewrites, break existing functionality, or silently produce wrong output.
 
 ---
 
-### Pitfall 2: Breaking Existing Component Specs During Migration
+### Pitfall 1: Over-Scanning Blows the Context Budget
 
 **What goes wrong:**
-The 4 existing vertical reference files (`fintech.md`, `health.md`, `saas.md`, `ecommerce.md`) contain component specs with placeholder icon references: `[MerchantIcon 40x40]`, `[MetricIcon 32x32]`, `[CategoryIcon 36x36]`, `[Icon 20x20]`. Migrating these to real icon names risks:
-- Changing spec structure in ways that break the system architect agent's parsing
-- Introducing icon names into specs that create a hard dependency on a specific library version
-- Inconsistent migration -- some specs get real names while others keep placeholders, causing the composer to mix approaches
-- Accidentally changing dimensions, spacing, or layout constraints while updating icon references
+The project scanner reads too much of the user's codebase and produces a scan artifact that exceeds the context budget. Motif's context engine enforces strict token budgets (PROJECT.md: 1000 tokens, DESIGN-RESEARCH.md: 3000 tokens, total subagent context: ~15,000 tokens). A project scan that catalogs every file, every component, every CSS variable in a brownfield project easily produces 5,000-20,000 tokens of output. When this scan artifact is loaded into a composer or system generator subagent, it crowds out COMPONENT-SPECS.md (5000 tokens) and tokens.css (3000 tokens) -- the files that actually drive correct output. The agent starts ignoring design system constraints because they are pushed to the tail end of its loaded context.
 
 **Why it happens:**
-The placeholders are embedded in XML-like `<component>` blocks within vertical reference files. These blocks are loaded by the system architect and composer agents. A partial migration leaves the system in an inconsistent state where agents cannot tell whether `[MerchantIcon 40x40]` means "use a placeholder" or "look up this icon." Meanwhile, a full migration across 4 verticals (each with 3+ component specs) creates a large surface area for errors.
+The natural instinct is "scan everything so nothing is missed." A React project with 50 components, 200 files, and an existing design system has genuinely useful information everywhere. Without aggressive filtering, the scanner captures: every component name, every prop signature, every CSS file, every route, every config file. Each additional data point feels valuable in isolation but collectively they exceed the context budget. The Motif context engine reference explicitly warns: "If a file exceeds its budget, it must be split or summarized." But the scanner does not know what the budget IS unless it is told.
 
-**How to avoid:**
-1. Do NOT embed specific icon names in vertical reference files. Instead, define icon roles: `icon-role="merchant"` in the component spec, and map roles to actual icon names in the per-vertical `ICON-MANIFEST.md`. This indirection means the vertical specs never need to change when switching icon libraries.
-2. Migrate all 4 verticals atomically in one commit. Never leave the system in a state where some verticals use the new pattern and others use the old placeholder pattern.
-3. Add a migration validation step: grep all vertical files for `[.*Icon` bracket-placeholder patterns to confirm zero remain after migration.
+**Consequences:**
+- Composer agents produce monolithic output that ignores component specs (specs pushed out of effective context window)
+- Token-check and font-check hooks catch violations but cannot fix the root cause (agent never internalized the rules)
+- System generator creates a design system that does not account for existing project tokens because it could not fit both scan results AND research findings
+- Orchestrator exceeds the 30-40% context ceiling because it reads the oversized scan artifact to determine what to pass to subagents
+
+**Prevention:**
+1. Define a hard token budget for the scan artifact: `PROJECT-SCAN.md` must be under 2000 tokens. Period. This forces the scanner to summarize, not dump.
+2. Implement a tiered scanning strategy:
+   - **Tier 1 (always):** Framework detection, routing pattern, component directory structure (paths only, not contents). Target: 500 tokens.
+   - **Tier 2 (always):** Existing design tokens/theme file detection. Extract token names and values, not the entire file. Target: 800 tokens.
+   - **Tier 3 (on-demand):** Individual component analysis. Only performed when a specific component is referenced during compose. Never loaded in bulk. Target: 300 tokens per component.
+3. Add the scan artifact to the context engine's budget table with an enforced ceiling. The context-engine.md reference already defines budgets for every file type; the scan artifact needs the same treatment.
+4. Build the scanner output as structured markdown (tables, not prose) to maximize information density per token.
 
 **Warning signs:**
-- Composer agents generating output with `[MerchantIcon 40x40]` literally rendered as text in the HTML
-- Mixed icon patterns in the same screen (some SVG icons, some bracket placeholders, some CSS class icons)
-- System architect agent generating component specs that reference icon names not in the manifest
+- Scan artifact exceeds 2000 tokens
+- Composer agents produce output with hardcoded values (sign they lost track of tokens.css instructions)
+- Orchestrator context usage spikes above 40% after reading scan results
+- System generator ignores existing project tokens despite scan claiming to detect them
+
+**Detection:**
+Run `token-counter.js` (existing script in `scripts/`) against the scan artifact. If it exceeds budget, the scanner must re-run with stricter filtering.
 
 **Phase to address:**
-Phase 2 (Vertical Migration). Must happen after manifest creation (Phase 1) and before any screen composition uses icons.
+Phase 1 (Scanner Design). The budget constraint must be baked into the scanner's architecture from day one, not retrofitted.
 
 ---
 
-### Pitfall 3: Decorative vs. Informative Icon Accessibility Mismatch
+### Pitfall 2: Stale Scans Causing Ghost Component References
 
 **What goes wrong:**
-Agents apply the same accessibility treatment to all icons -- either all get `aria-hidden="true"` (making informative icons invisible to screen readers) or all get `aria-label` attributes (making decorative icons noisy for screen reader users). The existing `motif-aria-check.js` hook checks for `alt` on `<img>` and `role`/`tabIndex` on clickable `<div>`s, but has zero awareness of icon elements (`<i>`, `<svg>`, `<span>` with icon classes).
+The project scan runs once during `/motif:init` (or a new `/motif:scan` command) and produces a snapshot. The user continues developing their project -- renaming components, deleting files, refactoring structure. The scan artifact becomes stale. Composer agents reference components that no longer exist, propose imports from deleted files, or structure output to match a routing pattern that has changed. Unlike STATE.md (which Motif controls and updates atomically), the scan artifact reflects external state that Motif does not control.
 
 **Why it happens:**
-Icon accessibility requires a contextual judgment that AI agents struggle with: "Is this icon decorative (adjacent to a text label that already communicates the meaning) or informative (the sole indicator of meaning, like an icon-only button)?" Without explicit guidance, agents default to one pattern. The current aria-check hook (HOOK-03) does not detect icon elements at all -- it only checks `<div onClick>`, `<img>`, and `<input>`.
+Motif's state machine is designed for Motif's own artifacts: STATE.md tracks phase, screens, decisions. The scan artifact is fundamentally different -- it describes external reality that changes independently of Motif operations. The existing state machine has no concept of "external state invalidation." The state transitions (UNINITIALIZED -> INITIALIZED -> RESEARCHED -> etc.) assume that once a phase completes, its artifacts remain valid. A scan artifact violates this assumption.
 
-**How to avoid:**
-1. Extend `motif-aria-check.js` with icon-specific checks:
-   - Icon-only buttons (`<button>` containing only an icon element and no visible text) MUST have `aria-label`
-   - Icons adjacent to text labels MUST have `aria-hidden="true"` (decorative)
-   - Standalone informative icons MUST have either `aria-label` or an adjacent `<span class="sr-only">` with descriptive text
-2. Add explicit guidance in the composer agent's instructions: "For every icon, determine: Does this icon appear next to text that already communicates the same meaning? If yes, add `aria-hidden='true'`. If the icon is the only indicator of meaning (icon-only button, status indicator), add `aria-label` with a description."
-3. Include icon accessibility rules in `COMPONENT-SPECS.md` for every component that uses icons, specifying which icons are decorative and which are informative.
+**Consequences:**
+- Composer agent generates `import { Button } from '@/components/Button'` referencing a component the user renamed to `PrimaryButton` last week
+- System generator tries to merge with existing tokens from a theme file the user deleted
+- Decomposition strategy outputs component boundaries matching a file structure that has been reorganized
+- User loses trust in the tool because it gives advice based on outdated project state
 
-**Warning signs:**
-- Screen reader testing reveals either silence (all icons hidden) or noise (every icon announced including decorative ones)
-- Icon-only buttons in navigation (hamburger menu, close, search) missing `aria-label`
-- Review agent's Lens 2 (WCAG AA) consistently docking points for icon accessibility without being able to specify the exact fix
-
-**Phase to address:**
-Phase 1 (Hook Extension) for the detection logic. Phase 2 (Spec Update) for per-component accessibility rules. Phase 3 (Compose) for agent instruction updates.
-
----
-
-### Pitfall 4: Icon Size Inconsistency Across Components
-
-**What goes wrong:**
-Different components specify different icon sizes: fintech's TransactionRow uses 40x40px merchant icons, health's MetricCard uses 32x32px icons, health's LogEntry uses 36x36px icons, SaaS's CommandPalette uses 20x20px icons. Without tokenized icon sizes, agents hardcode pixel values, and icons render at inconsistent sizes within the same screen -- or worse, the icon font renders at its default size and ignores the component's size requirement entirely.
-
-**Why it happens:**
-Icon fonts render at the font-size of their container by default. SVG icons need explicit `width`/`height` or `font-size`. If the agent uses icon font classes but forgets to set `font-size`, all icons render at the same default size regardless of the component spec. If using inline SVGs, agents may hardcode `width="40" height="40"` (violating the zero-hardcoded-values rule) or use inconsistent sizing approaches. The existing `motif-token-check.js` catches hardcoded `font-size` values but does not specifically flag hardcoded icon dimensions.
-
-**How to avoid:**
-1. Define icon size tokens in `tokens.css`:
-   ```css
-   --icon-xs: 16px;   /* inline with text, badges */
-   --icon-sm: 20px;   /* navigation items, command palette */
-   --icon-md: 24px;   /* default, buttons, form elements */
-   --icon-lg: 32px;   /* metric cards, feature icons */
-   --icon-xl: 40px;   /* merchant icons, hero elements */
+**Prevention:**
+1. Never cache the full scan. Instead, scan lazily: the orchestrator runs targeted scans at the moment they are needed, not ahead of time.
+   - Before `/motif:system`: scan for existing theme/token files (not the full project)
+   - Before `/motif:compose {screen}`: scan for components related to that screen's domain (not all components)
+   - This means no single `PROJECT-SCAN.md` artifact. Instead, scan results are ephemeral and injected directly into the subagent prompt.
+2. If a persistent scan artifact IS created, add a freshness timestamp and a re-scan trigger:
+   ```markdown
+   ## Scan Metadata
+   Scanned: 2026-03-04T14:30:00Z
+   Project root: /Users/user/project
+   Files at scan time: 247
+   WARNING: This scan is a snapshot. If project structure has changed, re-run /motif:scan.
    ```
-2. Update `COMPONENT-SPECS.md` to reference icon size tokens instead of raw pixel values: `Merchant icon: var(--icon-xl), --radius-full` instead of `Merchant icon: 40x40px`.
-3. Extend `motif-token-check.js` to flag hardcoded icon dimension patterns: `width="[0-9]+"` and `height="[0-9]+"` on icon elements.
+3. Add a lightweight "drift check" before loading the scan: verify that 3-5 key paths from the scan still exist. If any are missing, warn the user and suggest re-scanning.
+4. Design the scan artifact as a "hints" document, not a "source of truth." Subagent prompts should say: "The following project structure was detected at scan time. VERIFY paths before importing. If a referenced file does not exist, adapt accordingly."
 
 **Warning signs:**
-- Icons in a list or grid appearing at visibly different sizes despite the same semantic role
-- The token-check hook not catching hardcoded dimensions on SVG/icon elements
-- Component specs referencing pixel values for icon sizes while everything else uses tokens
+- Composed screens reference import paths that produce 404/module-not-found errors
+- User reports "it keeps referencing my old component names"
+- The scan artifact's timestamp is more than 1 session old
+- Git diff between scan time and current HEAD touches files in the scanned directories
+
+**Detection:**
+Before loading scan artifact, run `stat` on 5 random file paths from the scan. If any return "not found," trigger a re-scan warning.
 
 **Phase to address:**
-Phase 1 (Token Definition). Icon size tokens must be added to `tokens.css` before component specs are updated.
+Phase 1 (Scanner Design). The freshness strategy must be decided before the artifact format is finalized.
 
 ---
 
-### Pitfall 5: CDN Dependency Breaking the Token Showcase
+### Pitfall 3: Wrong Framework Assumptions from Ambiguous Project Signals
 
 **What goes wrong:**
-The token showcase (`token-showcase.html`) is self-contained HTML that loads fonts via Google Fonts CDN (`<link href="https://fonts.googleapis.com/css2?family={FONT_FAMILIES}" rel="stylesheet">`). Adding an icon CDN link follows the same pattern. But if the CDN is unavailable (offline development, corporate proxy blocking, CDN outage, rate limiting), the showcase renders with broken/missing icons. Unlike missing fonts (which fall back to system fonts), missing icon fonts render as empty rectangles or Unicode replacement characters -- a much more visible and confusing failure.
+The scanner detects a `package.json` with React listed but misses that the project actually uses Next.js App Router (not Pages Router), or detects Tailwind CSS but misses that the project uses Tailwind with a custom design token layer, or detects TypeScript but misses that JSX files use `.tsx` while utilities use `.ts`. The scanner makes a top-level framework determination that cascades incorrectly through every downstream agent. The system generator creates a vanilla React design system when it should create an App Router-aware one. The composer generates `import` patterns that do not work in the project's actual setup.
 
 **Why it happens:**
-The token showcase deliberately avoids npm dependencies to stay self-contained. CDN links are the established pattern for external resources. But icon font fallback is fundamentally different from text font fallback: when a text font fails, the browser substitutes a system font and text remains readable. When an icon font fails, there is no meaningful fallback -- the user sees empty boxes, question marks, or nothing. Additionally, `unpkg.com` and `jsdelivr.net` can be blocked by corporate firewalls, and the `lucide-icon-font` package is a community fork, not the official Lucide project.
+Framework detection from static file analysis is inherently ambiguous. A project with `next` in `package.json` could be using Pages Router, App Router, or both. A project with `tailwindcss` could be using utility classes directly, using `@apply` in component files, using CSS Modules with Tailwind, or using Tailwind alongside a custom CSS variable system. The scanner looks at file existence (`next.config.js` exists -> Next.js) but does not read configuration deeply enough to determine the actual usage pattern. Motif's existing init interview asks about the stack, but the user might say "React" when they mean "Next.js 14 App Router with RSC."
 
-**How to avoid:**
-1. Add a CSS fallback that displays a text label when the icon font fails to load. Use the `@font-face` `unicode-range` detection technique or a JavaScript font load check to toggle between icon font and text fallback.
-2. For the token showcase specifically, include a "Font/Icon Status" indicator at the top (similar to the existing `body::before` tokens-loaded warning) that detects whether the icon font loaded successfully.
-3. Consider embedding a small subset of critical icons as inline SVGs in the showcase HTML rather than relying entirely on the CDN. Use CDN for the full icon set but inline the 10-15 icons actually displayed in the showcase.
-4. Document the CDN dependency: "This file requires internet access to render icons. For offline use, [instructions]."
+**Consequences:**
+- Composed screens use `useState` in Server Components
+- Import patterns use `pages/` convention in an App Router project
+- Generated components assume client-side rendering when the project uses SSR
+- CSS output uses `@apply` when the project uses CSS Modules
+- Decomposed components do not account for the `'use client'` boundary
+
+**Prevention:**
+1. Do not rely on `package.json` alone. Check for configuration signals:
+   - `next.config.js` or `next.config.ts` -> Next.js. Then check for `app/` directory (App Router) vs `pages/` directory (Pages Router) vs both.
+   - `tailwind.config.js` -> Tailwind. Then check for `@apply` usage in CSS files, CSS Modules co-existence, custom plugin configuration.
+   - `tsconfig.json` -> TypeScript. Check `paths` aliases to understand import conventions.
+   - `vite.config.ts` -> Vite-based setup. Check for framework plugins (React, Vue, Svelte).
+2. Produce a structured framework profile, not a single label:
+   ```markdown
+   ## Framework Profile
+   - Runtime: Next.js 14
+   - Router: App Router (app/ directory detected, no pages/ directory)
+   - Rendering: Mixed (RSC default, 'use client' in 12 files)
+   - Styling: Tailwind CSS + CSS Modules (*.module.css files found alongside tailwind classes)
+   - Language: TypeScript (strict mode, path aliases: @/ -> src/)
+   - State: Zustand (detected in 3 store files)
+   ```
+3. Present the detected profile to the user during init for confirmation: "I detected the following setup. Is this correct?" This catches misdetections before they propagate.
+4. Make the framework profile available to every subagent, not just the system generator. Composer agents need to know about RSC boundaries. Reviewer agents need to check framework-appropriate patterns.
 
 **Warning signs:**
-- Token showcase renders with empty squares or missing glyphs in the icon preview section
-- Developers behind corporate proxies report "broken" showcases
-- The icon section of the showcase appears blank but all other sections render correctly
+- Scanner reports "React" without App Router/Pages Router distinction
+- Composed screens import from wrong paths (`pages/api/` in an App Router project)
+- User corrects framework detection during compose instead of during init
+- Generated components missing `'use client'` directives
+
+**Detection:**
+After scanning, validate the framework profile against 3 heuristic checks: (1) does the detected router match the directory structure, (2) do the detected styling patterns match actual file contents, (3) do import path aliases match tsconfig paths.
 
 **Phase to address:**
-Phase 3 (Showcase Update). After icon selection (Phase 1) and manifest creation (Phase 2).
+Phase 1 (Scanner Design). Framework detection is the foundation; getting it wrong poisons everything downstream.
 
 ---
 
-### Pitfall 6: Vertical-Icon Semantic Mismatch
+### Pitfall 4: Decomposition Produces Components Nobody Can Reuse
 
 **What goes wrong:**
-The same concept requires different icons across verticals, but a shared icon manifest maps one icon to one concept. "Status" in fintech means transaction state (completed/pending/failed), in health means metric range (normal/warning/critical), in e-commerce means order status (processing/shipped/delivered). Using a generic "check-circle" for all "success" states ignores that fintech success (transaction completed) carries different emotional weight than health success (metric in normal range). The agent picks the first matching icon for the semantic concept without considering vertical appropriateness.
+Motif currently outputs monolithic HTML files per screen. v1.2 adds component decomposition -- breaking screens into reusable components. But the decomposer creates components that are either (a) too granular (a `<DividerLine />` component wrapping a single `<hr>`) or (b) too coupled (a `<DashboardHeader />` that hardcodes the user's name, avatar URL, and notification count). Neither extreme produces actually reusable components. The components exist as files but nobody would import them into a real project.
 
 **Why it happens:**
-A flat icon manifest maps names to icons without vertical context. The agent sees `status: success -> check-circle` and applies it everywhere. The existing anti-slop checklist says "Am I using a generic icon set without checking the vertical?" but provides no mechanism for the agent to know which icons are vertical-appropriate. The vertical reference files describe icon roles (`[MerchantIcon]`, `[MetricIcon]`) but do not specify which actual icons match the vertical's visual language.
+Component decomposition requires understanding two things AI agents are bad at: (1) which parts of a UI will be reused across screens vs. which are one-offs, and (2) what the right prop interface is for a component to be flexible without being over-abstracted. The agent does not know the user's future plans -- it cannot predict which screens will share a sidebar, which cards will appear in multiple contexts, or which buttons need variant support. Without this knowledge, it either decomposes everything (creating a folder of 30 tiny components per screen) or decomposes nothing meaningful (creating 3 components that each contain half a page of coupled markup).
 
-**How to avoid:**
-1. Create per-vertical icon mappings in each vertical's manifest. Not just "here are valid icon names" but "here are the icons appropriate for this vertical's components":
-   - Fintech: `merchant -> store`, `transfer -> arrow-right-left`, `card -> credit-card`
-   - Health: `vitals -> heart-pulse`, `medication -> pill`, `activity -> activity`
-   - SaaS: `settings -> settings`, `search -> search`, `filter -> filter`
-   - E-commerce: `cart -> shopping-cart`, `wishlist -> heart`, `shipping -> truck`
-2. Include 2-3 alternatives per role so the agent can exercise design judgment while staying within validated bounds.
-3. Add vertical-icon appropriateness as a review criterion in the design reviewer agent's Lens 4 (Vertical UX Compliance).
+**Consequences:**
+- Component folder contains 20-40 components per screen, most used exactly once
+- Components have no props or only hardcoded props (not actually parameterized)
+- Components import each other in circular or deeply nested chains
+- User must manually refactor every decomposed component to make it usable in their real project
+- The decomposition adds complexity without adding value, making users distrust the feature
+
+**Prevention:**
+1. Decompose to the design system's component catalog, not to arbitrary UI chunks. The COMPONENT-SPECS.md already defines the reusable components (Button, Card, Input, etc.). Decomposition should produce instances of these components, not invent new ones. New components should only be created when they represent a domain-specific pattern (TransactionRow, MetricCard) already identified in research.
+2. Apply a "2+ screens" heuristic: only extract a new component if it appears (or would logically appear) in 2 or more screens. Single-use arrangements should remain inline.
+3. Define a decomposition depth limit: maximum 2 levels of custom component nesting. `Screen -> Section -> Component` is fine. `Screen -> Section -> Subsection -> Card -> CardHeader -> CardHeaderIcon -> IconWrapper` is not.
+4. Require prop interfaces for every extracted component. If the agent cannot identify at least 2 meaningful props (beyond `children`), the extraction probably is not worthwhile.
+5. Include the component catalog from the scan (what components already exist in the project) so the agent maps to existing components rather than creating duplicates.
 
 **Warning signs:**
-- All verticals using identical icons for similar concepts (every app looks the same)
-- Health app using sharp/angular icons that feel clinical rather than warm
-- Fintech app using playful/rounded icons that undermine trust
-- Reviewer agent not flagging icon choices in Lens 4
+- More than 8 custom components extracted from a single screen
+- Components with zero or one prop
+- Component names that are screen-specific (`DashboardSidebar` instead of `Sidebar`)
+- Components that import other newly-created components (deep nesting)
+- The decomposed output is harder to read than the monolithic version
+
+**Detection:**
+Post-decomposition validation: count components per screen (flag if >8), check prop counts (flag if <2), check for circular imports, check naming for screen-specific prefixes.
 
 **Phase to address:**
-Phase 2 (Vertical Mapping). Must happen after the base manifest exists (Phase 1) and before screen composition.
+Phase 3 (Decomposition Engine). But the decomposition RULES must be defined in Phase 1 (Scanner/Catalog Design) so the catalog informs decomposition boundaries.
 
 ---
 
-### Pitfall 7: Icon Name Drift Between Library Versions
+### Pitfall 5: Token Merge Conflicts -- Adopt vs. Fresh Creates Franken-Systems
 
 **What goes wrong:**
-Icon libraries rename, deprecate, or remove icons between versions. Lucide's community fork nature means icons can be added, renamed, or reorganized across releases. If the manifest references icon names from version X but the CDN serves version Y, some icons silently break. This is especially dangerous with CDN links that use `@latest` (e.g., `unpkg.com/lucide-static@latest/`) -- the version can change without any change to the codebase.
+When a brownfield project already has design tokens (a `theme.ts`, `variables.css`, Tailwind config, or styled-components theme), Motif must decide: adopt the existing tokens, merge them with Motif-generated tokens, or generate fresh tokens that replace the existing ones. Each choice has failure modes:
+- **Adopt:** Motif inherits inconsistent, incomplete, or poorly-structured tokens. The existing system might have 14 shades of gray with no naming convention, 3 different spacing scales, or colors that fail WCAG contrast.
+- **Merge:** Motif tries to combine existing tokens with generated ones, producing a Frankenstein system where `--color-primary` comes from the project but `--color-primary-50` through `--color-primary-950` are generated, and they do not form a coherent scale.
+- **Fresh:** Motif ignores the existing system entirely, producing designs that look nothing like the user's existing product. The user expected brownfield awareness; they got greenfield output with extra steps.
 
 **Why it happens:**
-The zero-dependency policy means icons are loaded via CDN rather than pinned npm packages. CDN URLs with `@latest` resolve to whatever the current version is. Lucide has ~1700 icons with active community contributions -- icons get renamed for consistency (e.g., a hypothetical `edit-2` -> `pen-line`). The manifest file is a snapshot, not a live reference. If the CDN version advances past the manifest's version, composed screens may reference icons that no longer exist under those names.
+This is a genuinely hard UX problem. The user's existing design tokens are a form of brand identity -- replacing them feels wrong, but adopting them constraints Motif to their quality level. Motif's Type B input handling (brand constraints) already handles explicit brand colors, but brownfield scanning detects tokens implicitly, without the user having consciously declared them as brand constraints. The scanner might find `--primary: #3b82f6` in a CSS file and treat it as a brand constraint, when the user actually copied it from a template and wants something better.
 
-**How to avoid:**
-1. Pin the CDN version explicitly: `unpkg.com/lucide-static@0.473.0/font/lucide.css` instead of `@latest`. Document the pinned version in the manifest.
-2. Include the library version in the manifest header: `Library: lucide-static@0.473.0 | Icons: 1702 | Validated: 2026-03-04`.
-3. Create a version-check script that compares the manifest's icon list against the pinned CDN version's actual icon list. Run this during icon library upgrades.
-4. When upgrading: diff old manifest against new version's icon list, flag any removed/renamed icons, update composed screens that reference changed names.
+**Consequences:**
+- Merged token files have duplicate or near-duplicate tokens (`--primary` and `--color-primary-500` both existing)
+- Generated color scales do not harmonize with adopted base colors
+- Spacing systems conflict (project uses 8px base, Motif generates 4px base)
+- User sees their old tokens in the showcase alongside new tokens and is confused about which to use
+- Components reference tokens from both systems, creating implicit dependencies on both
+
+**Prevention:**
+1. Make the decision explicit and user-facing. During init (after scanning), present findings:
+   ```
+   I found existing design tokens in your project:
+   - Colors: 12 custom properties in variables.css (primary: #3b82f6, 6 grays, 5 semantic)
+   - Spacing: 8px base unit, 6 scale values
+   - Typography: Inter for body, system-ui for display
+
+   How should I handle these?
+   a) Adopt -- use your existing tokens as-is, fill gaps only
+   b) Evolve -- use your tokens as starting points, improve and extend them
+   c) Fresh -- generate a new system (your project's look will change)
+   ```
+2. "Evolve" (option b) should be the default recommendation. It respects the user's existing work while allowing Motif to add structure, fill gaps, and improve quality.
+3. For "evolve" mode, generate a diff-style output showing what changed and why:
+   ```
+   KEPT: --primary: #3b82f6 (your brand color, LOCKED)
+   ADDED: --color-primary-50 through --color-primary-950 (scale derived from your primary)
+   REPLACED: --gray-100 through --gray-900 (your grays had inconsistent lightness steps; replaced with even scale)
+   ADDED: --color-success, --color-error, --color-warning (missing semantic colors)
+   ```
+4. Never silently merge. Every token in the output must be traceable to either "kept from project," "derived from project," or "generated new."
+5. Store the merge decision in STATE.md so downstream agents know whether they are working with adopted, evolved, or fresh tokens.
 
 **Warning signs:**
-- Icons that worked previously stop rendering after a CDN cache refresh
-- Manifest file has no version pin
-- CDN link uses `@latest` or `@^` semver range
-- Newly composed screens use icon names that do not appear in the manifest (agent used training data from a different version)
+- Token showcase shows duplicate-looking colors at slightly different values
+- Composed screens reference tokens that do not exist in tokens.css (referencing old project tokens)
+- User asks "why did it change my colors?" (fresh mode without clear communication)
+- User asks "why didn't it improve my colors?" (adopt mode when evolve was expected)
+
+**Detection:**
+After token generation, diff the output against detected project tokens. Flag any project token that was silently dropped (neither kept nor explicitly replaced).
 
 **Phase to address:**
-Phase 1 (Version Pinning) and ongoing maintenance (Version Upgrade Process).
+Phase 2 (System Generator Brownfield Mode). But the user-facing decision flow must be designed in Phase 1 (Scanner/Init Flow).
 
 ---
 
-## Technical Debt Patterns
+### Pitfall 6: Component Catalog Becomes a Context Dump
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Using `@latest` CDN version | Always up-to-date icons | Silent breakage on rename/removal | Never in production; acceptable only during initial evaluation |
-| Full icon dump in manifest (all 1700+) | Complete coverage | Wastes ~4000 tokens of agent context per compose; agents still hallucinate because they cannot scan 1700 names effectively | Never; always curate per-vertical subsets |
-| Hardcoding icon names in vertical refs | Quick migration | Cannot switch icon libraries without rewriting all vertical references | Never; use role-based indirection |
-| Skipping the icon-check hook | Faster iteration | Hallucinated icon names ship undetected; invisible icons in composed screens | Never |
-| Inlining SVGs instead of icon font | No CDN dependency, pixel-perfect | Bloats HTML, harder to maintain, increases token usage in composed files, harder for agents to generate consistently | Only for token showcase's critical preview icons (~10-15) |
-| Using icon font without size tokens | Faster initial setup | Inconsistent icon sizes across components, hardcoded dimensions scattered through composed code | Only during prototyping; must tokenize before any production compose |
+**What goes wrong:**
+The component catalog -- the artifact listing what components exist in the user's project -- tries to capture too much about each component. Instead of "Button component at `src/components/Button.tsx` with variants: primary, secondary, ghost," it captures the full prop types, the full implementation, the full styling, the usage examples. This turns the catalog into a 10,000+ token document that cannot be loaded into any subagent without blowing the context budget.
 
-## Integration Gotchas
+**Why it happens:**
+The cataloger agent (or scanner) reads each component file and extracts "everything useful." For a single React component, "everything useful" includes: the component name, file path, exported interface, prop types (with JSDoc), internal state, CSS classes used, imported dependencies, and usage patterns. Multiply by 30-50 components in a typical project and the catalog exceeds any reasonable context budget. The cataloger does not know which details matter for downstream agents, so it preserves everything to be safe.
 
-| Integration Point | Common Mistake | Correct Approach |
-|-------------------|----------------|------------------|
-| CDN link in token showcase | Adding icon CDN alongside font CDN without fallback handling | Add CSS-based load detection; inline critical icons as SVG; show text fallback for missing icon font |
-| Composer agent context loading | Loading the full 1700-icon manifest, wasting 3000+ tokens | Curate 80-120 icon manifest per vertical; add to composer's "Always Load" context profile |
-| Token-check hook | Not extending hook to validate icon class names | Add icon-name validation pattern to `motif-token-check.js` or create dedicated `motif-icon-check.js` |
-| Aria-check hook | Assuming existing img/div checks cover icon elements | Add icon-specific patterns: `<i>`, `<svg>` within buttons, `<span>` with icon classes |
-| COMPONENT-SPECS.md | Embedding literal icon names (coupling specs to library) | Use role-based references (`icon-role="merchant"`) mapped in manifest |
-| Reviewer agent Lens 3 | Not adding icon-name grep to system compliance checks | Add `grep -n 'icon-' {files}` check to verify all icon classes exist in manifest |
-| Reviewer agent Lens 4 | Not checking icon-vertical appropriateness | Add vertical-icon mapping check to Lens 4 scoring criteria |
+**Consequences:**
+- Catalog exceeds context budget, cannot be loaded alongside tokens.css + COMPONENT-SPECS.md
+- Orchestrator reads the full catalog to decide what to pass to subagents, blowing its 30% context ceiling
+- Subagents that receive the catalog spend most of their effective context on project component details and less on design system compliance
+- Information overload causes the agent to reference existing components incorrectly (mixing up prop names, confusing similar components)
 
-## Performance Traps
+**Prevention:**
+1. Define a strict catalog format: one line per component, maximum 3 columns:
+   ```markdown
+   | Component | Path | Interface Summary |
+   |-----------|------|-------------------|
+   | Button | src/components/Button.tsx | variants: primary/secondary/ghost, size: sm/md/lg |
+   | Card | src/components/Card.tsx | variant: default/outlined, children |
+   | Modal | src/components/Modal.tsx | open: boolean, onClose: () => void, title: string |
+   ```
+2. Set a hard budget: component catalog must be under 1500 tokens. For a project with 50 components, that is ~30 tokens per component -- enough for name + path + one-line summary.
+3. Use the catalog as an INDEX, not a source of truth. When a subagent needs details about a specific component, it reads the actual component file directly. The catalog tells it WHERE to look, not WHAT it will find.
+4. Add the catalog to the context engine's profile definitions. The composer profile should include the catalog in `load_if_exists`, not `always_load`. The catalog is helpful context, not mandatory context.
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Loading full icon font (all 1700+ glyphs) | 200-400KB font file download; slow first paint on token showcase | Use icon font subset or individual SVG sprites for only the icons used | Immediately noticeable on slow connections or mobile |
-| Agent context bloat from icon manifest | Composer runs slower; more likely to lose track of instructions near end of context | Keep manifest under 1200 tokens per vertical; use structured format (table, not prose) | When manifest exceeds ~2000 tokens; crowds out COMPONENT-SPECS.md instructions |
-| Multiple CDN requests for individual SVG icons | Waterfall of HTTP requests if using individual SVGs instead of sprite/font | Use icon font (single request) or SVG sprite (single request) | At >15-20 icons per screen, individual SVG requests become noticeable |
+**Warning signs:**
+- Catalog file exceeds 1500 tokens (run `token-counter.js` to check)
+- Catalog contains prop type definitions or implementation details
+- Subagent prompts include the full catalog alongside full COMPONENT-SPECS.md (context competition)
+- Orchestrator reads the catalog file contents into its own context (should only read file path)
 
-## UX Pitfalls
+**Detection:**
+Automated: `token-counter.js` on catalog file. Manual: if any single component entry exceeds 2 lines, the catalog is too detailed.
 
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Missing icon fallback in composed screens | Users see empty squares or nothing where icons should be; UI feels broken | Always pair icon elements with a text label or `title` attribute as visual fallback |
-| Same icon for different actions across screens | Users cannot build icon-meaning associations; increases cognitive load | Define a consistent icon vocabulary per vertical; same action always gets same icon |
-| Icon-only buttons without tooltips | Users must guess what buttons do; especially problematic for domain-specific actions | Always include `title` attribute and `aria-label` on icon-only interactive elements |
-| Overusing icons (icon for every label) | Visual noise; icons lose meaning when everything has one | Use icons selectively: navigation, status indicators, primary actions. Not every list item or label needs an icon |
-| Icons that look too similar at small sizes | Users confuse `arrow-up` with `chevron-up`, `circle-check` with `check-circle` | Choose icons with distinct silhouettes at the smallest rendered size (16px); test icon distinctiveness at `--icon-xs` |
+**Phase to address:**
+Phase 1 (Catalog Design). The format must be locked before the cataloger is built.
+
+---
+
+### Pitfall 7: Decision Fatigue from Too Many Adopt/Merge/Fresh Choices
+
+**What goes wrong:**
+The brownfield flow presents the user with too many decisions. For each detected artifact (colors, spacing, typography, radii, shadows, components, routing patterns, state management), the system asks: "adopt, evolve, or fresh?" The user faces 8-12 binary/ternary choices before any design work begins. They either (a) pick "adopt" for everything to avoid decisions (defeating the purpose of Motif), (b) pick "fresh" for everything to avoid complexity (defeating the purpose of brownfield awareness), or (c) disengage entirely because the tool feels like a configuration wizard, not a design assistant.
+
+**Why it happens:**
+The engineering instinct is to give users control over every aspect. Each individual choice makes sense: "Do you want to keep your colors?" is a reasonable question. "Do you want to keep your spacing?" is also reasonable. But asking 8 reasonable questions in sequence creates a burdensome experience. The existing Motif init interview is already 3-4 rounds of questions (product context, design inputs, differentiation seed, screens). Adding 8 more token-merge decisions doubles the cognitive load of initialization.
+
+**Consequences:**
+- Users default to extremes (all-adopt or all-fresh) rather than thoughtful per-category decisions
+- The init flow takes 10+ minutes of Q&A before any design output is produced
+- Users perceive Motif as complex/enterprise-y rather than fast/assistive
+- The decision surface area creates more bug surface area (8 independent merge strategies that must all work correctly)
+
+**Prevention:**
+1. Collapse to ONE top-level decision with smart defaults:
+   ```
+   I found an existing design system in your project. How should I work with it?
+
+   a) Respect it -- I'll build on your existing tokens and components
+   b) Fresh start -- I'll generate a new design system (your existing look will change)
+   c) Let me choose per category -- I'll ask about colors, spacing, typography separately
+   ```
+   Option (a) maps to "evolve" for everything. Option (b) maps to "fresh" for everything. Option (c) unlocks the per-category flow for power users. Most users will pick (a) or (b) and move on.
+2. For option (a) "respect it," apply smart heuristics without asking:
+   - If existing colors pass WCAG AA: adopt them as brand constraints (Type B input)
+   - If existing colors fail WCAG AA: evolve them (fix contrast, keep hue)
+   - If existing spacing uses a consistent scale: adopt it
+   - If existing spacing is inconsistent: evolve to nearest standard scale (4px or 8px base)
+   - If existing typography uses banned fonts (Inter, system-ui): evolve to Motif-appropriate alternatives
+   - If existing typography uses distinctive fonts: adopt them as brand constraints
+3. Show what was decided, not ask what to decide:
+   ```
+   Here's how I'll handle your existing system:
+   - Colors: Keeping your primary (#3b82f6) and secondary (#10b981). Improving your grays (inconsistent lightness). Adding missing semantic colors.
+   - Typography: Your body font (Inter) is generic -- I'll suggest alternatives. Your display font (Clash Display) is distinctive -- keeping it.
+   - Spacing: Your 8px base is solid. I'll extend the scale with missing values.
+
+   Looks good? Or want to adjust anything?
+   ```
+   This is a single confirmation, not 8 separate decisions.
+4. Store the merge strategy in DESIGN-BRIEF.md's Inputs section, extending the existing Type B (Brand Constraints) pattern rather than creating a new input type.
+
+**Warning signs:**
+- Init flow has more than 5 rounds of questions
+- Users consistently pick the same answer for all categories (sign they are not actually deciding)
+- Per-category merge logic has >5 code paths (combinatorial complexity)
+- Bug reports about "wrong merge behavior" in specific category combinations
+
+**Detection:**
+Count the number of user-facing questions in the brownfield init flow. If more than 2 brownfield-specific questions (beyond the existing init interview), the flow is too complex.
+
+**Phase to address:**
+Phase 2 (Init Flow Extension). But the decision to collapse choices must be made in Phase 1 (Design Decisions) before any UI flow is built.
+
+---
+
+## Moderate Pitfalls
+
+---
+
+### Pitfall 8: Scanner Assumes Monorepo is a Single Project
+
+**What goes wrong:**
+The scanner encounters a monorepo (Turborepo, Nx, Lerna, yarn workspaces) and scans all packages as if they are one project. It finds 3 different design systems (one per package), 150 components across 5 apps, and conflicting framework choices (one package uses React, another uses Vue). The scan artifact mixes all of them, producing an incoherent project profile.
+
+**Prevention:**
+1. Detect monorepo signals: `workspaces` in `package.json`, `turbo.json`, `nx.json`, `lerna.json`, `pnpm-workspace.yaml`.
+2. When a monorepo is detected, ask the user which package/app to focus on. Scan that package in isolation.
+3. Record the scoped package path in STATE.md so all subsequent operations use the correct root.
+
+**Warning signs:**
+- Scan artifact lists components from multiple packages with conflicting patterns
+- Framework profile shows multiple frameworks
+- Component catalog has duplicate component names from different packages
+
+**Phase to address:**
+Phase 1 (Scanner Design).
+
+---
+
+### Pitfall 9: Decomposition Ignores Framework-Specific Component Patterns
+
+**What goes wrong:**
+The decomposer extracts components as generic HTML/CSS fragments when the project uses React (JSX), Vue (SFCs), or Svelte (`.svelte` files). The decomposed output does not match the project's component authoring pattern. A React project gets components without proper hook usage. A Vue project gets components without `<script setup>`. A Next.js App Router project gets components without `'use client'` directives where needed.
+
+**Prevention:**
+1. The framework profile from scanning (Pitfall 3's prevention) must flow into the decomposer. The decomposer's prompt must specify: "Output components in {framework} format with {router} conventions."
+2. Include 1-2 example components from the user's project in the decomposer's context (read the simplest existing component as a "style reference"). This gives the agent the project's actual authoring conventions, not generic framework patterns.
+3. Define decomposition templates per framework:
+   - React: functional component with typed props, hooks for state
+   - Next.js App Router: default to Server Component, add `'use client'` only if interactive
+   - Vue 3: `<script setup lang="ts">` + `<template>` + `<style scoped>`
+   - Svelte: `<script lang="ts">` + markup + `<style>`
+
+**Warning signs:**
+- Decomposed components use class components in a functional-component project
+- Missing `'use client'` in interactive components for App Router projects
+- Vue components output as React JSX
+
+**Phase to address:**
+Phase 3 (Decomposition Engine). Framework profile from Phase 1 is a prerequisite.
+
+---
+
+### Pitfall 10: Existing Component Detection Hallucinates Reuse Opportunities
+
+**What goes wrong:**
+The catalog lists a `Button` component in the user's project. The composer agent sees it and generates `import { Button } from '@/components/Button'` in the composed screen. But the existing `Button` has a completely different API than what Motif's COMPONENT-SPECS.md defines. The existing button takes `variant="filled"` while Motif's spec says `variant="primary"`. The composed screen uses Motif's prop names on the project's component, producing silent rendering bugs (wrong variant, missing styles, undefined prop warnings).
+
+**Prevention:**
+1. The component catalog must include interface summaries (Pitfall 6's format) so the agent knows the actual prop API.
+2. When the composer references an existing project component, it must use THAT component's interface, not Motif's COMPONENT-SPECS.md interface. This requires the prompt to clearly distinguish: "Motif's design system defines Button with these variants. Your project's Button has these variants. Use your project's Button API."
+3. Add a "compatibility map" concept: for each Motif component type, note whether the project has a compatible component and what the mapping is:
+   ```
+   Motif Button(variant="primary") -> Project Button(variant="filled")
+   Motif Card(variant="elevated") -> No project equivalent, generate new
+   Motif Modal(open, onClose) -> Project Dialog(isOpen, onDismiss)
+   ```
+4. If no compatibility can be determined, default to generating new components rather than incorrectly using existing ones.
+
+**Warning signs:**
+- Composed screens import project components but pass Motif-spec props
+- Console warnings about unknown props in development
+- Components render with default/missing styles because the wrong variant name was used
+
+**Phase to address:**
+Phase 2 (Catalog Enhancement) for the compatibility mapping. Phase 3 (Compose Flow) for the prompt modifications.
+
+---
+
+### Pitfall 11: Scanner Exposes Sensitive Information
+
+**What goes wrong:**
+The scanner reads project files indiscriminately and captures sensitive data in the scan artifact: API keys in `.env` files, database connection strings in config files, auth secrets in server-side code. This artifact is then loaded into subagent prompts. While the data stays local (Motif does not transmit scan results), it unnecessarily expands the attack surface and wastes context tokens on non-design information.
+
+**Prevention:**
+1. Hardcode an exclusion list: `.env*`, `*.key`, `*.pem`, `*.secret`, `credentials.*`, `*config.server.*`
+2. Only scan directories relevant to design: `src/components/`, `src/styles/`, `src/app/` (or equivalents). Never scan `server/`, `api/`, `lib/db/`, `scripts/`.
+3. Only read file metadata (path, type, size) for most files. Only read file CONTENTS for component files, style files, and config files (package.json, tsconfig.json, tailwind.config.js).
+4. Document what the scanner reads and does not read so users can audit.
+
+**Warning signs:**
+- Scan artifact contains strings that look like API keys or connection strings
+- Scanner reads server-side code or API route implementations
+- Scan artifact is unexpectedly large (reading non-design files)
+
+**Phase to address:**
+Phase 1 (Scanner Design). Security exclusions must be in the first version.
+
+---
+
+### Pitfall 12: Decomposition Creates Import Cycles
+
+**What goes wrong:**
+The decomposer extracts components that import each other circularly. `Header` imports `Navigation`, `Navigation` imports `UserMenu`, `UserMenu` imports `Header` (to access a shared context or layout reference). In the monolithic file, these were just sections of HTML with no import relationships. Decomposition introduces module boundaries that create cycles.
+
+**Prevention:**
+1. Enforce a strict component dependency tree: components can import from the design system (tokens, primitives) and from siblings, but never from parent layout components.
+2. Run a post-decomposition cycle check: build an import graph and verify it is a DAG (directed acyclic graph).
+3. Shared state or context that creates the cycle should be extracted into a separate module (a context provider, a shared hook, a shared constant) rather than being duplicated or circularly referenced.
+4. Limit decomposition depth to 2 levels (Pitfall 4's prevention) which naturally prevents most cycles.
+
+**Warning signs:**
+- Build errors about circular imports after decomposition
+- Components that reference each other bidirectionally
+- The decomposer creating "shared" utility files to resolve its own cycles (sign of over-decomposition)
+
+**Phase to address:**
+Phase 3 (Decomposition Engine). Add cycle detection as a post-decomposition validation step.
+
+---
+
+## Minor Pitfalls
+
+---
+
+### Pitfall 13: Scanning Performance on Large Projects
+
+**What goes wrong:**
+The scanner uses `glob` and `read` operations to traverse the project. On a large project (10,000+ files), this takes significant time and may hit the Bash tool timeout (120 seconds). The user waits, the scan times out, and the init flow fails.
+
+**Prevention:**
+1. Use `find` with depth limits (`-maxdepth 3`) for initial structure detection.
+2. Only read files in known component/style directories, not the entire tree.
+3. Set a file count ceiling: if the project has >5000 files, only scan `src/` or the detected source root.
+4. Add a progress indicator or at minimum an early message: "Scanning project structure..."
+
+**Phase to address:**
+Phase 1 (Scanner Implementation).
+
+---
+
+### Pitfall 14: Component Naming Conflicts Between Project and Motif
+
+**What goes wrong:**
+The project has a `Card` component. Motif's COMPONENT-SPECS.md also defines `Card`. The decomposer outputs a new `Card` component that follows Motif's spec but shadows the project's existing `Card`. Import resolution becomes ambiguous.
+
+**Prevention:**
+1. Decomposed Motif components should use a namespace prefix when conflicting: `MotifCard` or scoped to a `motif/` directory.
+2. Better: map Motif's component spec to the project's existing component (Pitfall 10's compatibility map) and use the existing component directly.
+3. During decomposition, check for name conflicts against the component catalog and rename proactively.
+
+**Phase to address:**
+Phase 3 (Decomposition Engine).
+
+---
+
+### Pitfall 15: Evolve Mode Produces Tokens the Project Cannot Consume
+
+**What goes wrong:**
+Motif generates `tokens.css` with CSS custom properties (`:root { --color-primary-500: #3b82f6; }`). But the project's existing token system uses a different format: Tailwind config (`colors: { primary: { 500: '#3b82f6' } }`), TypeScript theme object (`const theme = { colors: { primary500: '#3b82f6' } }`), or SCSS variables (`$primary-500: #3b82f6`). The generated tokens.css is technically correct but useless -- the project cannot consume it without a manual translation layer.
+
+**Prevention:**
+1. During scanning, detect the project's token format (CSS custom properties, Tailwind config, TS theme object, SCSS variables, styled-components theme).
+2. Generate tokens in the project's native format IN ADDITION to Motif's canonical `tokens.css`. The canonical format remains for Motif's internal agents. A translated format is produced for the user's project.
+3. Start with CSS custom properties only (v1.2). Add Tailwind config translation in a later version. This limits scope while covering the most common case.
+4. Document clearly: "tokens.css is Motif's canonical token file. For Tailwind projects, see the generated tailwind.tokens.js."
+
+**Warning signs:**
+- User asks "how do I use these tokens in my Tailwind project?"
+- Composed screens reference CSS variables but the project uses Tailwind utility classes
+- Token showcase works but the tokens do not integrate into the project's build pipeline
+
+**Phase to address:**
+Phase 2 (Token Evolution). But scope to CSS custom properties only for v1.2. Tailwind/SCSS translation is a follow-up feature.
+
+---
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|-------------|---------------|------------|
+| Scanner Design (Phase 1) | Over-scanning, stale data, wrong framework detection, security exposure | Hard token budget (2000), lazy scanning, framework profile validation, exclusion list |
+| Catalog Design (Phase 1) | Context dump, information overload for agents | Index format (name + path + one-line), 1500 token budget, load-on-demand details |
+| Init Flow Extension (Phase 2) | Decision fatigue, too many adopt/merge/fresh choices | Single top-level decision, smart defaults, show-don't-ask pattern |
+| Token Evolution (Phase 2) | Franken-systems from naive merge, incompatible token formats | Evolve as default, explicit diff output, keep-or-explain every token |
+| Decomposition Engine (Phase 3) | Useless components, import cycles, framework mismatch, naming conflicts | Design-system-aligned decomposition, 2-level depth limit, framework templates, cycle detection |
+| Compose Flow Update (Phase 3) | Hallucinated reuse of existing components, wrong prop APIs | Compatibility maps, "verify before import" instructions, existing component interface in prompt |
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Icon manifest exists:** Verify `.planning/design/system/ICON-MANIFEST.md` contains valid icon names from the pinned library version -- not AI-generated guesses
-- [ ] **All 4 verticals migrated:** Grep all vertical reference files for `\[.*Icon` bracket patterns; zero matches means migration is complete
-- [ ] **Icon-check hook deployed:** Verify `motif-icon-check.js` exists in hooks directory, is registered in Claude settings, and blocks invalid icon names
-- [ ] **Aria-check covers icons:** Verify `motif-aria-check.js` checks icon-only buttons for `aria-label` and decorative icons for `aria-hidden="true"`
-- [ ] **CDN version pinned:** Verify CDN URL contains explicit version number (e.g., `@0.473.0`), not `@latest`
-- [ ] **Icon size tokens defined:** Verify `tokens.css` contains `--icon-xs` through `--icon-xl` tokens
-- [ ] **Token showcase renders icons:** Open `token-showcase.html` offline and verify icon fallback behavior is acceptable
-- [ ] **Reviewer knows about icons:** Verify reviewer agent instructions include icon-name validation in Lens 3 and icon-vertical appropriateness in Lens 4
-- [ ] **Composer knows icon rules:** Verify composer agent instructions include "read ICON-MANIFEST.md" and "only use icon names from manifest"
+- [ ] **Scanner respects context budget:** `PROJECT-SCAN.md` (or equivalent) is under 2000 tokens
+- [ ] **Framework profile is validated:** Scanner output includes router type, styling approach, and import conventions -- not just "React"
+- [ ] **Catalog is an index:** Each component entry is 1 line with name + path + summary. No prop type definitions in the catalog.
+- [ ] **Token merge is explicit:** Every token in output is labeled "kept," "evolved," or "generated new." No silent drops.
+- [ ] **User faces <= 2 brownfield decisions:** Top-level choice (respect/fresh/customize) and confirmation. Not per-category interrogation.
+- [ ] **Decomposition produces < 8 components per screen:** Components map to design system primitives + domain-specific patterns, not arbitrary UI chunks.
+- [ ] **No import cycles in decomposed output:** Post-decomposition validation confirms DAG structure.
+- [ ] **Sensitive files excluded from scan:** `.env*`, credentials, server-side code never read.
+- [ ] **Stale scan protection exists:** Either lazy scanning or freshness check before loading scan artifact.
+- [ ] **Existing component compatibility mapped:** When the compose flow uses project components, it uses the project's prop API, not Motif's spec API.
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Hallucinated icon names in composed screens | MEDIUM | Grep all composed HTML for icon class patterns; cross-reference against manifest; replace invalid names; re-run icon-check hook validation |
-| Broken vertical specs after partial migration | HIGH | Revert to pre-migration commit; re-do migration atomically across all 4 verticals; validate with grep for bracket patterns |
-| Missing icon accessibility | MEDIUM | Run accessibility audit specifically for icon elements; add `aria-hidden` to decorative icons; add `aria-label` to informative/interactive icons |
-| CDN version drift causing broken icons | LOW | Pin CDN to the version the manifest was validated against; diff manifest vs new version; update renamed icons in composed screens |
-| Inconsistent icon sizes | LOW | Grep composed files for hardcoded icon dimensions; replace with `var(--icon-*)` tokens; update component specs |
-| Full icon dump bloating agent context | LOW | Replace full dump with curated per-vertical subset; re-validate that all icons referenced in component specs appear in the curated list |
+| Over-scanned context dump | LOW | Re-run scanner with stricter budget; replace artifact; no downstream impact if caught before compose |
+| Stale scan causing wrong imports | MEDIUM | Re-scan; diff against current project; re-compose affected screens |
+| Wrong framework detection | HIGH | Re-scan with corrected detection; regenerate system if framework affects token/component decisions; re-compose all screens |
+| Useless decomposition | MEDIUM | Revert decomposed files; re-decompose with stricter rules; or keep monolithic output (it works, just not decomposed) |
+| Franken-system from bad merge | HIGH | Delete generated tokens; re-run system generator with explicit adopt-or-fresh choice; re-compose all screens |
+| Decision fatigue abandonment | LOW | Simplify the init flow; user re-runs init with fewer questions; no code impact |
+| Component API mismatch | MEDIUM | Update compatibility map; re-compose affected screens with correct prop names |
+| Import cycles in decomposition | LOW | Run cycle detector; refactor circular dependencies into shared modules; small, localized changes |
 
-## Pitfall-to-Phase Mapping
+## Integration Gotchas Specific to Motif's Architecture
 
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Icon name hallucination | Phase 1: Manifest + Hook | Run `motif-icon-check.js` against a test HTML file with known-bad icon names; verify it blocks |
-| Breaking component specs | Phase 2: Vertical Migration | `grep -r '\[.*Icon' .claude/get-motif/references/verticals/` returns zero matches |
-| Accessibility mismatch | Phase 1-2: Hook + Spec Update | Run `motif-aria-check.js` against HTML with icon-only button lacking `aria-label`; verify it blocks |
-| Icon size inconsistency | Phase 1: Token Definition | `grep 'icon-xs\|icon-sm\|icon-md\|icon-lg\|icon-xl' tokens.css` returns 5 token definitions |
-| CDN showcase breakage | Phase 3: Showcase Update | Open `token-showcase.html` with network disabled; verify fallback behavior |
-| Vertical-icon mismatch | Phase 2: Vertical Mapping | Each vertical manifest maps component roles to specific icon names |
-| Library version drift | Phase 1: Version Pin + Ongoing | CDN URL grep confirms no `@latest`; version-check script exists |
+| Integration Point | Common Mistake | Correct Approach |
+|-------------------|----------------|------------------|
+| Context engine profiles | Adding scan artifact to `always_load` for all profiles | Add to `load_if_exists` only for composer and system generator. Never load for researcher or reviewer. |
+| Orchestrator context ceiling | Reading scan artifact contents to decide what to pass to subagents | Read only scan METADATA (framework, token format, component count). Pass scan FILE PATH to subagent. Let subagent read details in fresh context. |
+| STATE.md | No tracking of scan freshness or merge decisions | Add `Scan` section with timestamp, scoped package path, merge strategy. |
+| DESIGN-BRIEF.md Inputs | Creating new Input Type E for brownfield | Extend Type B (Brand Constraints) and Type D (Design File) to cover brownfield detection. No new type needed. |
+| Subagent spawning | Passing full project component code to subagent prompt | Pass component catalog (index) + specific file paths. Subagent reads files in its fresh window. |
+| Existing hooks | Assuming existing hooks (token-check, font-check, aria-check) will catch brownfield-specific issues | Hooks validate Motif's output format. They do not validate that output is compatible with the project. Need new validation for import path correctness, prop API compatibility. |
+| Compose workflow | Modifying compose-screen.md to always include brownfield context | Make brownfield context conditional. If no scan exists, compose workflow should work exactly as v1.1. Brownfield is additive, not required. |
 
 ## Sources
 
-- Lucide Icons static package documentation: [lucide.dev/guide/packages/lucide-static](https://lucide.dev/guide/packages/lucide-static)
-- Lucide icon font (community): [github.com/tobiasroeder/lucide-icon-font](https://github.com/tobiasroeder/lucide-icon-font)
-- Lucide programmatic icon name access: [github.com/lucide-icons/lucide/discussions/1778](https://github.com/lucide-icons/lucide/discussions/1778)
-- Icon accessibility (Font Awesome docs): [docs.fontawesome.com/web/dig-deeper/accessibility](https://docs.fontawesome.com/web/dig-deeper/accessibility)
-- W3C: aria-hidden on icon fonts: [w3.org/WAI/GL/wiki/Using_aria-hidden](https://www.w3.org/WAI/GL/wiki/Using_aria-hidden=true_on_an_icon_font_that_AT_should_ignore)
-- Iconography in design systems (Smashing Magazine): [smashingmagazine.com/2024/04/iconography-design-systems](https://www.smashingmagazine.com/2024/04/iconography-design-systems-troubleshooting-maintenance/)
-- CDN vs self-hosting analysis (Font Awesome blog): [blog.fontawesome.com/self-host-and-cdn](https://blog.fontawesome.com/self-host-and-cdn/)
-- Codebase analysis: `motif-aria-check.js`, `motif-token-check.js`, `motif-font-check.js`, `motif-screen-composer.md`, `motif-design-reviewer.md`, all 4 vertical reference files, `token-showcase-template.html`, `context-engine.md`
+- Codebase analysis: `context-engine.md` (context budgets, profile definitions, anti-patterns), `state-machine.md` (phase transitions, gate checks), `design-inputs.md` (input types A-D, brand constraint flow), `compose-screen.md` (composer agent context loading, anti-slop checks), `generate-system.md` (token generation algorithm, component spec format), `runtime-adapters.md` (orchestrator context constraints, subagent spawning)
+- Existing hooks: `motif-token-check.js`, `motif-font-check.js`, `motif-aria-check.js` (current validation scope and gaps)
+- Existing scripts: `token-counter.js`, `contrast-checker.js` (available validation tools)
+- Architecture constraints: orchestrator <= 30% context, subagent fresh 200K windows, zero npm deps, markdown-first artifacts
+- Training data: patterns from brownfield migration tools (codemod, jscodeshift), design system adoption literature (Storybook migration guides, design token specification patterns), AI coding assistant context management patterns. Confidence: MEDIUM (not verified against current sources due to WebSearch unavailability).
 
 ---
-*Pitfalls research for: Icon Library Integration into Motif AI-Agent Design Pipeline*
+*Pitfalls research for: Brownfield Intelligence & Component Decomposition for Motif v1.2*
 *Researched: 2026-03-04*

@@ -1,284 +1,407 @@
-# Feature Landscape: Icon Library Integration
+# Feature Landscape: Brownfield Intelligence
 
-**Domain:** Icon library integration for AI design engineering system (Motif v1.1)
+**Domain:** Brownfield project scanning, component decomposition, and convention-adaptive output for AI design engineering system (Motif v1.2)
 **Researched:** 2026-03-04
-**Overall confidence:** HIGH
+**Overall confidence:** MEDIUM (training data only; no web verification available)
 
 ## Context
 
-Motif v1.0 generates design systems (tokens.css, COMPONENT-SPECS.md, DESIGN-SYSTEM.md, token-showcase.html) with placeholder icon references like `[MerchantIcon 40x40]`, `[Icon 20x20]`, `[CategoryIcon 36x36]`. The screen composer has an anti-slop check ("Am I using a generic icon set without checking the vertical?") but no mechanism to resolve icon names. This milestone replaces placeholder references with concrete, render-ready icon names from a real icon library, threaded through the entire pipeline: system architect picks a library, component specs name icons, composed screens render them.
+Motif v1.1 generates design systems and composes screens into monolithic HTML files that ignore existing project structure. When a user has a React/Next.js/Vue project with established component patterns, file organization conventions, and existing UI components, Motif drops a single large file into `.planning/design/screens/` with no awareness of what already exists. This creates three problems:
+
+1. **Wasted existing work**: Users have components (`Button.tsx`, `Card.tsx`) that Motif ignores and recreates inline.
+2. **Convention mismatch**: Output uses `kebab-case` files when the project uses `PascalCase`; outputs a single file when the project uses `components/` + `pages/` + `hooks/` patterns.
+3. **Integration friction**: Users must manually decompose monolithic output into proper project structure, defeating the purpose of automation.
+
+v1.2 addresses this with a scan-present-decide-execute flow: the system scans the project, presents findings to the user, the user makes decisions, and then agents execute within those constraints.
 
 ---
 
 ## Table Stakes
 
-Features the system MUST have for icon integration to work at all. Missing any of these means icons are still effectively placeholders.
+Features users expect when any AI tool claims brownfield awareness. Missing any of these means the tool feels "greenfield-only" and users revert to manual integration.
 
 | Feature | Why Expected | Complexity | Dependencies | Notes |
 |---------|--------------|------------|--------------|-------|
-| **Icon library selection by system architect** | The architect already picks fonts, colors, spacing, radii, and shadows. Icons are the last unresolved visual primitive. Without library selection, composed screens cannot reference real icons. | LOW | Modifies: `generate-system.md` workflow, `motif-system-architect.md` agent | The architect must pick ONE library from a curated set, not invent icon names. Decision algorithm parallels the existing font/color algorithms: vertical + differentiation seed -> library choice. |
-| **Icon size tokens in tokens.css** | Motif's design philosophy is "every visual value is a token." Icon sizes are visual values (16px, 20px, 24px, 32px, 40px). Without size tokens, icon dimensions get hardcoded -- violating the same principle that color/spacing tokens enforce. | LOW | Modifies: `generate-system.md` token file template | Token naming: `--icon-sm`, `--icon-md`, `--icon-lg`, `--icon-xl`. Based on 8px multiples like the Michelin Design System pattern. Values: 16px, 20px, 24px, 32px (map to existing component spec icon dimensions). |
-| **CDN link in token showcase HTML** | The token-showcase.html is self-contained (imports only tokens.css + Google Fonts CDN). Icons must render in the showcase without a build step. This means a CDN `<script>` tag, not an npm import. | LOW | Modifies: `token-showcase-template.html` | Lucide: `<script src="https://unpkg.com/lucide@latest"></script>` + `lucide.createIcons()`. Phosphor: `<script src="https://unpkg.com/@phosphor-icons/web@2"></script>` + class-based. The showcase template needs a new Icons section displaying sample icons from the selected library at each size token. |
-| **Concrete icon names in COMPONENT-SPECS.md** | `[MerchantIcon 40x40]` tells the composer nothing about which actual icon to render. Specs must use real icon names from the selected library so the composer can emit valid markup. Currently all 4 verticals use placeholder format. | MEDIUM | Modifies: all 4 vertical reference files (`fintech.md`, `health.md`, `saas.md`, `ecommerce.md`), `generate-system.md` component spec template | Each vertical needs a mapping from semantic role to concrete icon name. Example: fintech `[MerchantIcon]` -> `lucide:store` or `ph-storefront`. The vertical reference files define WHICH icons are appropriate per domain; the architect selects from this set. |
-| **Composed screens use real icon markup** | The endpoint of the pipeline. If composed screens still emit placeholder text like `[Icon]`, the entire integration is invisible to end users. Screens must render actual SVG icons. | MEDIUM | Modifies: `motif-screen-composer.md` agent, `compose-screen.md` workflow | The composer needs: (1) knowledge of which library was selected (from tokens.css or DESIGN-SYSTEM.md), (2) correct markup pattern per library (e.g., `<i data-lucide="store"></i>` vs `<i class="ph ph-storefront"></i>`), (3) icon size token references. |
-| **Icon library metadata in DESIGN-SYSTEM.md** | DESIGN-SYSTEM.md already documents color palette, typography scale, spacing, and motion. Icon library choice, CDN URL, and usage pattern must be documented here so downstream agents and human readers know which library is in use. | LOW | Modifies: `generate-system.md` Output 3 section | One new section: "Iconography" with library name, CDN URL, usage syntax, and vertical-specific icon mapping table. |
+| **Project structure scanning** | Every AI coding assistant that touches existing code (Cursor, Copilot Workspaces, Bolt, Claude Code itself) reads project structure before acting. Users will immediately ask "do you know what's already in my project?" and expect yes. Without scanning, Motif operates blind. | MEDIUM | Modifies: `/motif:init` workflow, adds new scan step | Scan must detect: framework (React/Next/Vue/Svelte/HTML), directory layout (`src/` vs flat, `components/` location, `pages/` vs `app/` routing), CSS approach (Tailwind, CSS Modules, styled-components, plain CSS), and package manager. The init workflow already asks for stack; scanning CONFIRMS rather than asks. |
+| **Existing component catalog** | Users with 10+ components will not accept Motif recreating a `Button` or `Card` from scratch. GitHub Copilot, Cursor, and v0 all attempt to reuse what exists. Users expect "I already have a Button, use mine." | HIGH | Requires: project scanning, modifies: composer agent context profile, modifies: COMPONENT-SPECS.md format | Must detect existing component files, extract their names and locations, and present to user. Does NOT need to parse component internals — just catalog file paths + export names. Deep prop analysis is v1.3+. |
+| **File output convention matching** | When a project uses `src/components/ui/button.tsx` with barrel exports in `index.ts`, Motif output must follow the same pattern. Tools like Cursor and Claude Code already do this implicitly by reading surrounding files. Users do NOT expect to manually rename/move files after generation. | MEDIUM | Requires: project scanning (file naming patterns), modifies: composer output path logic | Detect: file naming convention (PascalCase vs kebab-case vs camelCase), component directory structure, barrel export patterns, file extension (.tsx vs .jsx vs .vue). Composer then writes to the correct location with the correct naming. |
+| **Scan results presentation (user decides)** | The core v1.2 contract: "scan, present, user decides." No AI tool should silently make structural decisions about an existing project. v0 and Bolt both show what they found and let users approve before generating. Users expect transparency about what was detected. | LOW | Requires: project scanning, produces: PROJECT-SCAN.md artifact | After scanning, write findings to a structured file and present a summary to the user. User confirms or corrects before any generation happens. This is the trust-building step — "I found 23 components in src/components/, your CSS approach is Tailwind, your naming convention is kebab-case. Correct?" |
+| **Composer output to project directories** | Currently all output goes to `.planning/design/screens/`. In a brownfield project, the composed screen must be written to where the project actually expects it — `src/app/dashboard/page.tsx`, not `.planning/design/screens/dashboard.html`. Without this, every compose requires manual file moving. | MEDIUM | Requires: project scanning, scan results confirmation, modifies: compose-screen.md workflow, modifies: composer agent | The composer needs a target directory from the scan results. For Next.js App Router: `src/app/{route}/page.tsx`. For Pages Router: `pages/{route}.tsx`. For plain React: `src/pages/` or `src/views/`. For HTML: project root or `public/`. The orchestrator resolves the path before spawning the composer. |
+| **Import existing design tokens** | If a project already has CSS custom properties, Tailwind config colors, or a theme file, Motif should detect and import them rather than generating from scratch. This is the design-system equivalent of scanning components. Overwriting a team's established color palette is unacceptable. | HIGH | Modifies: `/motif:system` workflow, adds token extraction logic | Detect: existing `tailwind.config.*` (colors, spacing, fonts), CSS files with custom properties, theme files. Extract values. Present to user: "I found your existing tokens. Use these as the base?" If yes, Motif wraps them in its token format rather than generating new ones. If no, proceed with fresh generation. |
 
 ---
 
 ## Differentiators
 
-Features that make Motif's icon integration notably better than "just pick an icon library." These leverage Motif's existing domain intelligence.
+Features that make Motif's brownfield intelligence notably better than competitors. These leverage Motif's unique position as a design-system-first tool, not just a code generator.
 
 | Feature | Value Proposition | Complexity | Dependencies | Notes |
 |---------|-------------------|------------|--------------|-------|
-| **Vertical-aware icon vocabulary** | Motif's core differentiator is domain intelligence. A fintech vertical's component specs should reference `credit-card`, `banknote`, `trending-up`, `shield-check` -- not generic `star`, `settings`, `home`. A health vertical should reference `heart-pulse`, `pill`, `activity`, `thermometer`. No other tool maps icons to domain semantics. This is the icon equivalent of "fintech knows monetary values need tabular-nums." | MEDIUM | Requires: curated icon vocabulary per vertical in each vertical reference file | Each of the 4 verticals needs a curated list of 15-25 domain-specific icon names mapped to their semantic roles. The system architect references this vocabulary when writing COMPONENT-SPECS.md. The composer then uses these exact names. This is NOT a full icon search -- it is a pre-researched dictionary. |
-| **Icon style matching to differentiation seed** | Lucide has one style (outline). Phosphor has 6 weights (thin, light, regular, bold, fill, duotone). The differentiation seed's "personality" and "formality" dimensions should influence icon weight selection: formal/institutional products get regular weight; bold/rebellious products get bold or fill weight. This creates visual consistency between icon weight and typography weight choices. | LOW | Requires: icon weight decision algorithm in `generate-system.md` | Only applies when the selected library supports multiple weights (currently only Phosphor). Can be captured as a single token: `--icon-weight: regular` or a DESIGN-SYSTEM.md directive. |
-| **Icon showcase section in token-showcase.html** | The token showcase is the "wow moment" after system generation. Adding an icon section with a grid of the vertical's key icons at each size, rendered from CDN, makes the showcase substantially more complete. Users see their icon vocabulary visually alongside colors and typography. | LOW | Requires: icon section in `token-showcase-template.html`, CDN script tag | Template adds a new section after Components: "Iconography" with icon grid showing each vertical icon at --icon-sm, --icon-md, --icon-lg sizes. The architect fills in the actual icon names from the vertical vocabulary. |
-| **Anti-slop icon check (enforce real names)** | The existing anti-slop checklist item ("Am I using a generic icon set without checking the vertical?") is a mental prompt with no enforcement. A concrete check -- either in the composer agent's instructions or as a hook -- could verify that icon names in composed HTML actually exist in the selected library's vocabulary. | MEDIUM | Requires: knowledge of valid icon names per library, modification to composer anti-slop checklist or a new hook | The simplest version is an explicit instruction in the composer agent: "Icon names MUST come from the icon vocabulary in COMPONENT-SPECS.md or DESIGN-SYSTEM.md. Do NOT invent icon names." A hook-based version would grep composed HTML for icon markup and validate names against a known list. Start with the instruction-based version; hooks are v1.2. |
-| **Icon color token integration** | Icons should use the same color tokens as text: `--text-primary`, `--text-secondary`, `--text-link`, semantic colors. This is already how most icon libraries work (they inherit `currentColor`), but explicitly documenting it in COMPONENT-SPECS.md prevents the composer from hardcoding icon colors. | LOW | Modifies: component spec template to include icon color directives | Both Lucide and Phosphor inherit `currentColor` by default, so setting `color: var(--text-secondary)` on the parent element colors the icon. Document this pattern; do not create separate `--icon-color-*` tokens. |
+| **Component gap analysis** | Motif knows what components a vertical NEEDS (from COMPONENT-SPECS.md) and can diff that against what EXISTS (from the scan). "You have Button, Card, and Input. You're missing: TransactionRow, BalanceCard, StatusChip (fintech-specific). I'll generate only the missing ones." No other tool maps domain-required components against existing inventory. This is Motif's domain intelligence applied to brownfield awareness. | MEDIUM | Requires: existing component catalog + vertical component specs, produces: GAP-ANALYSIS.md | The gap analysis compares the scan catalog against COMPONENT-SPECS.md and vertical reference components. Three categories: (1) EXISTS — reuse as-is, (2) EXISTS-PARTIAL — exists but needs variant/state additions, (3) MISSING — must be generated. User approves the categorization before compose runs. |
+| **Convention extraction (not just detection)** | Beyond detecting "this project uses Tailwind" — extract the SPECIFIC conventions. "Your buttons use `rounded-lg` not `rounded-md`. Your spacing uses `p-4` and `p-6` never `p-5`. Your cards always have `shadow-sm border border-gray-200`." Then teach the composer to follow these exact patterns. This is convention learning, not just framework detection. | HIGH | Requires: project scanning, pattern analysis of existing component files, modifies: composer instructions | Analyze 3-5 existing components to extract recurring patterns: border-radius choices, spacing preferences, shadow usage, color variable naming. Store as CONVENTIONS.md. Composer loads this alongside tokens.css. This is the hardest feature technically but the highest user-value differentiator. |
+| **Component decomposition planner** | When Motif composes a complex screen, instead of one monolithic file, plan the decomposition: "This dashboard screen decomposes into: DashboardLayout (new), MetricsGrid (new, uses existing Card), TransactionList (new, uses existing Table), and QuickActions (new). I'll create 4 component files + 1 page file." Present the plan, user approves, then execute. | MEDIUM | Requires: project scanning (to know file structure conventions), modifies: compose-screen.md, modifies: composer agent output format | The composer currently writes one file. With decomposition: (1) composer plans the component tree, (2) writes an extraction plan to DECOMPOSITION-PLAN.md, (3) user approves, (4) composer writes individual files. The plan includes file paths following detected conventions. |
+| **Selective token overlay** | When a project has SOME tokens (e.g., colors from Tailwind) but lacks others (e.g., no icon sizes, no motion tokens, no vertical-specific semantic tokens), Motif fills the gaps without overwriting existing values. "I'll add --icon-sm through --icon-2xl and --shadow-sm/md/lg. Your existing color tokens are preserved." | MEDIUM | Requires: token import (table stakes), modifies: generate-system.md token output | Instead of generating a complete tokens.css that conflicts with existing tokens, generate a motif-extensions.css that ONLY contains tokens the project lacks. Import it alongside the existing system. No conflicts, additive only. |
+| **Reuse directive in COMPONENT-SPECS.md** | When a component EXISTS in the project, COMPONENT-SPECS.md should reference it with an import path rather than specifying it from scratch. "Button: USE EXISTING at src/components/ui/button.tsx" tells the composer to import, not recreate. This bridges the gap between Motif's specs and the real codebase. | LOW | Requires: existing component catalog, modifies: COMPONENT-SPECS.md format | Add a `<source>` element to component XML specs: `<source type="existing" path="src/components/ui/button.tsx" />` vs `<source type="generate" />`. The composer reads this and either imports or creates. |
+| **Multi-file commit with atomic rollback** | When the composer outputs 5+ files (page + components + styles), commit them atomically. If validation fails, roll back the entire batch. Current single-file output doesn't need this; multi-file decomposition does. | LOW | Requires: component decomposition, uses: existing git commit patterns | The composer already commits. Change from single commit to staged multi-file commit. Validation hook runs before commit; if it fails, unstage all files. |
 
 ---
 
 ## Anti-Features
 
-Features that seem like they belong in an icon integration but create problems for Motif specifically. Deliberately NOT building these.
+Features that seem like they belong in brownfield intelligence but create problems for Motif specifically. Deliberately NOT building these.
 
 | Anti-Feature | Why It Seems Useful | Why It Is Problematic for Motif | What to Do Instead |
 |--------------|---------------------|--------------------------------|-------------------|
-| **Full icon search/discovery engine** | "The agent should be able to search 1700+ icons to find the right one" | AI agents do not reliably search 1700 icons. They hallucinate icon names, pick visually wrong icons, and waste context tokens processing large icon catalogs. The strength of Motif is pre-researched domain knowledge, not runtime search. A curated vocabulary of 15-25 icons per vertical is far more reliable than an open-ended search across the full library. | Pre-curate a vertical-specific icon vocabulary (15-25 icons per vertical with semantic role mappings). The architect picks from this curated set; the composer uses exactly what the architect specified. No search needed. |
-| **Multiple icon libraries simultaneously** | "Support Lucide AND Phosphor AND Heroicons in the same project" | Multiple libraries mean multiple CDN scripts, inconsistent visual styles, larger page weight, and confused agents. Design systems use ONE icon set for visual consistency. Fonts are not mixed arbitrarily and neither should icons. | Pick ONE library per project. The system architect selects it. The vertical reference files provide icon name mappings for each supported library so switching libraries is a vocabulary swap, not a system redesign. |
-| **Custom icon upload/generation** | "Let users add their own SVG icons to the system" | Custom icons require validation (grid alignment, stroke width, visual consistency), hosting, and CDN management. This is a full icon design pipeline -- far beyond Motif's scope. Products that need custom icons (with logos, brand-specific glyphs) handle this outside the design system tool. | Document how to add custom icons alongside the selected library (e.g., "place SVGs in /public/icons/ and reference with `<img>`"). Do not build infrastructure for this. |
-| **Animated icon support** | "Support animated/interactive icons for micro-interactions" | Animated icons require JavaScript controllers, interaction state management, and significantly increase showcase and composition complexity. The motion tokens (`--duration-fast`, `--ease-default`) handle transitions; animated icons are a separate concern. | Use CSS transitions on icon containers (opacity, transform) referenced via motion tokens. Animated SVG icons are a v2+ feature if ever. |
-| **Icon font approach** | "Use icon fonts instead of inline SVG for simpler markup" | Icon fonts have well-documented accessibility problems (screen readers announce Unicode characters, no semantic meaning), cannot be styled per-path (no duotone), break when fonts fail to load, and are considered legacy practice in 2026. Both Lucide and Phosphor have moved to SVG-based approaches. | SVG-based approach only. Lucide uses `data-lucide` attributes resolved to inline SVGs. Phosphor uses web components or class-based SVGs. Both are accessible and stylable. |
-| **Runtime icon switching** | "Let the user change icon library after system generation without regenerating" | Icon names are library-specific (`lucide:store` vs `ph-storefront` vs `heroicon:building-storefront`). Changing libraries means rewriting every component spec and every composed screen. This is a system-level decision, not a runtime toggle. | The library is selected during system generation. Changing it means re-running `/motif:system`. The vertical reference files already provide name mappings per library, so the system architect just generates with the new library's vocabulary. |
+| **Full AST parsing of existing components** | "Parse every component's props, state, and render tree to understand it completely" | AST parsing requires framework-specific parsers (TypeScript compiler API for TSX, Vue SFC parser for .vue, Svelte compiler for .svelte). Each parser is a significant dependency. More critically, AI agents are unreliable at interpreting parsed ASTs — they work better reading source files directly. The context cost of loading parsed component trees is enormous (easily 5-10K tokens per component) and crowds out the actual composition work. | Catalog components by file path and export name. Let the composer READ the source file at compose time if it needs to understand props. Shallow scan, deep read on demand. |
+| **Automatic code migration/refactoring** | "Automatically refactor existing components to match Motif's design system" | Touching existing code that works is the fastest way to destroy user trust. If a user's Button.tsx works and their team knows it, rewriting it to use Motif tokens breaks their mental model and potentially their tests. Motif is additive — it generates NEW things, not refactors OLD things. | Generate NEW components that complement existing ones. If the user wants to migrate existing components to Motif tokens, that's a manual decision with explicit user direction — never automatic. |
+| **Runtime component discovery** | "Use a dev server to dynamically discover rendered components via browser inspection" | Requires a running dev server, browser automation (Puppeteer/Playwright), and framework-specific rendering. This is an entirely different tool category (Storybook, Chromatic). Motif operates at design-time via file analysis, not runtime inspection. Adding a runtime dependency makes the tool unusable for projects that aren't currently runnable. | Static file scanning is sufficient. Read `package.json`, read directory structure, read component files. No server required. |
+| **Design system migration assistant** | "Detect their current design system (Material UI, Chakra, Ant Design) and migrate to Motif tokens" | Migration implies replacing. Users of Material UI chose it deliberately and have hundreds of component instances. Migrating is a multi-sprint project, not a tool feature. Motif should COEXIST with existing design systems, not replace them. | Detect existing design systems and note them in the scan. If Material UI is present, the composer generates components that work alongside it (shared spacing, complementary colors) rather than conflicting. Co-existence, not replacement. |
+| **Intelligent merge conflict resolution** | "When Motif output conflicts with existing files, automatically resolve the merge" | Automatic merge resolution is wrong as often as it's right. When it's wrong in a design system context, the result is visual inconsistency that's hard to debug ("why is this button 2px off?"). Design decisions require human judgment on conflicts. | Never overwrite existing files without explicit user confirmation. The decomposition planner shows what will be created/modified BEFORE it happens. New files are safe; modified files require approval. |
+| **Cross-project design system sharing** | "Share design tokens across multiple projects in a monorepo" | Monorepo support is a distribution concern, not a brownfield concern. It requires package management, versioning, and multi-project coordination. Motif is a single-project tool. | Generate tokens for ONE project. If the user wants to share tokens across a monorepo, they copy tokens.css or publish it as a package manually. |
+| **Storybook/docs generation for existing components** | "Generate Storybook stories for components found during scanning" | Documentation generation is a separate tool category. It requires understanding component APIs deeply (props, variants, states), which conflicts with the "shallow scan" principle. Tools like Storybook auto-docs, Docgen, and react-docgen already do this better. | Include existing components in the scan catalog with their file paths. Users can use dedicated documentation tools for existing component docs. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Vertical icon vocabularies (in vertical reference files)
+PROJECT SCANNING (during /motif:init or /motif:scan)
     |
-    v
-Icon library selection algorithm (in generate-system.md)
-    |
-    +---> Icon size tokens in tokens.css
-    |
-    +---> CDN link in token-showcase-template.html
-    |
-    +---> Icon names in COMPONENT-SPECS.md
+    +---> Scan results presentation (PROJECT-SCAN.md)
     |         |
-    |         v
-    |     Composer uses real icon markup (in compose-screen.md)
+    |         +---> User confirms/corrects findings
+    |                   |
+    |                   +---> Existing component catalog
+    |                   |         |
+    |                   |         +---> Component gap analysis (vs COMPONENT-SPECS.md)
+    |                   |         |         |
+    |                   |         |         +---> Reuse directives in COMPONENT-SPECS.md
+    |                   |         |
+    |                   |         +---> Composer knows what to import vs generate
+    |                   |
+    |                   +---> File output convention matching
+    |                   |         |
+    |                   |         +---> Composer writes to correct paths
+    |                   |         |
+    |                   |         +---> Component decomposition planner
+    |                   |                   |
+    |                   |                   +---> Multi-file commit with atomic rollback
+    |                   |
+    |                   +---> Existing token import
+    |                             |
+    |                             +---> Selective token overlay (fill gaps only)
     |
-    +---> Iconography section in DESIGN-SYSTEM.md
-    |
-    +---> Icon showcase section in token-showcase.html
+    +---> Convention extraction (reads existing component source)
+              |
+              +---> CONVENTIONS.md
+                        |
+                        +---> Composer follows project conventions
 ```
 
-The critical dependency chain is: **vertical vocabularies MUST exist before** the system architect can select icons, and **COMPONENT-SPECS.md MUST contain real icon names before** the composer can emit valid markup. This means vertical reference files are modified first, then the system generation pipeline, then the composition pipeline.
+The critical dependency chain is: **project scanning MUST happen before** any brownfield-aware feature can function. Scanning produces the data that every downstream feature consumes. The scan results MUST be confirmed by the user before agents act on them — this is the trust contract.
+
+Secondary chain: **convention extraction depends on scanning AND on having existing components to analyze**. If the project has fewer than 3 components, convention extraction provides too little signal and should be skipped.
 
 ---
 
-## Library Selection Criteria
+## Scan Detail Specification
 
-The system architect needs a decision algorithm for icon library selection. Based on ecosystem research, the curated set should be:
+### What the scanner detects (Phase 1 — required)
 
-### Recommended: Lucide (default)
+| Category | Detection Method | Output |
+|----------|-----------------|--------|
+| **Framework** | Read `package.json` dependencies for react, next, vue, svelte, @angular/core. Check for `vite.config.*`, `next.config.*`, `nuxt.config.*`. | Framework name + version |
+| **Directory layout** | Check for `src/`, `app/`, `pages/`, `components/`, `lib/`, `utils/`, `hooks/`, `styles/`. | Directory tree summary |
+| **Component locations** | Glob for `*.tsx`, `*.jsx`, `*.vue`, `*.svelte` in likely component directories. Filter out test files, stories, configs. | Component file list with paths |
+| **CSS approach** | Check for `tailwind.config.*`, `postcss.config.*`, `*.module.css`, `styled-components` in deps, `@emotion` in deps, `.css` files with custom properties. | CSS strategy name |
+| **Naming conventions** | Sample 5-10 component filenames. Detect pattern: PascalCase (`Button.tsx`), kebab-case (`button.tsx`), index pattern (`button/index.tsx`). | Convention name + examples |
+| **Package manager** | Check for `package-lock.json` (npm), `yarn.lock` (yarn), `pnpm-lock.yaml` (pnpm), `bun.lockb` (bun). | Package manager name |
+| **Existing tokens/theme** | Check for CSS custom properties in `*.css` files, Tailwind config colors/spacing, theme files (`theme.ts`, `theme.js`). | Token source + sample values |
+| **Routing pattern** | Next.js: `app/` (App Router) vs `pages/` (Pages Router). Vue: check for `vue-router`. React: check for `react-router-dom`. | Router type + route directory |
 
-- **Why:** 1700+ icons, clean consistent stroke style, kebab-case naming, excellent CDN support via unpkg, MIT-equivalent license (ISC), strong community (fork of Feather Icons with active maintenance), used as default by shadcn/ui. Categories include Finance (56 icons), Medical (42), Shopping (27), Charts (31) -- covering all 4 Motif verticals.
-- **CDN pattern:** `<script src="https://unpkg.com/lucide@0.460.0"></script>` + `<i data-lucide="icon-name"></i>` + `lucide.createIcons()`
-- **Icon naming:** kebab-case, descriptive. Examples: `credit-card`, `trending-up`, `heart-pulse`, `shopping-cart`, `layout-dashboard`.
-- **Sizing:** Inherits from CSS `width`/`height`. Default 24x24.
-- **Coloring:** Inherits `currentColor` from parent CSS `color` property.
-- **Limitation:** Single style only (outline/stroke). No fill, bold, or duotone variants.
+### What the scanner does NOT detect (out of scope)
 
-### Alternative: Phosphor Icons
-
-- **Why:** 6000+ icons, 6 weight variants (thin/light/regular/bold/fill/duotone), excellent for projects where the differentiation seed calls for varied icon weight. Web components approach via CDN.
-- **CDN pattern:** `<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>` + `<i class="ph ph-icon-name"></i>`
-- **Icon naming:** kebab-case with `ph-` prefix. Examples: `ph-credit-card`, `ph-trend-up`, `ph-heartbeat`, `ph-shopping-cart`, `ph-squares-four`.
-- **Sizing:** Via `font-size` CSS property (font-based) or `size` attribute (web components).
-- **Coloring:** Inherits `color` CSS property.
-- **Advantage:** Weight variants map cleanly to differentiation seed personality axis.
-
-### Selection Algorithm
-
-```
-DEFAULT: Lucide (widest adoption, shadcn ecosystem, single style = visual consistency)
-
-IF differentiation seed personality >= 7 (rebellious) AND seed formality <= 4 (casual):
-  CONSIDER: Phosphor with bold or duotone weight
-  RATIONALE: Visual personality through icon weight variation
-
-IF vertical is health AND seed temperature >= 6 (warm):
-  CONSIDER: Phosphor with light weight
-  RATIONALE: Thinner strokes feel gentler, more caring
-
-OTHERWISE: Lucide
-  RATIONALE: Consistency, ecosystem alignment, simplest integration
-```
+- Component prop signatures (too deep for shallow scan)
+- Component internal state logic
+- API endpoints or data fetching patterns
+- Test coverage or test framework
+- CI/CD configuration
+- Deployment target
 
 ---
 
-## Icon Size Token Specification
+## Scan Output: PROJECT-SCAN.md Format
 
-Based on the Michelin Design System pattern (8px multiples) and existing Motif component spec dimensions:
+```markdown
+# Project Scan Results
 
-| Token | Value | Pixel | Usage in Existing Component Specs |
-|-------|-------|-------|-----------------------------------|
-| `--icon-sm` | `1rem` | 16px | Inline text icons, badges, breadcrumb separators, shortcut hints |
-| `--icon-md` | `1.25rem` | 20px | Navigation items, filter chips, button icons, command palette results (`[Icon 20x20]` in SaaS CommandPalette) |
-| `--icon-lg` | `1.5rem` | 24px | Default standalone icons, card header icons, action buttons |
-| `--icon-xl` | `2rem` | 32px | Health MetricCard icons (`[MetricIcon 32x32]`), feature highlights |
-| `--icon-2xl` | `2.5rem` | 40px | Fintech TransactionRow merchant icons (`[MerchantIcon 40x40]`), profile avatars with icon fallback |
+**Scanned:** [date]
+**Confidence:** [HIGH if package.json found, MEDIUM if inferred from files, LOW if minimal project]
 
-These map directly to the placeholder dimensions already in the vertical reference files:
-- `[Icon 20x20]` in SaaS CommandPalette -> `--icon-md`
-- `[MetricIcon 32x32]` in Health MetricCard -> `--icon-xl`
-- `[CategoryIcon 36x36]` in Health LogEntry -> between `--icon-xl` and `--icon-2xl` (use `--icon-xl` with padding or add `--icon-xxl: 2.25rem` for 36px)
-- `[MerchantIcon 40x40]` in Fintech TransactionRow -> `--icon-2xl`
+## Framework
+[Name] [version] — detected from [source]
 
----
+## Directory Layout
+\`\`\`
+src/
+  app/          ← Next.js App Router pages
+  components/
+    ui/         ← Reusable UI components (14 files)
+    features/   ← Feature-specific components (8 files)
+  lib/          ← Utilities
+  hooks/        ← Custom hooks (3 files)
+  styles/       ← Global styles
+\`\`\`
 
-## Vertical Icon Vocabulary (Preliminary)
+## CSS Approach
+[Tailwind CSS v3.4 | CSS Modules | styled-components | plain CSS + custom properties]
 
-Each vertical needs a curated vocabulary. These are initial mappings using Lucide icon names (Phosphor alternatives in parentheses):
+## Naming Conventions
+- Components: [PascalCase] (e.g., Button.tsx, UserCard.tsx)
+- Directories: [kebab-case] (e.g., components/user-profile/)
+- Barrel exports: [yes/no] (index.ts re-exports)
 
-### Fintech (15-20 icons)
-| Semantic Role | Lucide Name | Phosphor Name | Used In |
-|---------------|-------------|---------------|---------|
-| Merchant/store | `store` | `ph-storefront` | TransactionRow |
-| Credit card | `credit-card` | `ph-credit-card` | Cards, payment |
-| Send money | `send` | `ph-paper-plane-tilt` | Primary CTA |
-| Receive money | `download` | `ph-arrow-down` | Receive flow |
-| Trending up | `trending-up` | `ph-trend-up` | Positive change |
-| Trending down | `trending-down` | `ph-trend-down` | Negative change |
-| Shield/security | `shield-check` | `ph-shield-check` | Security settings |
-| Bank | `landmark` | `ph-bank` | Bank accounts |
-| Wallet | `wallet` | `ph-wallet` | Wallet/balance |
-| QR code | `qr-code` | `ph-qr-code` | Scan/receive |
-| Receipt | `receipt` | `ph-receipt` | Transaction detail |
-| Bell/notification | `bell` | `ph-bell` | Notifications |
-| Settings | `settings` | `ph-gear` | Settings |
-| User profile | `user` | `ph-user` | Profile |
-| Search | `search` | `ph-magnifying-glass` | Search |
-| Eye (show/hide) | `eye` / `eye-off` | `ph-eye` / `ph-eye-slash` | Balance visibility |
+## Existing Components (N found)
+| Component | Path | Category |
+|-----------|------|----------|
+| Button | src/components/ui/button.tsx | UI primitive |
+| Card | src/components/ui/card.tsx | UI primitive |
+| UserAvatar | src/components/ui/user-avatar.tsx | UI primitive |
+| DashboardHeader | src/components/features/dashboard-header.tsx | Feature |
+| ... | ... | ... |
 
-### Health (15-20 icons)
-| Semantic Role | Lucide Name | Phosphor Name | Used In |
-|---------------|-------------|---------------|---------|
-| Heart/vitals | `heart-pulse` | `ph-heartbeat` | MetricCard (heart rate) |
-| Activity | `activity` | `ph-activity` | MetricCard (activity) |
-| Pill/medication | `pill` | `ph-pill` | Medication tracking |
-| Thermometer | `thermometer` | `ph-thermometer` | Temperature |
-| Droplet/water | `droplets` | `ph-drop` | Hydration |
-| Weight/scale | `scale` | `ph-scales` | Weight tracking |
-| Moon/sleep | `moon` | `ph-moon` | Sleep tracking |
-| Footprints/steps | `footprints` | `ph-footprints` | Step counter |
-| Apple/nutrition | `apple` | `ph-apple` | Nutrition |
-| Calendar | `calendar` | `ph-calendar` | Scheduling |
-| Plus/log entry | `plus` | `ph-plus` | Add log entry |
-| Chart/insights | `bar-chart-3` | `ph-chart-bar` | Insights |
-| Clock | `clock` | `ph-clock` | Timestamps |
-| User profile | `user` | `ph-user` | Profile |
-| Bell | `bell` | `ph-bell` | Reminders |
+## Existing Design Tokens
+| Source | Type | Sample Values |
+|--------|------|---------------|
+| tailwind.config.ts | Colors | primary: #2563EB, secondary: #7C3AED |
+| tailwind.config.ts | Spacing | Uses default Tailwind scale |
+| globals.css | Custom Properties | --background: #fff, --foreground: #000 |
 
-### SaaS (15-20 icons)
-| Semantic Role | Lucide Name | Phosphor Name | Used In |
-|---------------|-------------|---------------|---------|
-| Dashboard | `layout-dashboard` | `ph-squares-four` | Dashboard nav |
-| Search | `search` | `ph-magnifying-glass` | CommandPalette, FilterBar |
-| Filter | `filter` | `ph-funnel` | FilterBar |
-| Sort ascending | `arrow-up-narrow-wide` | `ph-sort-ascending` | DataTable |
-| Sort descending | `arrow-down-wide-narrow` | `ph-sort-descending` | DataTable |
-| Checkbox | `check-square` | `ph-check-square` | DataTable selection |
-| More/actions | `more-horizontal` | `ph-dots-three` | Row actions |
-| Settings/gear | `settings` | `ph-gear` | Settings |
-| Users/team | `users` | `ph-users` | Team management |
-| Key/API | `key` | `ph-key` | API keys |
-| Bell | `bell` | `ph-bell` | Notifications |
-| Sidebar | `panel-left` | `ph-sidebar` | Sidebar toggle |
-| Command | `terminal` | `ph-terminal` | Command palette trigger |
-| Plus/create | `plus` | `ph-plus` | Create new |
-| Trash/delete | `trash-2` | `ph-trash` | Delete action |
-| External link | `external-link` | `ph-arrow-square-out` | External navigation |
+## Routing
+[Next.js App Router] — pages in src/app/
 
-### E-commerce (15-20 icons)
-| Semantic Role | Lucide Name | Phosphor Name | Used In |
-|---------------|-------------|---------------|---------|
-| Shopping cart | `shopping-cart` | `ph-shopping-cart` | Cart, nav |
-| Heart/wishlist | `heart` | `ph-heart` | Wishlist toggle |
-| Search | `search` | `ph-magnifying-glass` | Product search |
-| Star/rating | `star` | `ph-star` | Product ratings |
-| Package/order | `package` | `ph-package` | Order tracking |
-| Truck/shipping | `truck` | `ph-truck` | Shipping status |
-| Tag/sale | `tag` | `ph-tag` | Sale badges |
-| Filter | `sliders-horizontal` | `ph-sliders-horizontal` | Product filters |
-| Grid/list view | `grid-3x3` / `list` | `ph-grid-four` / `ph-list` | View toggle |
-| Minus/plus | `minus` / `plus` | `ph-minus` / `ph-plus` | Quantity selector |
-| X/remove | `x` | `ph-x` | Remove from cart |
-| Chevron | `chevron-right` | `ph-caret-right` | Breadcrumbs, navigation |
-| Credit card | `credit-card` | `ph-credit-card` | Payment |
-| Check/success | `check-circle` | `ph-check-circle` | Order confirmed |
-| User | `user` | `ph-user` | Account |
-| Image | `image` | `ph-image` | Product image placeholder |
+## Package Manager
+[pnpm] — detected from pnpm-lock.yaml
+```
 
 ---
 
 ## MVP Recommendation
 
-### Must Ship (Table Stakes)
+### Must Ship (Table Stakes) — brownfield is non-functional without these
 
-1. **Vertical icon vocabularies** in all 4 vertical reference files -- the foundation everything else depends on
-2. **Icon library selection algorithm** in `generate-system.md` -- Lucide as default, Phosphor as alternative
-3. **Icon size tokens** in the token file template (`--icon-sm` through `--icon-2xl`)
-4. **CDN link** in `token-showcase-template.html`
-5. **Concrete icon names** in COMPONENT-SPECS.md component spec template
-6. **Composer icon markup** instructions in `motif-screen-composer.md`
+1. **Project structure scanning** — the foundation everything else depends on. Detect framework, directory layout, CSS approach, naming conventions, routing, existing components, existing tokens. Write to PROJECT-SCAN.md.
 
-### Should Ship (Differentiators)
+2. **Scan results presentation** — present findings to user, get confirmation. This is the trust contract. Without this, users don't trust brownfield features.
 
-7. **Icon showcase section** in token-showcase.html
-8. **Iconography section** in DESIGN-SYSTEM.md
-9. **Anti-slop icon instruction** in composer agent (instruction-based, not hook-based)
+3. **File output convention matching** — composer writes files to correct project directories with correct naming. This is the minimum viable "it fits my project."
 
-### Defer
+4. **Composer output to project directories** — composed screens go to `src/app/dashboard/page.tsx`, not `.planning/design/screens/dashboard.html`. This is the single change that makes Motif feel brownfield-aware.
 
-- Icon weight matching to differentiation seed (Phosphor-only, low priority)
-- Hook-based icon name validation (v1.2)
-- Lucide MCP server integration for icon discovery (v2.0 -- interesting but premature)
+5. **Existing component catalog** — detect and list existing components so the composer knows what to import rather than recreate. The catalog is a file list, not deep analysis.
+
+6. **Import existing design tokens** — detect existing CSS custom properties and Tailwind colors. Present to user: "Use these?" If yes, wrap in Motif format. If no, generate fresh.
+
+### Should Ship (Differentiators) — makes Motif notably better than alternatives
+
+7. **Component gap analysis** — diff existing components against vertical-required components. Show what's missing. Generate only what's needed.
+
+8. **Reuse directive in COMPONENT-SPECS.md** — `<source type="existing" path="..." />` tells the composer to import, not recreate.
+
+9. **Component decomposition planner** — plan multi-file output before writing. User approves the file plan.
+
+10. **Selective token overlay** — generate `motif-extensions.css` for missing tokens only, preserving existing ones.
+
+### Defer to v1.3+
+
+- **Convention extraction** — analyzing existing component patterns to teach the composer. HIGH complexity, needs multiple analysis passes. High value but not blocking for v1.2.
+- **Multi-file commit with atomic rollback** — nice-to-have safety net. Can use standard git patterns initially.
+- **Cross-framework component bridge** — adapting output between React/Vue/Svelte. Currently each framework is a separate concern.
 
 ---
 
-## Pipeline Integration Map
+## Integration with Existing Pipeline
 
-This shows exactly where each feature modifies the existing Motif pipeline, in execution order:
+### How brownfield features modify each pipeline step
 
 ```
-STEP 1: /motif:research
-  No changes. Research does not involve icons.
+/motif:init (MODIFIED)
+  NEW STEP: After interview, run project scanner
+  NEW STEP: Present scan results, get user confirmation
+  NEW OUTPUT: .planning/design/PROJECT-SCAN.md
+  MODIFIED: PROJECT.md now includes "Existing Components" and "Existing Tokens" sections
+  MODIFIED: STATE.md gets new field: "Scan Status: [scanned|unscanned|skipped]"
 
-STEP 2: /motif:system (system architect generates design system)
-  MODIFIED FILES:
-    generate-system.md          -- Add icon library decision algorithm
-                                -- Add icon size tokens to token file template
-                                -- Add iconography section to DESIGN-SYSTEM.md template
-                                -- Add icon vocabulary reference to COMPONENT-SPECS.md template
-    motif-system-architect.md   -- Add icon awareness to domain expertise section
-    token-showcase-template.html -- Add CDN script tag + icon showcase section
-    verticals/fintech.md        -- Replace [MerchantIcon] placeholders with Lucide/Phosphor names
-    verticals/health.md         -- Replace [MetricIcon], [CategoryIcon] placeholders
-    verticals/saas.md           -- Replace [Icon 20x20] placeholders
-    verticals/ecommerce.md      -- Add icon names to ProductCard, CartItem specs
+/motif:research (UNCHANGED)
+  Research is about domain patterns, not project structure.
+  No brownfield modifications needed.
 
-STEP 3: /motif:compose (screen composer builds screens)
-  MODIFIED FILES:
-    compose-screen.md           -- Add icon markup instructions to agent spawn prompt
-    motif-screen-composer.md    -- Add icon section to domain expertise
-                                -- Update anti-slop checklist item 8 with enforcement
-                                -- Add icon self-review checklist item
+/motif:system (MODIFIED)
+  NEW STEP: Check PROJECT-SCAN.md for existing tokens
+  IF existing tokens found AND user approved reuse:
+    → EXTRACT mode: wrap existing tokens in Motif format
+    → OVERLAY mode: generate only missing tokens into motif-extensions.css
+  IF no existing tokens OR user chose fresh:
+    → Normal generation (unchanged)
+  MODIFIED: COMPONENT-SPECS.md gets <source> directives for existing components
+  NEW OUTPUT: GAP-ANALYSIS.md (what components exist vs what's needed)
+
+/motif:compose (MODIFIED — most changes here)
+  MODIFIED: Orchestrator resolves target file path from scan results + screen name
+  MODIFIED: Composer agent loads PROJECT-SCAN.md (conventions, existing components)
+  MODIFIED: Composer imports existing components instead of recreating
+  MODIFIED: Composer writes to project directory, not .planning/design/screens/
+  NEW STEP: Decomposition plan presented to user before writing (differentiator)
+  MODIFIED: Commit includes all decomposed files atomically
+
+/motif:review (MINOR MODIFICATION)
+  MODIFIED: Reviewer checks import correctness (did composer use existing Button?)
+  MODIFIED: Reviewer checks convention compliance (correct file naming?)
+  No other changes.
+
+/motif:fix (UNCHANGED)
+  Fix agent reads review file and fixes. Brownfield awareness is inherited
+  from the composed output — no additional brownfield logic needed.
 ```
+
+### New command: /motif:scan (optional)
+
+For users who want to re-scan after project changes, or who skipped scanning during init:
+
+```
+/motif:scan — Re-scan project structure
+  Reads: project files, package.json, directory structure
+  Writes: .planning/design/PROJECT-SCAN.md (overwrites previous)
+  Presents: updated findings to user
+  Updates: STATE.md scan status
+```
+
+This is optional — scanning during `/motif:init` is the primary path. `/motif:scan` is for re-scanning when the project changes.
+
+---
+
+## Context Engine Updates
+
+### New context profile: Scanner
+
+```xml
+<context_profile name="scanner">
+  <always_load>
+    package.json
+    tsconfig.json (if exists)
+  </always_load>
+  <scan_directories>
+    src/
+    app/
+    pages/
+    components/
+    lib/
+    styles/
+    public/
+  </scan_directories>
+  <scan_files>
+    tailwind.config.*
+    postcss.config.*
+    next.config.*
+    vite.config.*
+    nuxt.config.*
+    *.css (in styles/ or root, first 5 only)
+  </scan_files>
+  <never_load>
+    node_modules/
+    .git/
+    dist/
+    build/
+    .next/
+    .nuxt/
+    coverage/
+  </never_load>
+</context_profile>
+```
+
+### Modified context profile: Composer (brownfield additions)
+
+```xml
+<context_profile name="composer">
+  <always_load>
+    .planning/design/PROJECT.md
+    .planning/design/system/tokens.css
+    .planning/design/system/COMPONENT-SPECS.md
+    .planning/design/system/ICON-CATALOG.md
+    .planning/design/PROJECT-SCAN.md          <!-- NEW: brownfield scan results -->
+  </always_load>
+  <load_if_exists>
+    .planning/design/DESIGN-RESEARCH.md
+    .planning/design/screens/{previous-screen}-SUMMARY.md
+    .planning/design/system/GAP-ANALYSIS.md   <!-- NEW: component gap analysis -->
+  </load_if_exists>
+  <!-- Composer may also read individual existing component files
+       referenced in COMPONENT-SPECS.md <source> directives,
+       but ONLY the ones it needs to import for the current screen -->
+</context_profile>
+```
+
+### New context budget additions
+
+| File | Max Tokens | Purpose |
+|------|-----------|---------|
+| PROJECT-SCAN.md | 1,500 | Scan results: framework, directories, components, tokens, conventions |
+| GAP-ANALYSIS.md | 800 | Component gap analysis: exists/partial/missing |
+| CONVENTIONS.md | 1,000 | Extracted project conventions (v1.3 differentiator) |
+
+**Updated total context budget for brownfield-aware composer**: ~18,300 tokens (from ~15,000), leaving ~181,700 tokens for composition work. This is well within budget.
+
+---
+
+## State Machine Updates
+
+### New state field
+
+```markdown
+## Scan Status
+[unscanned | scanned | skipped]
+```
+
+### Modified phase flow
+
+```
+UNINITIALIZED → INITIALIZED (+ optionally SCANNED) → RESEARCHED → SYSTEM_GENERATED → COMPOSING → ...
+```
+
+Scanning is NOT a separate phase — it's a sub-step of INITIALIZED. The scan happens during `/motif:init` or via `/motif:scan`. The state tracks whether scanning occurred so downstream steps know whether brownfield features are available.
+
+### Gate check modifications
+
+```xml
+<gate_check>
+  <command>/motif:compose</command>
+  <requires_phase>SYSTEM_GENERATED or COMPOSING or ITERATING</requires_phase>
+  <warns_if>Scan Status is "unscanned" AND project has package.json.
+    "Your project appears to have existing code, but hasn't been scanned.
+     Run /motif:scan first for better integration, or continue for greenfield-style output."
+  </warns_if>
+</gate_check>
+```
+
+---
+
+## Competitive Landscape Context
+
+How the broader ecosystem handles brownfield:
+
+### What AI coding assistants currently do (MEDIUM confidence — training data)
+
+| Tool | Scanning | Component Reuse | Convention Matching | Decomposition |
+|------|----------|----------------|--------------------|--------------|
+| **Cursor** | Reads entire codebase into context. No structured scan. | Implicitly reuses via codebase context. No explicit catalog. | Matches conventions via example (sees existing code). | Generates into existing file structure naturally. |
+| **Claude Code** | Reads files on demand. Tree/glob for structure. | Implicit — reads existing files when told to. | Matches conventions when shown examples. | User directs file placement. |
+| **v0 (Vercel)** | No project scanning. Generates standalone components. | No reuse — generates fresh every time. | Generates shadcn/ui convention by default. | Single component output, user integrates. |
+| **Bolt.new** | Reads project structure for full-app generation. | Limited — regenerates most things. | Framework-specific conventions (Next.js, Vite). | Multi-file output built-in for full apps. |
+| **Lovable** | Full project context in browser IDE. | Modifies existing files in place. | Inherits conventions from existing code. | Operates on existing file structure. |
+
+### Where Motif differentiates
+
+None of these tools do **design-system-aware brownfield scanning**. They read code but don't understand design tokens, component specifications, or vertical-domain requirements. Motif's gap analysis ("you have Button and Card but you're missing TransactionRow for fintech") is unique. The closest comparison is Storybook's component catalog, but that requires runtime rendering — Motif does it via static file analysis.
 
 ---
 
@@ -286,22 +409,18 @@ STEP 3: /motif:compose (screen composer builds screens)
 
 | Area | Confidence | Reason |
 |------|------------|--------|
-| Library selection (Lucide vs Phosphor) | HIGH | Verified via official docs, CDN availability confirmed, shadcn/ui ecosystem alignment confirmed, Chakra UI v3 dropped internal icons in favor of lucide-react |
-| CDN integration pattern | HIGH | Lucide unpkg CDN usage verified via official docs and multiple sources. `data-lucide` attribute pattern confirmed. Phosphor web components CDN also confirmed. |
-| Icon size token naming | MEDIUM | Modeled on Michelin Design System (8px multiples) pattern verified via official docs. Token names (`--icon-sm` etc.) follow Motif's existing naming conventions (`--text-sm`, `--radius-sm`). No precedent within Motif specifically for icon tokens. |
-| Vertical icon vocabularies | MEDIUM | Icon names verified against Lucide categories page (Finance: 56, Medical: 42, Shopping: 27). Specific names like `credit-card`, `heart-pulse`, `shopping-cart` confirmed to exist. Full vocabulary coverage per vertical needs validation against the live Lucide search. |
-| Composer markup integration | HIGH | The composer already handles fonts (CDN link in head) and tokens (CSS custom properties). Icons follow the same pattern: CDN in head, markup in body, styling via tokens. |
+| Table stakes features | HIGH | These are observable patterns in every AI coding tool. Training data is consistent across multiple sources and aligns with direct analysis of Motif's current pipeline gaps. |
+| Differentiators | MEDIUM | Component gap analysis and reuse directives are novel features without direct competitors to reference. Confidence comes from analysis of Motif's existing architecture (vertical references, COMPONENT-SPECS.md format) which supports these features naturally. |
+| Anti-features | HIGH | Each anti-feature is justified by Motif's specific architecture constraints (context-engine budgets, subagent pattern, file-based agent communication). These are architecture-driven exclusions, not opinion. |
+| Competitive landscape | LOW | Based on training data only. No web verification available. Tool capabilities may have changed since training cutoff. Specific claims about v0, Bolt, Lovable, and Cursor should be validated. |
+| Pipeline integration points | HIGH | Based on direct analysis of current workflow files (init.md, generate-system.md, compose-screen.md, context-engine.md, state-machine.md). Integration points are precisely identified from existing code. |
+| Context budget impact | HIGH | Calculated from existing context-engine.md budgets. The +3,300 token increase for brownfield files is well within the 200K token window. |
 
 ---
 
 ## Sources
 
-- [Lucide Icons Official Docs](https://lucide.dev/guide/packages/lucide) -- CDN usage, data-lucide attribute pattern
-- [Lucide Categories](https://lucide.dev/icons/categories) -- 45 categories, icon counts per category
-- [Phosphor Icons GitHub](https://github.com/phosphor-icons/web) -- Web components CDN, weight variants
-- [Phosphor Icons Web Components](https://github.com/phosphor-icons/webcomponents) -- Web component approach
-- [shadcn/ui Icon Library Comparison](https://www.shadcndesign.com/blog/comparing-icon-libraries-shadcn-ui) -- Lucide as default, comparison with Heroicons/Material/Radix
-- [Michelin Design System Icon Size Tokens](https://designsystem.michelin.com/tokens/icon-size) -- 8px multiple sizing pattern
-- [Duet Design System Icon Component](https://www.duetds.com/components/icon/) -- Size variants, semantic naming, framework-agnostic approach
-- [Chakra UI v3 Announcement](https://www.chakra-ui.com/blog/00-announcing-v3) -- Dropped internal icons, recommends lucide-react
-- [Lucide MCP Server](https://deepwiki.com/SeeYangZhi/lucide-icons-mcp) -- MCP-based icon discovery (future reference)
+- Direct codebase analysis: `/motif:init` workflow, `/motif:compose` workflow, `/motif:system` workflow, `context-engine.md`, `state-machine.md`, `design-inputs.md`, `motif-screen-composer.md` agent
+- Existing v1.1 research: `.planning/research/FEATURES.md` (icon integration), `.planning/research/ARCHITECTURE.md`, `.planning/research/SUMMARY.md`
+- Training data (MEDIUM confidence): Cursor, Claude Code, v0, Bolt.new, Lovable brownfield behavior patterns
+- Training data (HIGH confidence): React/Next.js/Vue project structure conventions, Tailwind CSS configuration patterns, CSS custom property detection methods
