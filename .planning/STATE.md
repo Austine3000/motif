@@ -5,17 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Planning next milestone
+**Current focus:** v1.2 Brownfield Intelligence
 
 ## Current Position
 
-Phase: All complete (12 phases across 2 milestones)
-Plan: All complete (32/32 plans)
-Status: Milestone v1.1 archived — ready for next milestone
-Last activity: 2026-03-04 — v1.1 milestone archived
-
-Progress: [====================================] 100%
-(v1.0: 24/24 plans | v1.1: 8/8 plans | Total: 32/32 plans)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-04 — Milestone v1.2 started
 
 ## Performance Metrics
 
@@ -41,5 +38,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: v1.1 milestone archived. Ready for `/gsd:new-milestone`.
+Stopped at: v1.2 milestone started. Defining requirements.
 Resume file: --

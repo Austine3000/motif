@@ -46,7 +46,15 @@ Two milestones delivered:
 
 ### Active
 
-(None — next milestone not yet defined)
+**Current Milestone: v1.2 Brownfield Intelligence**
+
+**Goal:** Make Motif's entire pipeline project-aware — scan existing codebases, present findings to the user for decisions, and output properly decomposed components that integrate with existing project conventions.
+
+**Target features:**
+- Project scanning (folder conventions, existing components, existing tokens/styles)
+- User-driven design decisions (adopt existing tokens, merge, or start fresh)
+- Component decomposition (one component per file, always)
+- Brownfield-aware composition (reuse existing components, follow project conventions)
 
 ### Out of Scope
 
@@ -100,4 +108,4 @@ Two milestones delivered:
 | Icon size as system invariant | Fixed 8px-multiple scale, not project-adjustable | ✓ Good |
 
 ---
-*Last updated: 2026-03-04 after v1.1 milestone completion*
+*Last updated: 2026-03-04 after v1.2 milestone start*
