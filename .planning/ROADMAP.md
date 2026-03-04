@@ -188,11 +188,11 @@ Plans:
   3. SaaS vertical has a curated icon vocabulary of 15-25 validated icon names with names confirmed to exist in its primary library (Lucide)
   4. E-commerce vertical has a curated icon vocabulary of 15-25 validated icon names with names confirmed to exist in its primary library (Material Symbols)
   5. `grep -r '\[.*Icon' core/references/verticals/` returns zero matches -- all bracket-placeholder icon references have been replaced with real icon names
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 10-01: TBD
-- [ ] 10-02: TBD
+- [ ] 10-01-PLAN.md -- Fintech + SaaS icon vocabularies and bracket placeholder replacement (IVOC-01, IVOC-03)
+- [ ] 10-02-PLAN.md -- Health + E-commerce icon vocabularies and bracket placeholder replacement (IVOC-02, IVOC-04)
 
 ### Phase 11: Pipeline Integration
 **Goal**: The system architect selects an icon library during design system generation, the composer uses concrete icon names from a per-project catalog, and the token showcase renders real icons
