@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 9 of 12 (Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-04 -- Roadmap created for v1.1 milestone
+Plan: 1 of 1 in current phase
+Status: Phase 9 complete
+Last activity: 2026-03-04 -- Completed 09-01-PLAN.md (icon library foundation)
 
-Progress: [========================..........] 70%
-(v1.0 complete: 24/24 plans | v1.1: 0/TBD plans)
+Progress: [=========================.........] 73%
+(v1.0 complete: 24/24 plans | v1.1: 1/4 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 24 (v1.0)
+- Total plans completed: 25 (v1.0: 24, v1.1: 1)
 - Average duration: ~2.5 min
-- Total execution time: ~1 hour
+- Total execution time: ~1 hour 4 min
 
 **By Phase (v1.0):**
 
@@ -37,6 +37,7 @@ Progress: [========================..........] 70%
 | 7. Validation | 3 | ~8 min | ~2.7 min |
 | 8. CI and Publish | 2 | ~5 min | ~2.5 min |
 | 8.1 Pre-Publish Fixes | 1 | ~2 min | ~2 min |
+| 9. Foundation | 1 | ~4 min | ~4 min |
 
 *Updated after each plan completion*
 
@@ -57,6 +58,12 @@ Recent decisions affecting current work:
 - CDN version pinning mandatory -- never use @latest
 - CSS class + CDN delivery (inline SVG is an anti-pattern for agents)
 - Icon size tokens follow 8px-multiple scale: 16/20/24/32/40px
+- Fixed icon size scale (not project-adjustable) -- system invariant like spacing base unit
+- rem units for icon tokens -- matches --space-* and --text-* convention
+- Token naming --icon-{scale} (not --icon-size-{scale}) -- follows --text-sm, --radius-md pattern
+- Icon weight is part of algorithm output, not composer-decided
+- No 36px token -- Health LogEntry 36x36 is a container dimension, not icon size
+- currentColor inheritance for icon color -- no --icon-color-* tokens needed
 
 ### Pending Todos
 
@@ -70,5 +77,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Roadmap created for v1.1 milestone, ready to plan Phase 9
+Stopped at: Completed 09-01-PLAN.md (icon library foundation). Phase 9 complete, ready for Phase 10.
 Resume file: --
