@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** Domain-intelligent design delivered through fresh context -- a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 9 - Foundation (v1.1 Icon Library Integration)
+**Current focus:** Phase 10 - Vertical Migration (v1.1 Icon Library Integration)
 
 ## Current Position
 
-Phase: 9 of 12 (Foundation)
-Plan: 1 of 1 in current phase
-Status: Phase 9 complete
-Last activity: 2026-03-04 -- Completed 09-01-PLAN.md (icon library foundation)
+Phase: 10 of 12 (Vertical Migration)
+Plan: 2 of 2 in current phase
+Status: Plan 10-02 complete
+Last activity: 2026-03-04 -- Completed 10-02-PLAN.md (health and e-commerce icon vocabularies)
 
-Progress: [=========================.........] 73%
-(v1.0 complete: 24/24 plans | v1.1: 1/4 plans)
+Progress: [===========================.......] 80%
+(v1.0 complete: 24/24 plans | v1.1: 3/4 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25 (v1.0: 24, v1.1: 1)
+- Total plans completed: 27 (v1.0: 24, v1.1: 3)
 - Average duration: ~2.5 min
-- Total execution time: ~1 hour 4 min
+- Total execution time: ~1 hour 8 min
 
 **By Phase (v1.0):**
 
@@ -38,6 +38,7 @@ Progress: [=========================.........] 73%
 | 8. CI and Publish | 2 | ~5 min | ~2.5 min |
 | 8.1 Pre-Publish Fixes | 1 | ~2 min | ~2 min |
 | 9. Foundation | 1 | ~4 min | ~4 min |
+| 10. Vertical Migration | 2 | ~4 min | ~2 min |
 
 *Updated after each plan completion*
 
@@ -64,6 +65,9 @@ Recent decisions affecting current work:
 - Icon weight is part of algorithm output, not composer-decided
 - No 36px token -- Health LogEntry 36x36 is a container dimension, not icon size
 - currentColor inheritance for icon color -- no --icon-color-* tokens needed
+- Material Symbols primary column first in health/ecommerce vocabulary tables (primary library per domain affinity)
+- Bracket placeholder replacement uses vocabulary-referencing notation [icon: {role} --icon-{size}] not hardcoded names
+- Ecommerce descriptive icon references left unchanged (not bracket placeholders)
 
 ### Pending Todos
 
@@ -77,5 +81,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Completed 09-01-PLAN.md (icon library foundation). Phase 9 complete, ready for Phase 10.
+Stopped at: Completed 10-02-PLAN.md (health and e-commerce icon vocabularies). Phase 10 plan 02 complete.
 Resume file: --
