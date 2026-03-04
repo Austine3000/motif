@@ -202,29 +202,29 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IREF-01 | — | Pending |
-| IREF-02 | — | Pending |
-| IREF-03 | — | Pending |
-| ITOK-01 | — | Pending |
-| ITOK-02 | — | Pending |
-| IVOC-01 | — | Pending |
-| IVOC-02 | — | Pending |
-| IVOC-03 | — | Pending |
-| IVOC-04 | — | Pending |
-| IPIP-01 | — | Pending |
-| IPIP-02 | — | Pending |
-| IPIP-03 | — | Pending |
-| IPIP-04 | — | Pending |
-| IPIP-05 | — | Pending |
-| IENF-01 | — | Pending |
-| IENF-02 | — | Pending |
+| IREF-01 | Phase 9 | Pending |
+| IREF-02 | Phase 9 | Pending |
+| IREF-03 | Phase 9 | Pending |
+| ITOK-01 | Phase 9 | Pending |
+| ITOK-02 | Phase 9 | Pending |
+| IVOC-01 | Phase 10 | Pending |
+| IVOC-02 | Phase 10 | Pending |
+| IVOC-03 | Phase 10 | Pending |
+| IVOC-04 | Phase 10 | Pending |
+| IPIP-01 | Phase 11 | Pending |
+| IPIP-02 | Phase 11 | Pending |
+| IPIP-03 | Phase 11 | Pending |
+| IPIP-04 | Phase 11 | Pending |
+| IPIP-05 | Phase 11 | Pending |
+| IENF-01 | Phase 12 | Pending |
+| IENF-02 | Phase 12 | Pending |
 
 **Coverage:**
 - v1 requirements: 35 total (all complete)
 - v1.1 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16 ⚠️
+- Mapped to phases: 16/16
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-01*
-*Last updated: 2026-03-04 after v1.1 requirements definition*
+*Last updated: 2026-03-04 after v1.1 roadmap creation*

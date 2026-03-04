@@ -5,14 +5,40 @@
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** Domain-intelligent design delivered through fresh context -- a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** v1.1 Icon Library Integration
+**Current focus:** Phase 9 - Foundation (v1.1 Icon Library Integration)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-04 — Milestone v1.1 started
+Phase: 9 of 12 (Foundation)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-03-04 -- Roadmap created for v1.1 milestone
+
+Progress: [========================..........] 70%
+(v1.0 complete: 24/24 plans | v1.1: 0/TBD plans)
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 24 (v1.0)
+- Average duration: ~2.5 min
+- Total execution time: ~1 hour
+
+**By Phase (v1.0):**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| 1. Agent Definitions | 3 | ~8 min | ~2.7 min |
+| 2. Templates | 2 | ~5 min | ~2.5 min |
+| 3. Installer | 3 | ~8 min | ~2.7 min |
+| 4. Rebrand and Distribution | 4 | ~10 min | ~2.5 min |
+| 5. Verticals | 3 | ~8 min | ~2.7 min |
+| 6. Hooks and Scripts | 3 | ~8 min | ~2.7 min |
+| 7. Validation | 3 | ~8 min | ~2.7 min |
+| 8. CI and Publish | 2 | ~5 min | ~2.5 min |
+| 8.1 Pre-Publish Fixes | 1 | ~2 min | ~2 min |
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
@@ -21,71 +47,16 @@ Last activity: 2026-03-04 — Milestone v1.1 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Rebrand to "Motif" must complete before adding new verticals/hooks (avoid double work)
-- Hooks required before battle test (enforcement prevents agents from hardcoding values)
-- Phases 5 and 6 (Verticals, Hooks) can execute in parallel
-- Researcher disallowedTools: Edit (creates new files, never edits); system architect has no web tools (research already done)
-- Shared agent skeleton established: YAML frontmatter -> Role Identity -> Context Loading Profile -> Domain Expertise -> Output Format -> Quality Checklist -> Brief Example
-- Composer gets full tool set (including Edit) for token modifications; reviewer gets Edit disallowed (separation of concerns)
-- Reviewer includes specific WCAG success criteria numbers for precise auditing
-- Both high-tier agents include calibration examples (good/bad patterns)
-- Fix agent uses sonnet (medium tier) per user decision, despite research suggesting haiku could suffice -- revisit in Phase 7
-- Templates use extract-and-formalize pattern: derive from source-of-truth files with sync comments
-- Placeholder convention: {UPPER_SNAKE} for orchestrator values, [description] for agent-written content
-- Token showcase template: self-contained HTML with inline CSS, 232 var(--token) references, fallback warning pattern, zero JavaScript
-- Resolve {MOTIF_ROOT} at install time for zero-ambiguity agent reads (rebranded from FORGE_ROOT in 04-01)
-- Removed .claude/get-design-forge fallback from resolveContent() -- no longer needed after source rebrand
-- Uninstall stub deferred to Plan 02; Scripts/ directory gracefully skipped if empty
-- shouldBackup returns true when no manifest or file not in manifest -- conservative safety for unknown state
-- CLAUDE.md excluded from manifest file deletion during uninstall -- handled exclusively by sentinel stripping to preserve user content
-- E2e test suite uses isolated /tmp directory with .claude/ pre-created to simulate real Claude Code project
-- Hash verification spot-checks 3 random manifest files for test speed balance
-- Copyright holder for LICENSE set to "SailsLab" (adjustable before publish)
-- README ~90 lines for scannability; ASCII diagram over Mermaid for universal rendering
-- Replacement map applied most-specific-first to prevent partial match corruption during sed rebrand
-- All 33 shipped files rebranded: zero forge/Design Forge/FORGE_ROOT references remain in core/, runtimes/, bin/
-- Phase 4 confirmed complete: all four requirements (BRND-01, DIST-01, DIST-02, DIST-03) verified programmatically with zero failures
-- BUILD-SPEC.md status markers updated to BUILT for agents and distribution files (verified on disk)
-- E2e test snippet resolution simplified to {MOTIF_ROOT} only (matching current installer behavior)
-- E-commerce vertical palette A uses #EA580C (HSL 21 deg amber) -- warm, visibly different from fintech's teal
-- E-commerce vertical follows fintech.md structure exactly: 11 H2 sections, 251 lines, XML component specs
-- Syne + Work Sans chosen as primary e-commerce font pairing (both Google Fonts); Clash Display/Gambetta noted as Fontshare alternatives
-- Layered multi-depth shadows (4 levels) for e-commerce per generate-system.md designation
-- SaaS vertical primary-500 #6366F1 (HSL 239) -- indigo within generate-system.md 220-280 range, distinct from fintech teal
-- SaaS font pairings: Space Grotesk + IBM Plex Sans (Pairing A), Manrope + Source Sans 3 (Pairing B) -- all Google Fonts
-- SaaS vertical follows fintech.md structure exactly: 11 H2 sections, 248 lines, XML component specs
-- Health vertical primary-500 #10B981 (HSL 155) -- green-teal within generate-system.md 130-170 range, warm off-white surfaces
-- Health font pairings: Fraunces + Nunito (Pairing A), Outfit + DM Sans (Pairing B) -- all Google Fonts
-- Health vertical follows fintech.md structure exactly: 11 H2 sections, 235 lines, XML component specs
-- Health radii 50% larger than fintech (6/12/16/20px) for friendlier, less clinical feel
-- Phase 5 complete: all three verticals (health, SaaS, e-commerce) authored with structural fidelity to fintech.md
-- StatusLine context monitor uses process.stdout.write() (not console.log) to avoid trailing newline
-- WCAG 2.1 threshold 0.04045 for sRGB linearization in contrast-checker (not legacy 0.03928)
-- Binary file detection in token-counter via null byte check in first 512 bytes
-- box-shadow hook uses line-level skip function instead of regex negative lookahead to avoid backtracking false positives
-- Font-check matches both CSS font-family and JSX fontFamily property syntax since tsx/jsx are target extensions
-- border-radius skip uses parsed numeric comparison rather than string matching to avoid 10px/20px false passes
-- injectHookSettings placed after injectConfig in main flow to ensure .claude/ directory exists
-- removeHookSettings placed before removeConfigSnippet in uninstall to clean settings before directory removal
-- Empty settings.json deleted on uninstall rather than leaving an empty object
-- Validation scripts are fully self-contained (hexToHsl duplicated) per zero-dependency project policy
-- Distinctness requires hue >= 30 degrees AND different display fonts; radius and surface are bonus checks
-- LOCKED font override respected in banned font check -- lines with LOCKED comment are skipped
-- Generated tokens.css uses --space-* prefix (not --spacing-*) -- validate-tokens.js updated to accept both
-- VALD-01 CONFIRMED: Full Motif workflow (init through review) completes without errors on isolated /tmp test project; 26/26 workflow checks pass, 4/4 token quality checks pass
-- Fintech primary-500 confirmed as #1492CE (HSL 199deg, 82%, 44%) -- teal, within expected fintech palette range
-- VALD-02 CONFIRMED: CryptoPay full workflow completes, 26/26 artifacts, 5/5 token quality checks pass
-- VALD-03 CONFIRMED: Differentiation system produces 63-degree hue difference (199deg teal vs 262deg violet) and distinct fonts (Plus Jakarta Sans vs Space Grotesk) -- visibly distinct designs
-- VALD-04 CONFIRMED: Brand color #7C3AED preserved exactly as --color-primary-500 (HSL 262deg, 83%, 58%) -- LOCKED brand constraints respected
-- VALD-05 CONFIRMED: 5/5 screen summaries exist, 435 total lines, all token references consistent -- fresh context isolation maintains quality
-- Phase 7 Validation COMPLETE: all 5 VALD requirements PASS (5/5), zero failures
-- fonts.gstatic.com CDN whitelist needed in validate-workflow.js for Google Fonts token showcase -- legitimate dependency, not a violation
-- Screen name overrides pattern: run-all-validations.sh accepts actual screen names to accommodate real workflow naming
-- npm package name resolved to "motif-design" (unscoped) -- "motif" was taken by justinvdm; user chose motif-design over @sailslab/motif and motif-ai
-- Repository URL set to Austine3000/motif -- personal account, npm package name "motif-design" does not need to match repo name
-- OIDC trusted publishing as primary auth mechanism -- tokenless, more secure; commented-out NODE_AUTH_TOKEN fallback for non-OIDC scenarios
-- environment: npm-publish required in workflow YAML for OIDC token scoping -- must create this environment in GitHub repo settings
-- npm install -g npm@latest added to workflow -- Node 22.x ships npm 10.x which lacks trusted publishing support (requires >= 11.5.1)
+- v1.0 shipped 2026-03-04 as motif-design@0.1.0 on npm
+- npm package name: motif-design (motif was taken)
+- OIDC trusted publishing for npm auth
+- 4 curated icon libraries: Phosphor, Lucide, Material Symbols, Tabler (Heroicons excluded -- 316 icons insufficient)
+- Default recommendation: Lucide (widest adoption, shadcn/ui alignment)
+- Deterministic selection algorithm: vertical + brand personality -> library + weight (no agent guesswork)
+- Icon name hallucination prevention: curated per-vertical manifest of 15-25 validated names
+- CDN version pinning mandatory -- never use @latest
+- CSS class + CDN delivery (inline SVG is an anti-pattern for agents)
+- Icon size tokens follow 8px-multiple scale: 16/20/24/32/40px
 
 ### Pending Todos
 
@@ -93,10 +64,11 @@ None yet.
 
 ### Blockers/Concerns
 
-None yet.
+- Phase 11: Context engine loading pattern for ICON-CATALOG.md needs review during planning
+- Phase 12: aria-check hook icon detection must avoid false positives on text buttons with adjacent icons
 
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Milestone v1.1 initialization in progress
-Resume file: —
+Stopped at: Roadmap created for v1.1 milestone, ready to plan Phase 9
+Resume file: --
