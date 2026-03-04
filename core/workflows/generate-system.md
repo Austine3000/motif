@@ -147,6 +147,27 @@ IF Starting Fresh (Type A) or no color constraints:
 - Layered (e-commerce/dashboards): multi-layer shadows for depth
 - Soft (health/wellness): large spread, low opacity, diffuse
 
+### Icon Library Decision Algorithm
+1. Read vertical from PROJECT.md / STATE.md
+2. Read Differentiation Seed from DESIGN-BRIEF.md (personality, temperature, formality axes)
+3. Load icon library reference: `{MOTIF_ROOT}/references/icon-libraries.md`
+4. IF user_library_override is set in DESIGN-BRIEF.md: use it, skip to step 6
+5. Look up primary library in icon-libraries.md Domain Affinity Matrix for the vertical
+6. Apply personality-based weight selection (from icon-libraries.md Selection Algorithm):
+   - personality >= 7: bold/heavy weights
+   - personality <= 3: light/thin weights
+   - personality 4-6: default weights
+7. Apply extreme personality library switch (from icon-libraries.md Selection Algorithm):
+   - personality >= 8 (no user override): switch to secondary library
+   - personality <= 2 (no user override): switch to secondary library
+8. IF selected library is Material Symbols, apply formality-based style family:
+   - formality <= 4: Rounded
+   - formality >= 7: Sharp
+   - ELSE: Outlined
+9. Record in tokens.css: `/* Icon: [library] [weight] | CDN: [url] */`
+10. Record in DESIGN-SYSTEM.md iconography section: library name, CDN link, usage syntax, default + emphasis weights
+11. Add CDN link to token-showcase.html <head>
+
 ### Token File Format
 ```css
 /* ═══════════════════════════════════════
@@ -244,6 +265,14 @@ IF Starting Fresh (Type A) or no color constraints:
   --z-modal: 400;
   --z-toast: 600;
   --z-tooltip: 700;
+
+  /* ── Icon Sizes ── */
+  /* 8px-multiple scale (16/20/24/32/40px) — fixed, not project-adjustable */
+  --icon-sm: 1rem;     /* 16px — inline text, badges, status indicators */
+  --icon-md: 1.25rem;  /* 20px — navigation items, form labels, list icons */
+  --icon-lg: 1.5rem;   /* 24px — primary UI icons, card headers, buttons */
+  --icon-xl: 2rem;     /* 32px — feature highlights, metric cards */
+  --icon-2xl: 2.5rem;  /* 40px — hero sections, empty state illustrations */
 
   /* ── Vertical-Specific ── */
   /* [Add any tokens specific to this vertical] */
