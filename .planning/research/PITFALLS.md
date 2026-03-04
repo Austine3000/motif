@@ -1,275 +1,282 @@
-# Pitfalls Research
+# Pitfalls Research: Icon Library Integration for Motif
 
-**Domain:** npm-distributed AI design engineering CLI tool (Design Forge / Motif)
-**Researched:** 2026-03-01
-**Confidence:** HIGH (verified against Claude Code official docs, Node.js docs, npm ecosystem patterns, and project spec)
-
----
+**Domain:** Adding icon library support to an AI-agent-based design system pipeline
+**Researched:** 2026-03-04
+**Confidence:** HIGH (based on codebase analysis + icon library documentation + design system best practices)
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, data loss, or broken installations.
-
-### Pitfall 1: Installer Overwrites User Files Without Backup or Merge
+### Pitfall 1: Icon Name Hallucination by AI Agents
 
 **What goes wrong:**
-The installer (`bin/install.js`) copies files into `.claude/commands/forge/`, `.claude/get-design-forge/`, and appends to `.claude/CLAUDE.md`. If the user has existing commands, custom CLAUDE.md rules, or a prior Design Forge installation, the installer silently overwrites or double-appends content. Users lose custom configuration, or end up with duplicate Design Forge rule blocks in CLAUDE.md.
+Composer and reviewer agents generate plausible-sounding but non-existent icon names. For example, an agent composing a fintech dashboard might write `<i class="icon-merchant-store"></i>` or `<i class="icon-bank-transfer"></i>` -- names that sound reasonable for the domain but do not exist in Lucide's icon set (which uses names like `store`, `building-2`, `arrow-right-left`). This is the single highest-risk pitfall because it will produce invisible or broken icons silently -- no error, no crash, just empty space where an icon should be.
 
 **Why it happens:**
-File-copying installers default to "write and forget." Developers implement the happy path (fresh install) and treat re-install as an edge case. The `npx design-forge@latest` pattern specifically encourages re-running the installer for updates, making this the *primary* path, not an edge case.
+LLMs generate icon names by pattern-matching from training data across multiple icon libraries (Font Awesome's `fa-bank`, Material's `account_balance`, Heroicons' `BuildingLibraryIcon`). Each library uses different naming conventions. The agent mixes conventions or invents names based on semantic meaning rather than looking up actual available names. The agent operates in a fresh 200K context window -- it reads `tokens.css` and `COMPONENT-SPECS.md` but has no mechanism to verify icon names against the real icon library.
 
 **How to avoid:**
-1. Before ANY file write, check if the target exists. If it does, create a `.backup` timestamped copy (e.g., `CLAUDE.md.backup.2026-03-01T14-30`).
-2. For CLAUDE.md injection, search for the sentinel string `"# Design Forge Rules"` before appending. If found, replace the block between sentinels rather than appending again. Use start/end markers:
+1. Create an `ICON-MANIFEST.md` reference file containing every valid icon name in the chosen library, organized by semantic category (navigation, commerce, health, data, status, etc.). This file gets loaded by the composer agent alongside `tokens.css` and `COMPONENT-SPECS.md`.
+2. Curate, do not dump. A full Lucide manifest (1700+ icons) would consume ~3000-5000 tokens. Instead, create a curated subset per vertical: ~80-120 icons relevant to the vertical, organized by function. Budget: ~800-1200 tokens per vertical manifest.
+3. Build a `motif-icon-check.js` PostToolUse hook (similar to `motif-font-check.js`) that validates every icon class name in composed HTML against a canonical list. Block writes containing icon names not in the manifest.
+
+**Warning signs:**
+- Icon names use multi-word compound names not matching the library's naming pattern (e.g., `icon-bank-transfer` instead of Lucide's kebab-case single-concept names like `arrow-right-left`)
+- Icon names match a different library's conventions (e.g., `fa-` prefix, `Outlined` suffix, PascalCase)
+- Component specs reference generic placeholders like `[MerchantIcon]` rather than specific icon names
+- Composed HTML renders with invisible gaps where icons should appear
+
+**Phase to address:**
+Phase 1 (Icon Library Selection + Manifest Creation). The manifest must exist before any agent attempts to use icon names. The hook must be deployed before the first compose operation.
+
+---
+
+### Pitfall 2: Breaking Existing Component Specs During Migration
+
+**What goes wrong:**
+The 4 existing vertical reference files (`fintech.md`, `health.md`, `saas.md`, `ecommerce.md`) contain component specs with placeholder icon references: `[MerchantIcon 40x40]`, `[MetricIcon 32x32]`, `[CategoryIcon 36x36]`, `[Icon 20x20]`. Migrating these to real icon names risks:
+- Changing spec structure in ways that break the system architect agent's parsing
+- Introducing icon names into specs that create a hard dependency on a specific library version
+- Inconsistent migration -- some specs get real names while others keep placeholders, causing the composer to mix approaches
+- Accidentally changing dimensions, spacing, or layout constraints while updating icon references
+
+**Why it happens:**
+The placeholders are embedded in XML-like `<component>` blocks within vertical reference files. These blocks are loaded by the system architect and composer agents. A partial migration leaves the system in an inconsistent state where agents cannot tell whether `[MerchantIcon 40x40]` means "use a placeholder" or "look up this icon." Meanwhile, a full migration across 4 verticals (each with 3+ component specs) creates a large surface area for errors.
+
+**How to avoid:**
+1. Do NOT embed specific icon names in vertical reference files. Instead, define icon roles: `icon-role="merchant"` in the component spec, and map roles to actual icon names in the per-vertical `ICON-MANIFEST.md`. This indirection means the vertical specs never need to change when switching icon libraries.
+2. Migrate all 4 verticals atomically in one commit. Never leave the system in a state where some verticals use the new pattern and others use the old placeholder pattern.
+3. Add a migration validation step: grep all vertical files for `[.*Icon` bracket-placeholder patterns to confirm zero remain after migration.
+
+**Warning signs:**
+- Composer agents generating output with `[MerchantIcon 40x40]` literally rendered as text in the HTML
+- Mixed icon patterns in the same screen (some SVG icons, some bracket placeholders, some CSS class icons)
+- System architect agent generating component specs that reference icon names not in the manifest
+
+**Phase to address:**
+Phase 2 (Vertical Migration). Must happen after manifest creation (Phase 1) and before any screen composition uses icons.
+
+---
+
+### Pitfall 3: Decorative vs. Informative Icon Accessibility Mismatch
+
+**What goes wrong:**
+Agents apply the same accessibility treatment to all icons -- either all get `aria-hidden="true"` (making informative icons invisible to screen readers) or all get `aria-label` attributes (making decorative icons noisy for screen reader users). The existing `motif-aria-check.js` hook checks for `alt` on `<img>` and `role`/`tabIndex` on clickable `<div>`s, but has zero awareness of icon elements (`<i>`, `<svg>`, `<span>` with icon classes).
+
+**Why it happens:**
+Icon accessibility requires a contextual judgment that AI agents struggle with: "Is this icon decorative (adjacent to a text label that already communicates the meaning) or informative (the sole indicator of meaning, like an icon-only button)?" Without explicit guidance, agents default to one pattern. The current aria-check hook (HOOK-03) does not detect icon elements at all -- it only checks `<div onClick>`, `<img>`, and `<input>`.
+
+**How to avoid:**
+1. Extend `motif-aria-check.js` with icon-specific checks:
+   - Icon-only buttons (`<button>` containing only an icon element and no visible text) MUST have `aria-label`
+   - Icons adjacent to text labels MUST have `aria-hidden="true"` (decorative)
+   - Standalone informative icons MUST have either `aria-label` or an adjacent `<span class="sr-only">` with descriptive text
+2. Add explicit guidance in the composer agent's instructions: "For every icon, determine: Does this icon appear next to text that already communicates the same meaning? If yes, add `aria-hidden='true'`. If the icon is the only indicator of meaning (icon-only button, status indicator), add `aria-label` with a description."
+3. Include icon accessibility rules in `COMPONENT-SPECS.md` for every component that uses icons, specifying which icons are decorative and which are informative.
+
+**Warning signs:**
+- Screen reader testing reveals either silence (all icons hidden) or noise (every icon announced including decorative ones)
+- Icon-only buttons in navigation (hamburger menu, close, search) missing `aria-label`
+- Review agent's Lens 2 (WCAG AA) consistently docking points for icon accessibility without being able to specify the exact fix
+
+**Phase to address:**
+Phase 1 (Hook Extension) for the detection logic. Phase 2 (Spec Update) for per-component accessibility rules. Phase 3 (Compose) for agent instruction updates.
+
+---
+
+### Pitfall 4: Icon Size Inconsistency Across Components
+
+**What goes wrong:**
+Different components specify different icon sizes: fintech's TransactionRow uses 40x40px merchant icons, health's MetricCard uses 32x32px icons, health's LogEntry uses 36x36px icons, SaaS's CommandPalette uses 20x20px icons. Without tokenized icon sizes, agents hardcode pixel values, and icons render at inconsistent sizes within the same screen -- or worse, the icon font renders at its default size and ignores the component's size requirement entirely.
+
+**Why it happens:**
+Icon fonts render at the font-size of their container by default. SVG icons need explicit `width`/`height` or `font-size`. If the agent uses icon font classes but forgets to set `font-size`, all icons render at the same default size regardless of the component spec. If using inline SVGs, agents may hardcode `width="40" height="40"` (violating the zero-hardcoded-values rule) or use inconsistent sizing approaches. The existing `motif-token-check.js` catches hardcoded `font-size` values but does not specifically flag hardcoded icon dimensions.
+
+**How to avoid:**
+1. Define icon size tokens in `tokens.css`:
+   ```css
+   --icon-xs: 16px;   /* inline with text, badges */
+   --icon-sm: 20px;   /* navigation items, command palette */
+   --icon-md: 24px;   /* default, buttons, form elements */
+   --icon-lg: 32px;   /* metric cards, feature icons */
+   --icon-xl: 40px;   /* merchant icons, hero elements */
    ```
-   <!-- DESIGN-FORGE-START -->
-   ...rules...
-   <!-- DESIGN-FORGE-END -->
-   ```
-3. For command files, compare content hashes before overwriting. Skip identical files.
-4. Print a summary of what was changed: "Updated 3 files, backed up 1 file, skipped 12 unchanged files."
+2. Update `COMPONENT-SPECS.md` to reference icon size tokens instead of raw pixel values: `Merchant icon: var(--icon-xl), --radius-full` instead of `Merchant icon: 40x40px`.
+3. Extend `motif-token-check.js` to flag hardcoded icon dimension patterns: `width="[0-9]+"` and `height="[0-9]+"` on icon elements.
 
 **Warning signs:**
-- CLAUDE.md grows larger with each `npx design-forge@latest` run.
-- Users report "my custom CLAUDE.md rules disappeared."
-- Hook configurations duplicate during sessions (documented Claude Code bug: [Issue #3523](https://github.com/anthropics/claude-code/issues/3523)).
+- Icons in a list or grid appearing at visibly different sizes despite the same semantic role
+- The token-check hook not catching hardcoded dimensions on SVG/icon elements
+- Component specs referencing pixel values for icon sizes while everything else uses tokens
 
 **Phase to address:**
-Phase 2 (Installer + Distribution). The backup/merge logic must be in `bin/install.js` from day one. This is not a "polish later" feature -- it is a data-loss prevention mechanism.
+Phase 1 (Token Definition). Icon size tokens must be added to `tokens.css` before component specs are updated.
 
 ---
 
-### Pitfall 2: `{FORGE_ROOT}` Path Variable Not Resolved Consistently Across Runtimes and OS
+### Pitfall 5: CDN Dependency Breaking the Token Showcase
 
 **What goes wrong:**
-Workflow files (e.g., `core/workflows/research.md`) reference `{FORGE_ROOT}/verticals/{VERTICAL}.md`. This path variable must resolve to `.claude/get-design-forge` for Claude Code, `.opencode/get-design-forge` for OpenCode, etc. If the installer uses string replacement in markdown files but misses a reference, or if the path uses backslashes on Windows, the AI agent receives broken file paths and silently fails to load critical context (verticals, references). The agent then hallucinates design decisions instead of using the curated vertical intelligence.
+The token showcase (`token-showcase.html`) is self-contained HTML that loads fonts via Google Fonts CDN (`<link href="https://fonts.googleapis.com/css2?family={FONT_FAMILIES}" rel="stylesheet">`). Adding an icon CDN link follows the same pattern. But if the CDN is unavailable (offline development, corporate proxy blocking, CDN outage, rate limiting), the showcase renders with broken/missing icons. Unlike missing fonts (which fall back to system fonts), missing icon fonts render as empty rectangles or Unicode replacement characters -- a much more visible and confusing failure.
 
 **Why it happens:**
-Three compounding issues: (a) markdown files are not code -- there is no compiler to catch unresolved variables; (b) string replacement is fragile when the same variable appears in code blocks, examples, and comments; (c) path separators differ across OS (forward slash vs backslash), and Windows path handling in Node.js requires explicit `path.join()` usage.
+The token showcase deliberately avoids npm dependencies to stay self-contained. CDN links are the established pattern for external resources. But icon font fallback is fundamentally different from text font fallback: when a text font fails, the browser substitutes a system font and text remains readable. When an icon font fails, there is no meaningful fallback -- the user sees empty boxes, question marks, or nothing. Additionally, `unpkg.com` and `jsdelivr.net` can be blocked by corporate firewalls, and the `lucide-icon-font` package is a community fork, not the official Lucide project.
 
 **How to avoid:**
-1. Choose Option 1 from `runtime-adapters.md`: generate command files at install time with resolved paths. Do NOT ship `{FORGE_ROOT}` in installed files.
-2. Use `path.join()` and `path.resolve()` for ALL path construction in `bin/install.js`. Never concatenate strings with `/`.
-3. After installation, run a verification pass that reads every installed `.md` file and checks for any remaining `{FORGE_ROOT}` literals. Fail loudly if found.
-4. In workflow files that the AI reads at runtime, use paths relative to a known anchor (e.g., "Read the file at `.claude/get-design-forge/verticals/fintech.md`") rather than variable substitution.
+1. Add a CSS fallback that displays a text label when the icon font fails to load. Use the `@font-face` `unicode-range` detection technique or a JavaScript font load check to toggle between icon font and text fallback.
+2. For the token showcase specifically, include a "Font/Icon Status" indicator at the top (similar to the existing `body::before` tokens-loaded warning) that detects whether the icon font loaded successfully.
+3. Consider embedding a small subset of critical icons as inline SVGs in the showcase HTML rather than relying entirely on the CDN. Use CDN for the full icon set but inline the 10-15 icons actually displayed in the showcase.
+4. Document the CDN dependency: "This file requires internet access to render icons. For offline use, [instructions]."
 
 **Warning signs:**
-- Agent output references "the fintech vertical" but with generic content (it never loaded the file).
-- Error messages about "file not found" in subagent output.
-- Different behavior on macOS vs Windows for the same command.
+- Token showcase renders with empty squares or missing glyphs in the icon preview section
+- Developers behind corporate proxies report "broken" showcases
+- The icon section of the showcase appears blank but all other sections render correctly
 
 **Phase to address:**
-Phase 2 (Installer + Distribution). Path resolution is an installer responsibility. The post-install verification check should be part of the installer's final step.
+Phase 3 (Showcase Update). After icon selection (Phase 1) and manifest creation (Phase 2).
 
 ---
 
-### Pitfall 3: Context Budget Exceeded -- Orchestrator Accumulates Context and Agents Hallucinate
+### Pitfall 6: Vertical-Icon Semantic Mismatch
 
 **What goes wrong:**
-The orchestrator (main Claude Code session) reads files it should only pass paths to. After 3-4 `/forge:compose` cycles, the orchestrator's context fills to 70%+. At this point, the agent begins dropping information, misinterpreting STATE.md, or hallucinating design decisions. The user sees quality degrade on screen 4-5 and does not understand why.
-
-This is the #1 failure mode identified in the context-engine.md spec: "The orchestrator stays thin. Agents get fresh context. Work happens in clean windows."
+The same concept requires different icons across verticals, but a shared icon manifest maps one icon to one concept. "Status" in fintech means transaction state (completed/pending/failed), in health means metric range (normal/warning/critical), in e-commerce means order status (processing/shipped/delivered). Using a generic "check-circle" for all "success" states ignores that fintech success (transaction completed) carries different emotional weight than health success (metric in normal range). The agent picks the first matching icon for the semantic concept without considering vertical appropriateness.
 
 **Why it happens:**
-The AI agent does not natively track its own context usage. Without explicit guardrails, it will read files "to be helpful." The anti-patterns listed in `context-engine.md` are easy to violate because reading a file feels like the right thing to do. Additionally, each subagent spawning cycle returns results to the main context -- even SUMMARY.md files accumulate over multiple screens.
-
-Per Claude Code docs: "When subagents complete, their results return to your main conversation. Running many subagents that each return detailed results can consume significant context." And separately: "Referencing five medium-sized files in one session can consume upwards of 30,000 tokens."
+A flat icon manifest maps names to icons without vertical context. The agent sees `status: success -> check-circle` and applies it everywhere. The existing anti-slop checklist says "Am I using a generic icon set without checking the vertical?" but provides no mechanism for the agent to know which icons are vertical-appropriate. The vertical reference files describe icon roles (`[MerchantIcon]`, `[MetricIcon]`) but do not specify which actual icons match the vertical's visual language.
 
 **How to avoid:**
-1. Agent definitions (Phase 1) must contain explicit context-loading profiles from `context-engine.md`. Each agent md file should list exactly which files to read and which to NEVER read.
-2. Orchestrator workflows must include a context check step after each subagent cycle: "If context > 50%, tell the user to run `/clear` before continuing."
-3. Design SUMMARY.md files to be extremely concise (budget: 500 tokens max). The orchestrator reads these -- bloated summaries are a direct attack on orchestrator context.
-4. Use the `SessionStart` hook with `compact` matcher to re-inject critical context (Design Forge rules, current STATE.md) after compaction events.
-5. Consider implementing a `forge-context-monitor` hook (P2) that displays context % in the statusline and warns at 50%.
+1. Create per-vertical icon mappings in each vertical's manifest. Not just "here are valid icon names" but "here are the icons appropriate for this vertical's components":
+   - Fintech: `merchant -> store`, `transfer -> arrow-right-left`, `card -> credit-card`
+   - Health: `vitals -> heart-pulse`, `medication -> pill`, `activity -> activity`
+   - SaaS: `settings -> settings`, `search -> search`, `filter -> filter`
+   - E-commerce: `cart -> shopping-cart`, `wishlist -> heart`, `shipping -> truck`
+2. Include 2-3 alternatives per role so the agent can exercise design judgment while staying within validated bounds.
+3. Add vertical-icon appropriateness as a review criterion in the design reviewer agent's Lens 4 (Vertical UX Compliance).
 
 **Warning signs:**
-- Screen 5 uses different fonts than screen 1 despite same tokens.css.
-- The orchestrator "forgets" the vertical and asks the user what they are building.
-- `/forge:compose` starts producing generic UI ("AI slop") instead of vertical-specific patterns.
-- The agent fails to update STATE.md after a compose cycle.
+- All verticals using identical icons for similar concepts (every app looks the same)
+- Health app using sharp/angular icons that feel clinical rather than warm
+- Fintech app using playful/rounded icons that undermine trust
+- Reviewer agent not flagging icon choices in Lens 4
 
 **Phase to address:**
-Phase 1 (Agents + Templates) -- the agent definitions must encode context discipline. Phase 4 (Hooks) -- the context monitor hook provides runtime detection.
+Phase 2 (Vertical Mapping). Must happen after the base manifest exists (Phase 1) and before screen composition.
 
 ---
 
-### Pitfall 4: Subagent Spawning Costs Token Budget Rapidly, Hitting Rate Limits
+### Pitfall 7: Icon Name Drift Between Library Versions
 
 **What goes wrong:**
-Each subagent Task() spawn creates a fresh 200K context window. The `/forge:research` workflow spawns 4 parallel agents. Each reads PROJECT.md, DESIGN-BRIEF.md, and potentially a vertical reference file. That is 4 x (system prompt + files + work output) = potentially 100K+ tokens consumed in a single command. Users on standard Claude plans hit rate limits and get throttled mid-workflow. The research phase dies halfway through with 2 of 4 agents complete.
-
-Per community observation: "the token cost catches up fast if you are not watching /cost between runs." And: "Each sub-agent gets its own 200K token context window. That is 10 parallel research sessions without polluting your main conversation" -- but at corresponding token cost.
+Icon libraries rename, deprecate, or remove icons between versions. Lucide's community fork nature means icons can be added, renamed, or reorganized across releases. If the manifest references icon names from version X but the CDN serves version Y, some icons silently break. This is especially dangerous with CDN links that use `@latest` (e.g., `unpkg.com/lucide-static@latest/`) -- the version can change without any change to the codebase.
 
 **Why it happens:**
-The 4-agent parallel research pattern is architecturally correct (fresh context per agent) but economically aggressive. Users do not expect a single slash command to consume 100K+ tokens. Additionally, when a subagent fails partway, there is no checkpoint/resume mechanism -- the entire agent's work is lost.
+The zero-dependency policy means icons are loaded via CDN rather than pinned npm packages. CDN URLs with `@latest` resolve to whatever the current version is. Lucide has ~1700 icons with active community contributions -- icons get renamed for consistency (e.g., a hypothetical `edit-2` -> `pen-line`). The manifest file is a snapshot, not a live reference. If the CDN version advances past the manifest's version, composed screens may reference icons that no longer exist under those names.
 
 **How to avoid:**
-1. Document expected token costs per command in the README and `/forge:help` output. Example: "/forge:research: approximately 80-120K tokens (4 parallel agents)."
-2. In `/forge:research`, check whether the user wants parallel (faster, more tokens) or sequential (slower, fewer tokens) execution. Default to sequential for safety.
-3. Agent prompts must enforce the 2000-token output cap per research file. Verbose agents waste tokens.
-4. If a subagent fails, its partial output should be committed before the failure so it is not lost. The orchestrator should detect which agents completed and allow re-running only the failed ones.
-5. Consider using `model: haiku` for research subagents (cheaper) and `model: inherit` for compose/review subagents (need quality). The Claude Code subagent system supports per-agent model selection.
+1. Pin the CDN version explicitly: `unpkg.com/lucide-static@0.473.0/font/lucide.css` instead of `@latest`. Document the pinned version in the manifest.
+2. Include the library version in the manifest header: `Library: lucide-static@0.473.0 | Icons: 1702 | Validated: 2026-03-04`.
+3. Create a version-check script that compares the manifest's icon list against the pinned CDN version's actual icon list. Run this during icon library upgrades.
+4. When upgrading: diff old manifest against new version's icon list, flag any removed/renamed icons, update composed screens that reference changed names.
 
 **Warning signs:**
-- Users report "I ran out of tokens" or "Claude stopped responding" during `/forge:research`.
-- Partial research files (only 2 of 4 exist after research command).
-- User cost dashboard shows large spike for a single session.
+- Icons that worked previously stop rendering after a CDN cache refresh
+- Manifest file has no version pin
+- CDN link uses `@latest` or `@^` semver range
+- Newly composed screens use icon names that do not appear in the manifest (agent used training data from a different version)
 
 **Phase to address:**
-Phase 1 (Agents) -- agent definitions should specify model selection and output caps. Phase 5 (E2E Test) -- measure actual token consumption per command.
-
----
-
-### Pitfall 5: Core/Runtime Boundary Violation -- Design Intelligence Leaks Into Runtime Files
-
-**What goes wrong:**
-A developer adding a new feature puts domain-specific logic (e.g., "fintech apps should use tabbed navigation") into a runtime-specific file like `runtimes/claude-code/commands/forge/compose.md` instead of the shared `core/workflows/compose-screen.md`. When OpenCode support is added later, this intelligence is missing. The OpenCode version produces inferior output, and nobody understands why because the workflows appear identical.
-
-**Why it happens:**
-The core/runtime boundary is an architectural rule, not an enforced constraint. When working on Claude Code commands, it is faster to add logic directly to the command file than to update the shared workflow and then reference it. The "thin command, heavy workflow" pattern requires discipline that erodes under delivery pressure.
-
-**How to avoid:**
-1. Establish a bright-line rule: runtime files (commands, agents, hooks) can ONLY contain (a) runtime-specific spawning syntax (Task(), agent()), (b) file path prefixes, (c) tool permissions. If it contains the word "design," "color," "font," "spacing," "vertical," or "pattern," it belongs in core/.
-2. Add a CI/lint check that greps runtime files for design-vocabulary keywords. Any match is a build failure.
-3. In the CONTRIBUTING guide, include examples of correct vs incorrect placement:
-   - WRONG: `runtimes/claude-code/commands/forge/compose.md` says "For fintech, prefer tab navigation"
-   - RIGHT: `core/workflows/compose-screen.md` says "Apply LOCKED decisions from DESIGN-RESEARCH.md" and the fintech vertical file contains the tab navigation guidance.
-4. When building future runtime adapters, start by diffing the runtime files against each other. Any content difference beyond path prefixes and spawn syntax signals a boundary violation.
-
-**Warning signs:**
-- Claude Code produces better designs than OpenCode for the same vertical.
-- A runtime command file exceeds 50 lines (commands should be thin wrappers).
-- A developer says "I added the fix to the Claude Code command" instead of "I added the fix to the workflow."
-
-**Phase to address:**
-Phase 1 and ongoing. Every phase should include a boundary audit step. Phase 5 (E2E Test) should verify identical outputs across simulated runtimes.
+Phase 1 (Version Pinning) and ongoing maintenance (Version Upgrade Process).
 
 ---
 
 ## Technical Debt Patterns
 
-Shortcuts that seem reasonable but create long-term problems.
-
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Hardcoding `.claude/` paths in workflow files instead of using `{FORGE_ROOT}` | Works immediately for v1.0 | Every new runtime requires editing every workflow file; defeats the core/adapter split | Never -- use resolved paths from install time |
-| Skipping the post-install verification step | Faster install, simpler code | Silent failures when files are missing or paths unresolved; users blame Design Forge quality instead of installation | Never -- 50 lines of verification code prevents hours of debugging |
-| Using `fs.writeFileSync` without checking existence | Simpler install code | Overwrites user customizations, loses backups | Only on first install of a brand-new project with no existing `.claude/` directory |
-| Putting all vertical intelligence in one mega-file instead of per-vertical files | Fewer files to manage | Context budget blown when agent loads 5 verticals worth of data to use 1; also makes community contribution harder | Never -- the per-vertical file pattern is already designed correctly |
-| Using `postinstall` npm script instead of bin entry point | Automatic execution on `npm install` | Breaks `npx` workflow (postinstall does not run for npx); confuses CI environments; known to cause recursion on Windows ([Issue #15964](https://github.com/npm/npm/issues/15964)) | Never -- the bin entry point with `npx` execution is the correct pattern |
-| Embedding token values directly in COMPONENT-SPECS.md instead of referencing tokens.css variable names | Easier to read component specs | When tokens change, specs are stale; agents use the hardcoded values instead of the tokens | Never -- always reference `var(--token-name)` in specs |
+| Using `@latest` CDN version | Always up-to-date icons | Silent breakage on rename/removal | Never in production; acceptable only during initial evaluation |
+| Full icon dump in manifest (all 1700+) | Complete coverage | Wastes ~4000 tokens of agent context per compose; agents still hallucinate because they cannot scan 1700 names effectively | Never; always curate per-vertical subsets |
+| Hardcoding icon names in vertical refs | Quick migration | Cannot switch icon libraries without rewriting all vertical references | Never; use role-based indirection |
+| Skipping the icon-check hook | Faster iteration | Hallucinated icon names ship undetected; invisible icons in composed screens | Never |
+| Inlining SVGs instead of icon font | No CDN dependency, pixel-perfect | Bloats HTML, harder to maintain, increases token usage in composed files, harder for agents to generate consistently | Only for token showcase's critical preview icons (~10-15) |
+| Using icon font without size tokens | Faster initial setup | Inconsistent icon sizes across components, hardcoded dimensions scattered through composed code | Only during prototyping; must tokenize before any production compose |
 
 ## Integration Gotchas
 
-Common mistakes when connecting Design Forge to external systems.
-
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Claude Code CLAUDE.md injection | Appending the Design Forge snippet without checking for existing content, causing duplicates | Use sentinel markers (`<!-- DESIGN-FORGE-START -->` / `<!-- DESIGN-FORGE-END -->`). Check for markers before appending. Replace between markers on re-install. |
-| Claude Code hooks registration | Adding hooks to `.claude/settings.json` by overwriting the file, destroying user's existing hooks | Read existing settings.json, parse as JSON, merge the `hooks` key (array concat, not replace), write back. Never overwrite the entire file. |
-| Git integration (agent commits) | Agents commit without checking git status, committing unrelated staged files | Each agent should `git add` only the specific files it created, then commit. Never use `git add -A` or `git add .` in agent prompts. |
-| npm registry | Publishing without `.npmignore` or `files` field, shipping `docs/`, `firebase-debug.log`, `.DS_Store`, `.planning/` | Use `"files"` field in package.json to whitelist: `["bin/", "core/", "runtimes/", "scripts/"]`. Test with `npm pack --dry-run` before publishing. |
-| Node.js version compatibility | Using `fs.cpSync()` without checking Node version, failing on Node 14/16 early versions | `fs.cpSync()` was added in Node 16.7.0 and is stable as of Node 22+. Set `"engines": { "node": ">=16.7.0" }` in package.json. Implement a version check at the top of `bin/install.js` with a clear error message. |
-| Claude Code settings.json | Writing hooks directly to `.claude/settings.json` which requires session restart to take effect | Per Claude Code docs: "hook settings are cached and changes don't take effect until session restart" ([Issue #22679](https://github.com/anthropics/claude-code/issues/22679)). Inform the user to restart their Claude Code session after installation. |
+| Integration Point | Common Mistake | Correct Approach |
+|-------------------|----------------|------------------|
+| CDN link in token showcase | Adding icon CDN alongside font CDN without fallback handling | Add CSS-based load detection; inline critical icons as SVG; show text fallback for missing icon font |
+| Composer agent context loading | Loading the full 1700-icon manifest, wasting 3000+ tokens | Curate 80-120 icon manifest per vertical; add to composer's "Always Load" context profile |
+| Token-check hook | Not extending hook to validate icon class names | Add icon-name validation pattern to `motif-token-check.js` or create dedicated `motif-icon-check.js` |
+| Aria-check hook | Assuming existing img/div checks cover icon elements | Add icon-specific patterns: `<i>`, `<svg>` within buttons, `<span>` with icon classes |
+| COMPONENT-SPECS.md | Embedding literal icon names (coupling specs to library) | Use role-based references (`icon-role="merchant"`) mapped in manifest |
+| Reviewer agent Lens 3 | Not adding icon-name grep to system compliance checks | Add `grep -n 'icon-' {files}` check to verify all icon classes exist in manifest |
+| Reviewer agent Lens 4 | Not checking icon-vertical appropriateness | Add vertical-icon mapping check to Lens 4 scoring criteria |
 
 ## Performance Traps
 
-Patterns that work at small scale but fail as usage grows.
-
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| PostToolUse hooks running on EVERY file edit | Each `/forge:compose` triggers dozens of file writes. 4 hooks x dozens of writes = hundreds of hook executions per screen. Known progressive duplication bug compounds this. | Use narrow matchers (`"matcher": "Edit\|Write"`) and filter by file extension in the hook script itself. Skip non-CSS/non-component files. Move heavy checks to async hooks. | At 3+ hooks active: noticeable 1-2s delay per file edit. At 5+ screens composed in one session: hooks may duplicate and run 10+ times per edit. |
-| Loading full vertical reference file into every subagent | Vertical files (fintech.md = 226 lines) loaded by every research agent, every composer, every reviewer. 4 research agents = 4 copies of fintech.md in context. | Only load vertical reference in agents that need it (researcher, system generator). Composers should use DESIGN-RESEARCH.md (the synthesis) instead. Follow context-engine.md profiles exactly. | When vertical files grow beyond 300 lines or when composing 5+ screens in a session. Context waste compounds. |
-| Orchestrator reading all SUMMARY.md files for "consistency check" | After composing 5 screens, the orchestrator reads 5 summary files to "check consistency" before spawning screen 6. That is 2500+ tokens of summaries in the orchestrator context. | Only load the 2-3 most recent summaries (as specified in compose-screen.md). The design system tokens.css IS the consistency mechanism, not cross-referencing summaries. | At 5+ screens composed. Orchestrator context approaches 50% from summaries alone. |
-| Token showcase HTML including all tokens inline | Self-contained HTML that imports tokens.css AND inlines all token values for display. As the design system grows, this file balloons. | Generate the showcase HTML at display time with a script that reads tokens.css, not as a static file that must be kept in sync. The `scripts/token-counter.js` and `scripts/contrast-checker.js` pattern (runtime generation) is correct. | At 100+ design tokens. File exceeds 3000 tokens and becomes a context burden if loaded. |
-
-## Security Mistakes
-
-Domain-specific security issues beyond general web security.
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Installer modifying files outside the project directory | A path traversal bug in `{FORGE_ROOT}` resolution could write files to `~/.claude/` (global config) or worse. npm packages should NEVER write outside `process.cwd()`. | Validate that all resolved paths start with `process.cwd()`. Use `path.resolve()` and check the result with `resolvedPath.startsWith(process.cwd())`. Reject any path that escapes the project root. |
-| Shipping API keys or tokens in vertical reference files | If vertical files are community-contributed, a PR could embed API keys, tracking pixels, or prompt injection attacks in markdown content. | Review all community-contributed vertical files for non-design content. Establish a content schema: verticals should only contain design tokens, color values, font names, and pattern descriptions. Reject files with URLs, scripts, or code blocks that are not CSS. |
-| Agent prompts containing executable code suggestions | If a malicious vertical file says "run this bash command to check contrast," the AI agent will execute it. Markdown content becomes executable when AI agents interpret it. | Agent definitions should restrict tool access. Research agents should NOT have Bash access. Only the composer and fixer need write access. Use `tools` field in agent frontmatter to enforce least privilege. |
-| CLAUDE.md injection allowing prompt override | If Design Forge appends rules to CLAUDE.md and a user (or another tool) modifies the same CLAUDE.md, the rules could be altered to override Design Forge behavior. | Use sentinel markers so Design Forge can detect tampering. On each run, verify the content between markers matches the expected snippet. Warn the user if modifications are detected. |
+| Loading full icon font (all 1700+ glyphs) | 200-400KB font file download; slow first paint on token showcase | Use icon font subset or individual SVG sprites for only the icons used | Immediately noticeable on slow connections or mobile |
+| Agent context bloat from icon manifest | Composer runs slower; more likely to lose track of instructions near end of context | Keep manifest under 1200 tokens per vertical; use structured format (table, not prose) | When manifest exceeds ~2000 tokens; crowds out COMPONENT-SPECS.md instructions |
+| Multiple CDN requests for individual SVG icons | Waterfall of HTTP requests if using individual SVGs instead of sprite/font | Use icon font (single request) or SVG sprite (single request) | At >15-20 icons per screen, individual SVG requests become noticeable |
 
 ## UX Pitfalls
 
-Common user experience mistakes in this domain.
-
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Silent installation failures | User runs `npx design-forge@latest`, installer fails to copy 3 files due to permissions, exits with code 0. User runs `/forge:init` and gets cryptic "file not found" errors. | Print a clear summary on install: "Installed: 42 files. Commands: 10. Agents: 5. Config: injected." On ANY failure, exit with code 1 and print the specific file that failed. |
-| No uninstall mechanism | User wants to remove Design Forge from their project. No `npx design-forge uninstall` command. They must manually delete `.claude/commands/forge/`, `.claude/get-design-forge/`, and edit CLAUDE.md. | Ship an `--uninstall` flag that reverses installation: removes copied files, removes the CLAUDE.md section between sentinel markers, restores backups if they exist. |
-| Forcing sequential workflow when user knows what they want | User has existing brand colors and wants to go straight to `/forge:system`. But the state machine requires INITIALIZED -> RESEARCHED -> SYSTEM_GENERATED. User must run `/forge:research` even though they already know their design direction. | The `/forge:init --auto` mode addresses this partially. Consider a `--skip-research` flag or allowing `/forge:system` to run from INITIALIZED state with a warning: "No research data found. System will be generated from DESIGN-BRIEF.md only." |
-| Opaque agent failures | A subagent fails silently. The orchestrator says "something went wrong" but does not explain what. The user re-runs the command, hitting rate limits again. | Orchestrator should check for specific failure artifacts: Did SUMMARY.md get created? Did a git commit happen? Report which step failed: "The composer agent completed but did not create a SUMMARY.md. This usually means it ran out of context. Try running /clear first." |
-| Differentiation seed feels arbitrary to users | The "Personality: Corporate <-> Bold/rebellious" scale is meaningful to designers but meaningless to solo devs. They pick 5 for everything and get generic output. | Provide concrete examples with each axis: "Corporate = Stripe, JP Morgan. Bold = Cash App, Robinhood. Where does yours sit?" Use product names the user recognizes as anchors. |
+| Missing icon fallback in composed screens | Users see empty squares or nothing where icons should be; UI feels broken | Always pair icon elements with a text label or `title` attribute as visual fallback |
+| Same icon for different actions across screens | Users cannot build icon-meaning associations; increases cognitive load | Define a consistent icon vocabulary per vertical; same action always gets same icon |
+| Icon-only buttons without tooltips | Users must guess what buttons do; especially problematic for domain-specific actions | Always include `title` attribute and `aria-label` on icon-only interactive elements |
+| Overusing icons (icon for every label) | Visual noise; icons lose meaning when everything has one | Use icons selectively: navigation, status indicators, primary actions. Not every list item or label needs an icon |
+| Icons that look too similar at small sizes | Users confuse `arrow-up` with `chevron-up`, `circle-check` with `check-circle` | Choose icons with distinct silhouettes at the smallest rendered size (16px); test icon distinctiveness at `--icon-xs` |
 
 ## "Looks Done But Isn't" Checklist
 
-Things that appear complete but are missing critical pieces.
-
-- [ ] **Installer:** Works on macOS -- verify Windows path handling (backslashes, `.claude\` vs `.claude/`), `#!/usr/bin/env node` shebang handling via npm cmd shimmer, and `/tmp` execute permissions for npx ([Issue #5139](https://github.com/npm/cli/issues/5139))
-- [ ] **CLAUDE.md injection:** Appends correctly -- verify it does not double-append on re-install, handles both `.claude/CLAUDE.md` and project-root `CLAUDE.md` locations, and does not break existing CLAUDE.md formatting
-- [ ] **Agent definitions:** Agents have instructions -- verify they include explicit context-loading profiles (which files to read, which to NEVER read), output token budgets, and commit message formats
-- [ ] **State machine:** Gate checks work -- verify STATE.md survives `/clear` (it should, since it is on disk), verify state transitions handle edge cases (user runs `/forge:compose` twice on same screen)
-- [ ] **Vertical files:** Content exists -- verify token budgets are respected (each vertical < 2000 tokens when loaded), naming conventions match what workflows expect, and the vertical template format is followed exactly
-- [ ] **Hooks:** Hooks fire correctly -- verify they do not fire on non-Design-Forge files (matcher specificity), do not progressively duplicate during sessions, and do not block the main coding workflow with latency
-- [ ] **Token showcase:** HTML renders -- verify it loads fonts from Google Fonts CDN, handles dark mode, and works as a standalone file (no server required)
-- [ ] **npm package:** Publishes cleanly -- verify with `npm pack --dry-run` that only intended files are included, `bin` field points to the correct entry, and `"engines"` field specifies minimum Node version
+- [ ] **Icon manifest exists:** Verify `.planning/design/system/ICON-MANIFEST.md` contains valid icon names from the pinned library version -- not AI-generated guesses
+- [ ] **All 4 verticals migrated:** Grep all vertical reference files for `\[.*Icon` bracket patterns; zero matches means migration is complete
+- [ ] **Icon-check hook deployed:** Verify `motif-icon-check.js` exists in hooks directory, is registered in Claude settings, and blocks invalid icon names
+- [ ] **Aria-check covers icons:** Verify `motif-aria-check.js` checks icon-only buttons for `aria-label` and decorative icons for `aria-hidden="true"`
+- [ ] **CDN version pinned:** Verify CDN URL contains explicit version number (e.g., `@0.473.0`), not `@latest`
+- [ ] **Icon size tokens defined:** Verify `tokens.css` contains `--icon-xs` through `--icon-xl` tokens
+- [ ] **Token showcase renders icons:** Open `token-showcase.html` offline and verify icon fallback behavior is acceptable
+- [ ] **Reviewer knows about icons:** Verify reviewer agent instructions include icon-name validation in Lens 3 and icon-vertical appropriateness in Lens 4
+- [ ] **Composer knows icon rules:** Verify composer agent instructions include "read ICON-MANIFEST.md" and "only use icon names from manifest"
 
 ## Recovery Strategies
 
-When pitfalls occur despite prevention, how to recover.
-
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Installer overwrote user files | LOW | Restore from `.backup` files if backup was implemented. If not, user must recover from git history (`git checkout HEAD -- .claude/CLAUDE.md`). Lesson: always implement backups. |
-| `{FORGE_ROOT}` paths broken in installed files | MEDIUM | Re-run installer (`npx design-forge@latest`). If the installer itself has the bug, publish a patch version. Users cannot manually fix dozens of markdown files. |
-| Context budget blown mid-workflow | LOW | Run `/clear`. STATE.md on disk preserves all progress. Re-run the last command. No data loss if agents commit their work before the context overflows. |
-| Subagent failed partway through research | MEDIUM | Check which research files exist (01 through 04). Manually run `/forge:research` with a modified workflow that only spawns missing agents. If no partial-retry mechanism exists, delete all research files and re-run from scratch. |
-| Core/runtime boundary violated | HIGH | Must audit all runtime files, extract design logic back to core workflows, and re-test. The longer the violation persists, the more runtime-specific behavior accumulates. Prevent rather than recover. |
-| Vertical template drift (verticals diverge from fintech model) | MEDIUM | Diff each vertical against fintech.md structure. Missing sections are the drift. Create a vertical linter script that checks for required sections/headings. |
-| Hooks slow down the coding experience | LOW | Disable hooks temporarily via `/hooks` toggle or `"disableAllHooks": true` in settings. Investigate which hook is slow. Move slow hooks to async execution. |
-| npm publish includes sensitive/large files | LOW | Unpublish within 72 hours (npm policy). Fix `"files"` field in package.json. Republish with patch version bump. |
+| Hallucinated icon names in composed screens | MEDIUM | Grep all composed HTML for icon class patterns; cross-reference against manifest; replace invalid names; re-run icon-check hook validation |
+| Broken vertical specs after partial migration | HIGH | Revert to pre-migration commit; re-do migration atomically across all 4 verticals; validate with grep for bracket patterns |
+| Missing icon accessibility | MEDIUM | Run accessibility audit specifically for icon elements; add `aria-hidden` to decorative icons; add `aria-label` to informative/interactive icons |
+| CDN version drift causing broken icons | LOW | Pin CDN to the version the manifest was validated against; diff manifest vs new version; update renamed icons in composed screens |
+| Inconsistent icon sizes | LOW | Grep composed files for hardcoded icon dimensions; replace with `var(--icon-*)` tokens; update component specs |
+| Full icon dump bloating agent context | LOW | Replace full dump with curated per-vertical subset; re-validate that all icons referenced in component specs appear in the curated list |
 
 ## Pitfall-to-Phase Mapping
 
-How roadmap phases should address these pitfalls.
-
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Installer overwrites user files | Phase 2 (Installer) | Run installer twice on same project. Second run should produce "0 files changed" if nothing updated. CLAUDE.md should not grow. |
-| `{FORGE_ROOT}` path resolution | Phase 2 (Installer) | After install, `grep -r '{FORGE_ROOT}' .claude/` should return zero matches. All paths should be resolved. |
-| Context budget exceeded | Phase 1 (Agents) | Run full workflow (init through review). After 5 screens, check orchestrator context with `/context`. Should be under 50%. |
-| Subagent token costs | Phase 1 (Agents) + Phase 5 (E2E) | Run `/forge:research` and check `/cost`. Document expected range in help text. |
-| Core/runtime boundary violation | Phase 1 (Agents) + Phase 3 (Verticals) | `wc -l runtimes/claude-code/commands/forge/*.md` -- no command file should exceed 50 lines. `grep -l 'color\|font\|spacing\|vertical' runtimes/` should return zero matches outside of path references. |
-| Vertical template drift | Phase 3 (Vertical Expansion) | Diff each new vertical's heading structure against fintech.md. All required sections must be present. Run a heading-extraction script to compare. |
-| Hooks performance degradation | Phase 4 (Hooks) | Compose 3 screens in a single session with all hooks active. No perceptible delay (< 500ms per hook execution). Check for hook duplication. |
-| Silent installation failures | Phase 2 (Installer) | Test installer with (a) fresh project, (b) existing `.claude/` directory, (c) existing Design Forge install, (d) read-only directory (should fail loudly). |
-| No uninstall mechanism | Phase 2 (Installer) | Run install, verify files exist, run `npx design-forge --uninstall`, verify files removed and CLAUDE.md cleaned. |
-| npm package ships wrong files | Phase 2 (Installer) | Run `npm pack --dry-run` in CI. Assert the file list matches expected files. Fail if `.DS_Store`, `firebase-debug.log`, or `.planning/` appear. |
+| Icon name hallucination | Phase 1: Manifest + Hook | Run `motif-icon-check.js` against a test HTML file with known-bad icon names; verify it blocks |
+| Breaking component specs | Phase 2: Vertical Migration | `grep -r '\[.*Icon' .claude/get-motif/references/verticals/` returns zero matches |
+| Accessibility mismatch | Phase 1-2: Hook + Spec Update | Run `motif-aria-check.js` against HTML with icon-only button lacking `aria-label`; verify it blocks |
+| Icon size inconsistency | Phase 1: Token Definition | `grep 'icon-xs\|icon-sm\|icon-md\|icon-lg\|icon-xl' tokens.css` returns 5 token definitions |
+| CDN showcase breakage | Phase 3: Showcase Update | Open `token-showcase.html` with network disabled; verify fallback behavior |
+| Vertical-icon mismatch | Phase 2: Vertical Mapping | Each vertical manifest maps component roles to specific icon names |
+| Library version drift | Phase 1: Version Pin + Ongoing | CDN URL grep confirms no `@latest`; version-check script exists |
 
 ## Sources
 
-- [Claude Code Hooks Documentation](https://code.claude.com/docs/en/hooks-guide) -- lifecycle events, performance considerations, progressive duplication bug -- HIGH confidence
-- [Claude Code Subagents Documentation](https://code.claude.com/docs/en/sub-agents) -- Task() limitations, context management, model selection, token costs -- HIGH confidence
-- [Claude Code Hook Duplication Bug (Issue #3523)](https://github.com/anthropics/claude-code/issues/3523) -- confirmed performance issue with hook accumulation -- HIGH confidence
-- [Claude Code Hook Settings Cache (Issue #22679)](https://github.com/anthropics/claude-code/issues/22679) -- settings changes require session restart -- HIGH confidence
-- [Node.js fs.cpSync Documentation](https://nodejs.org/api/fs.html) -- stable as of Node 22+, added in 16.7.0 -- HIGH confidence
-- [npm/cli path resolution issues on Windows](https://github.com/npm/cli/issues/13789) -- Windows path separator problems -- HIGH confidence
-- [npx /tmp execute permission bug (Issue #5139)](https://github.com/npm/cli/issues/5139) -- npx assumes /tmp is executable -- MEDIUM confidence
-- [npm postinstall recursion on Windows (Issue #15964)](https://github.com/npm/npm/issues/15964) -- postinstall scripts break on Windows -- HIGH confidence
-- [Design System Governance: Preventing Design Drift (UXPin)](https://www.uxpin.com/studio/blog/design-system-governance/) -- vertical/variant drift patterns -- MEDIUM confidence
-- [The Problem(s) with Design Tokens (Andre Torgal, 2025)](https://andretorgal.com/posts/2025-01/the-problem-with-design-tokens) -- token management pitfalls -- MEDIUM confidence
-- [Writing Cross-Platform Node.js (George Ornbo)](https://shapeshed.com/writing-cross-platform-node/) -- path.join, shebang handling, OS differences -- MEDIUM confidence
-- [Claude Code Subagents Token Cost (DEV Community)](https://dev.to/onlineeric/claude-code-sub-agents-burn-out-your-tokens-4cd8) -- real-world token consumption observations -- LOW confidence
-- [Composio: Why AI Agent Pilots Fail in Production](https://composio.dev/blog/why-ai-agent-pilots-fail-2026-integration-roadmap) -- AI orchestration failure patterns -- MEDIUM confidence
-- Design Forge project spec (`GSD-PROJECT-SPEC.md`) -- architecture, constraints, identified risks -- HIGH confidence (primary source)
-- Design Forge context engine (`core/references/context-engine.md`) -- context budgets, anti-patterns -- HIGH confidence (primary source)
-- Design Forge runtime adapters (`core/references/runtime-adapters.md`) -- path resolution, install mapping -- HIGH confidence (primary source)
+- Lucide Icons static package documentation: [lucide.dev/guide/packages/lucide-static](https://lucide.dev/guide/packages/lucide-static)
+- Lucide icon font (community): [github.com/tobiasroeder/lucide-icon-font](https://github.com/tobiasroeder/lucide-icon-font)
+- Lucide programmatic icon name access: [github.com/lucide-icons/lucide/discussions/1778](https://github.com/lucide-icons/lucide/discussions/1778)
+- Icon accessibility (Font Awesome docs): [docs.fontawesome.com/web/dig-deeper/accessibility](https://docs.fontawesome.com/web/dig-deeper/accessibility)
+- W3C: aria-hidden on icon fonts: [w3.org/WAI/GL/wiki/Using_aria-hidden](https://www.w3.org/WAI/GL/wiki/Using_aria-hidden=true_on_an_icon_font_that_AT_should_ignore)
+- Iconography in design systems (Smashing Magazine): [smashingmagazine.com/2024/04/iconography-design-systems](https://www.smashingmagazine.com/2024/04/iconography-design-systems-troubleshooting-maintenance/)
+- CDN vs self-hosting analysis (Font Awesome blog): [blog.fontawesome.com/self-host-and-cdn](https://blog.fontawesome.com/self-host-and-cdn/)
+- Codebase analysis: `motif-aria-check.js`, `motif-token-check.js`, `motif-font-check.js`, `motif-screen-composer.md`, `motif-design-reviewer.md`, all 4 vertical reference files, `token-showcase-template.html`, `context-engine.md`
 
 ---
-*Pitfalls research for: npm-distributed AI design engineering CLI tool*
-*Researched: 2026-03-01*
+*Pitfalls research for: Icon Library Integration into Motif AI-Agent Design Pipeline*
+*Researched: 2026-03-04*

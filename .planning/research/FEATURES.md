@@ -1,239 +1,307 @@
-# Feature Research
+# Feature Landscape: Icon Library Integration
 
-**Domain:** AI design engineering system / npm-distributed developer CLI tool
-**Researched:** 2026-03-01
-**Confidence:** MEDIUM-HIGH
+**Domain:** Icon library integration for AI design engineering system (Motif v1.1)
+**Researched:** 2026-03-04
+**Overall confidence:** HIGH
 
-## Feature Landscape
+## Context
 
-### Table Stakes (Users Expect These)
+Motif v1.0 generates design systems (tokens.css, COMPONENT-SPECS.md, DESIGN-SYSTEM.md, token-showcase.html) with placeholder icon references like `[MerchantIcon 40x40]`, `[Icon 20x20]`, `[CategoryIcon 36x36]`. The screen composer has an anti-slop check ("Am I using a generic icon set without checking the vertical?") but no mechanism to resolve icon names. This milestone replaces placeholder references with concrete, render-ready icon names from a real icon library, threaded through the entire pipeline: system architect picks a library, component specs name icons, composed screens render them.
 
-Features users assume exist. Missing these = product feels incomplete or untrustworthy.
+---
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| **One-command install via npx** | shadcn, v0, create-react-app all set the bar: `npx tool@latest` and it works. Any friction here kills adoption immediately. Users will not read troubleshooting docs for a tool they have not tried yet. | MEDIUM | Installer must auto-detect runtime (Claude Code vs others), copy files to correct locations, handle existing config gracefully (backup before overwrite), and provide clear success/failure output. Zero npm dependencies is the right call -- keeps install fast and avoids supply chain concerns. |
-| **Clear help/progress commands** | Every CLI tool has `--help`. AI agent tools specifically need progress tracking because multi-step workflows are opaque. Users need to know "where am I?" at any point. | LOW | `/motif:help` and `/motif:progress` already built. Table stakes that are already satisfied. |
-| **Working end-to-end workflow** | If init -> research -> system -> compose -> review -> fix does not complete successfully, the tool is broken. Users will try the full flow on first use and abandon if any step fails. | HIGH | All 7 workflows are built but unvalidated. The gap is testing, not implementation. Battle testing on a real project is critical before any public release. |
-| **Design token output (CSS custom properties)** | CSS custom properties are the standard for design token distribution in 2026. The W3C DTCG spec reached its first stable version in October 2025, and CSS custom properties are universally supported. Every design system tool outputs them. | MEDIUM | Already designed in generate-system.md. Tokens must include reasoning comments (why this color, why this font) because AI agents will read them. Framework-agnostic CSS custom properties is the right choice -- Tailwind export can come later as a separate command. |
-| **Component specifications** | Users expect generated design systems to include component-level specs, not just tokens. Tokens alone are not enough -- agents need to know how a Button uses the tokens. | MEDIUM | COMPONENT-SPECS.md format (XML specs per component) is already designed. The XML format is a good choice because it is structured enough for AI consumption but readable by humans. |
-| **README with clear pitch, install, and usage** | npm packages without READMEs have near-zero adoption. The README is the product's storefront on npmjs.com. Must answer "what is this, who is it for, how do I start" in under 30 seconds of scanning. | LOW | Not built yet. Should include: one-line pitch, 15-second install, screenshot/GIF of token showcase output, command reference table, architecture diagram (text-based), and "how it works" section. |
-| **MIT License** | Open source npm packages without licenses are legally unusable for many developers and companies. | LOW | Not built. Trivial to add. |
-| **Atomic git commits per operation** | AI coding tools that touch files should commit atomically. Users expect to be able to `git revert` any single operation cleanly. Already a constraint in the spec. | LOW | Already designed into all workflows with `design(...)` prefix. Implementation depends on agents being built correctly. |
-| **Idempotent operations** | Running `/motif:init` twice should not corrupt state. Running `/motif:research` again should cleanly overwrite previous research. Users will re-run commands when results are unsatisfactory. | LOW | Gate checks in workflows handle this. Init has a guard ("already initialized"). Other commands check STATE.md phase. |
-| **package.json with correct bin field** | npm distribution requires a properly configured package.json. The `bin` field maps the CLI command name to the installer script. Without this, `npx motif@latest` does not work. | LOW | Not built. Straightforward: `{ "name": "motif", "bin": { "motif": "bin/install.js" } }`. No dependencies. |
+## Table Stakes
 
-### Differentiators (Competitive Advantage)
+Features the system MUST have for icon integration to work at all. Missing any of these means icons are still effectively placeholders.
 
-Features that set Motif apart. Not required by users of generic tools, but these ARE Motif's reason to exist.
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Icon library selection by system architect** | The architect already picks fonts, colors, spacing, radii, and shadows. Icons are the last unresolved visual primitive. Without library selection, composed screens cannot reference real icons. | LOW | Modifies: `generate-system.md` workflow, `motif-system-architect.md` agent | The architect must pick ONE library from a curated set, not invent icon names. Decision algorithm parallels the existing font/color algorithms: vertical + differentiation seed -> library choice. |
+| **Icon size tokens in tokens.css** | Motif's design philosophy is "every visual value is a token." Icon sizes are visual values (16px, 20px, 24px, 32px, 40px). Without size tokens, icon dimensions get hardcoded -- violating the same principle that color/spacing tokens enforce. | LOW | Modifies: `generate-system.md` token file template | Token naming: `--icon-sm`, `--icon-md`, `--icon-lg`, `--icon-xl`. Based on 8px multiples like the Michelin Design System pattern. Values: 16px, 20px, 24px, 32px (map to existing component spec icon dimensions). |
+| **CDN link in token showcase HTML** | The token-showcase.html is self-contained (imports only tokens.css + Google Fonts CDN). Icons must render in the showcase without a build step. This means a CDN `<script>` tag, not an npm import. | LOW | Modifies: `token-showcase-template.html` | Lucide: `<script src="https://unpkg.com/lucide@latest"></script>` + `lucide.createIcons()`. Phosphor: `<script src="https://unpkg.com/@phosphor-icons/web@2"></script>` + class-based. The showcase template needs a new Icons section displaying sample icons from the selected library at each size token. |
+| **Concrete icon names in COMPONENT-SPECS.md** | `[MerchantIcon 40x40]` tells the composer nothing about which actual icon to render. Specs must use real icon names from the selected library so the composer can emit valid markup. Currently all 4 verticals use placeholder format. | MEDIUM | Modifies: all 4 vertical reference files (`fintech.md`, `health.md`, `saas.md`, `ecommerce.md`), `generate-system.md` component spec template | Each vertical needs a mapping from semantic role to concrete icon name. Example: fintech `[MerchantIcon]` -> `lucide:store` or `ph-storefront`. The vertical reference files define WHICH icons are appropriate per domain; the architect selects from this set. |
+| **Composed screens use real icon markup** | The endpoint of the pipeline. If composed screens still emit placeholder text like `[Icon]`, the entire integration is invisible to end users. Screens must render actual SVG icons. | MEDIUM | Modifies: `motif-screen-composer.md` agent, `compose-screen.md` workflow | The composer needs: (1) knowledge of which library was selected (from tokens.css or DESIGN-SYSTEM.md), (2) correct markup pattern per library (e.g., `<i data-lucide="store"></i>` vs `<i class="ph ph-storefront"></i>`), (3) icon size token references. |
+| **Icon library metadata in DESIGN-SYSTEM.md** | DESIGN-SYSTEM.md already documents color palette, typography scale, spacing, and motion. Icon library choice, CDN URL, and usage pattern must be documented here so downstream agents and human readers know which library is in use. | LOW | Modifies: `generate-system.md` Output 3 section | One new section: "Iconography" with library name, CDN URL, usage syntax, and vertical-specific icon mapping table. |
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| **Vertical/domain intelligence databases** | **This is the core differentiator.** No other tool researches your product vertical's design patterns before generating anything. v0, Emergent, and generic AI tools produce "one-size-fits-all" UI. Motif's fintech vertical knows that monetary values need tabular-nums, that negative amounts should NOT be red (red = error, not spending), and that trust signals matter more than aesthetics. This domain knowledge is what prevents "AI slop." | HIGH | Fintech vertical is built (226 lines, concrete values). Health, SaaS, and e-commerce are planned. Each vertical needs: navigation patterns, color systems with concrete hex values, typography pairings, spacing/density rules, component specs (TransactionRow for fintech, MetricCard for health), interaction patterns, accessibility specifics, and anti-patterns. Building each vertical well requires genuine design research, not just template filling. |
-| **Differentiation seed system** | Two fintech apps built with Motif should NOT look identical. The differentiation seed (personality, temperature, formality, density, era on 1-10 scales) shifts hue ranges, saturation, typography personality, and spacing density. A "rebellious" fintech app gets violet/magenta instead of standard blue-teal. An "institutional" one gets conservative blue. This is unique -- no other tool has a parameterized differentiation system for the same vertical. | MEDIUM | Already designed in detail in generate-system.md (color decision algorithm with seed-adjusted hue ranges). The anti-convergence check (comparing against named competitor colors) is a particularly clever touch. Implementation complexity is in the agent correctly following the algorithm, not in the algorithm itself. |
-| **Fresh context per screen (anti-degradation)** | Screen 5 in a multi-screen compose workflow must be as good as screen 1. Other AI tools degrade as context fills up. Motif spawns a fresh 200K-token agent for each screen, loading only the tokens, component specs, and previous screen summaries. The orchestrator stays thin (30-40% context). This is architecturally novel for a design tool. | HIGH | Context engine is fully designed with profiles per agent type, token budgets per file, and anti-patterns. Implementation depends on agents being correctly built to follow these profiles. Claude Code's subagent system (Task() -> fresh context) is the enabling technology. This pattern is well-documented in Claude Code docs (2026). |
-| **4-lens design review with scoring** | Automated design review that checks: (1) token compliance (are you using the design system?), (2) vertical pattern adherence (does this look like fintech?), (3) accessibility (WCAG AA), (4) visual hierarchy. Scored /100. No other tool reviews AI-generated UI against domain-specific heuristics. v0 and Emergent generate but do not review. | MEDIUM | Review workflow is built. The review -> fix loop is also built. Differentiation is that reviews are domain-aware (a fintech review checks for tabular-nums on monetary values; a health review checks for calming color ratios). |
-| **PostToolUse enforcement hooks** | Hooks that fire after every file edit to catch hardcoded CSS values, banned fonts, accessibility violations, and context budget overruns in real-time. Unlike review (which happens after composition), hooks enforce during composition. This is preventive, not corrective. | MEDIUM | Claude Code's hook system (2026) supports PostToolUse with matcher patterns, JSON stdin input, and exit code control. The hook receives the edited file path, can parse the content, and return structured JSON to block or warn. Four hooks planned: token-check (flag hardcoded colors/spacing), font-check (flag Inter/Roboto unless user-locked), a11y-check (flag div+onClick, missing alt, missing labels), context-monitor (warn at 50% context usage). |
-| **Visual token showcase (HTML)** | A self-contained HTML file that displays all generated tokens visually: color swatches with hex values, typography scale samples, spacing visualization, component previews. Users can open this in a browser and immediately see their design system. This makes the abstract (CSS custom properties) tangible. | LOW | Already specified in generate-system.md. Self-contained (imports tokens.css + Google Fonts, no other deps). This is low complexity but high perceived value -- it is the "wow moment" after system generation. |
-| **Brand color lock-in** | When users provide existing brand colors, Motif NEVER overrides them. The color decision algorithm generates scales (50-950) around the locked value, derives complementary surface/semantic/text colors, and adjusts surfaces (not the brand color) if WCAG contrast fails. Respecting existing brand identity is critical for the target audience (founders who already have a logo/brand). | MEDIUM | Algorithm fully designed. The key insight: if the locked primary color fails contrast, you adjust the surface color, not the primary. This is the correct behavior that generic tools get wrong. |
-| **Figma/screenshot input support** | Users can provide Figma files, screenshots, or reference products, and Motif extracts or references their design language. Four input types: (A) starting fresh, (B) brand constraints, (C) visual references, (D) design file with fidelity modes (pixel-perfect, capture spirit, extract tokens). | MEDIUM | Already designed in design-inputs.md. This bridges the gap between "starting from nothing" and "I already have designs." Most AI design tools assume you are starting from scratch. |
-| **State machine with persistence** | STATE.md tracks phase, screen status, review scores, decisions log, and context budget. Survives `/clear` commands. Enables resuming work across sessions. This is invisible infrastructure but critical for multi-session workflows -- design system generation is not a one-shot operation. | LOW | Fully designed in state-machine.md. Gate checks in every workflow verify correct phase transitions. |
+---
 
-### Anti-Features (Commonly Requested, Often Problematic)
+## Differentiators
 
-Features that seem good but create problems. Deliberately NOT building these.
+Features that make Motif's icon integration notably better than "just pick an icon library." These leverage Motif's existing domain intelligence.
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| **Runtime UI/visual editor** | "I want to drag-and-drop to adjust my design system" | Motif runs inside AI coding assistants (Claude Code, etc). Building a GUI is a completely different product. It would require a web app, design canvas, state management -- 10x the scope. Motif's audience uses terminals and code editors, not visual design tools. v0 and Figma already own the visual editor space. | Token showcase HTML provides visual preview. Users tweak tokens.css directly (which AI agents can do conversationally). |
-| **Tailwind export in v1** | "I use Tailwind, give me a tailwind.config.js" | Tailwind export creates a second source of truth. Changes to tokens.css would need to sync to tailwind.config.js and vice versa. Supporting both doubles testing surface. CSS custom properties work with Tailwind (you can reference them in config), so the CSS-first approach is not blocking Tailwind users. | Ship CSS custom properties only in v1. Tailwind export as a separate future command (v2). |
-| **Multi-runtime support in v1** | "I use Cursor/OpenCode/Gemini, support me too" | Spreading across runtimes before proving the concept on one runtime means shipping untested adapters. Each runtime has different subagent spawning, hook formats, and config injection. Testing four runtimes quadruples QA. | Ship Claude Code only in v1. The core/runtime architecture already supports adding runtimes later by just creating a `runtimes/{name}/` directory. Zero core changes needed. OpenCode in v1.1, Cursor in v1.2, Gemini in v1.3. |
-| **AI-powered design from scratch (no workflow)** | "Just give me a beautiful dashboard" | Single-prompt design generation is exactly the "AI slop" that Motif exists to prevent. Without research, without domain intelligence, without a design system, the output is generic. The whole point is the multi-step workflow: research -> system -> compose -> review -> fix. | The workflow IS the feature. `/motif:quick` exists for ad-hoc needs but still loads the design system for consistency. |
-| **Component library / npm UI components** | "Ship pre-built React/Vue components" | Motif generates specs and tokens, not runtime code. Shipping a component library means picking a framework (React? Vue? Svelte?), maintaining compatibility, handling bundling, tree-shaking, SSR. This is a separate product (like shadcn, Radix, Chakra). Motif's specs are framework-agnostic by design. | Generate COMPONENT-SPECS.md with XML specs that AI agents use to write framework-specific code. The specs are the reusable artifact, not pre-built components. |
-| **Real-time collaboration** | "My team should see the design system updates live" | Motif operates within a single developer's AI coding session. Real-time collab requires infrastructure (WebSockets, conflict resolution, presence). The audience is solo developers and founders, not design teams. | Design artifacts live in git. Collaboration happens through PRs and shared repos. STATE.md and tokens.css are plain files that merge cleanly. |
-| **Automatic deployment/hosting** | "Deploy my design system documentation" | Hosting is out of scope. The token-showcase.html is a local file. Adding deployment means managing cloud accounts, domains, CI/CD for docs. | token-showcase.html opens locally. Users can deploy it themselves if they want (it is self-contained HTML). |
-| **LLM provider abstraction** | "Let me use GPT-4 or Gemini models instead of Claude" | Motif's workflows use Claude Code-specific features (Task() subagent spawning, PostToolUse hooks, slash commands). Abstracting the LLM provider means abstracting the runtime, which is already handled by the core/runtime adapter architecture. The adapters ARE the LLM abstraction. | Each runtime adapter handles its own LLM. Claude Code uses Claude. OpenCode uses whatever OpenCode supports. The core design intelligence (verticals, workflows, specs) is LLM-agnostic -- only the thin adapter layer is runtime-specific. |
+| Feature | Value Proposition | Complexity | Dependencies | Notes |
+|---------|-------------------|------------|--------------|-------|
+| **Vertical-aware icon vocabulary** | Motif's core differentiator is domain intelligence. A fintech vertical's component specs should reference `credit-card`, `banknote`, `trending-up`, `shield-check` -- not generic `star`, `settings`, `home`. A health vertical should reference `heart-pulse`, `pill`, `activity`, `thermometer`. No other tool maps icons to domain semantics. This is the icon equivalent of "fintech knows monetary values need tabular-nums." | MEDIUM | Requires: curated icon vocabulary per vertical in each vertical reference file | Each of the 4 verticals needs a curated list of 15-25 domain-specific icon names mapped to their semantic roles. The system architect references this vocabulary when writing COMPONENT-SPECS.md. The composer then uses these exact names. This is NOT a full icon search -- it is a pre-researched dictionary. |
+| **Icon style matching to differentiation seed** | Lucide has one style (outline). Phosphor has 6 weights (thin, light, regular, bold, fill, duotone). The differentiation seed's "personality" and "formality" dimensions should influence icon weight selection: formal/institutional products get regular weight; bold/rebellious products get bold or fill weight. This creates visual consistency between icon weight and typography weight choices. | LOW | Requires: icon weight decision algorithm in `generate-system.md` | Only applies when the selected library supports multiple weights (currently only Phosphor). Can be captured as a single token: `--icon-weight: regular` or a DESIGN-SYSTEM.md directive. |
+| **Icon showcase section in token-showcase.html** | The token showcase is the "wow moment" after system generation. Adding an icon section with a grid of the vertical's key icons at each size, rendered from CDN, makes the showcase substantially more complete. Users see their icon vocabulary visually alongside colors and typography. | LOW | Requires: icon section in `token-showcase-template.html`, CDN script tag | Template adds a new section after Components: "Iconography" with icon grid showing each vertical icon at --icon-sm, --icon-md, --icon-lg sizes. The architect fills in the actual icon names from the vertical vocabulary. |
+| **Anti-slop icon check (enforce real names)** | The existing anti-slop checklist item ("Am I using a generic icon set without checking the vertical?") is a mental prompt with no enforcement. A concrete check -- either in the composer agent's instructions or as a hook -- could verify that icon names in composed HTML actually exist in the selected library's vocabulary. | MEDIUM | Requires: knowledge of valid icon names per library, modification to composer anti-slop checklist or a new hook | The simplest version is an explicit instruction in the composer agent: "Icon names MUST come from the icon vocabulary in COMPONENT-SPECS.md or DESIGN-SYSTEM.md. Do NOT invent icon names." A hook-based version would grep composed HTML for icon markup and validate names against a known list. Start with the instruction-based version; hooks are v1.2. |
+| **Icon color token integration** | Icons should use the same color tokens as text: `--text-primary`, `--text-secondary`, `--text-link`, semantic colors. This is already how most icon libraries work (they inherit `currentColor`), but explicitly documenting it in COMPONENT-SPECS.md prevents the composer from hardcoding icon colors. | LOW | Modifies: component spec template to include icon color directives | Both Lucide and Phosphor inherit `currentColor` by default, so setting `color: var(--text-secondary)` on the parent element colors the icon. Document this pattern; do not create separate `--icon-color-*` tokens. |
+
+---
+
+## Anti-Features
+
+Features that seem like they belong in an icon integration but create problems for Motif specifically. Deliberately NOT building these.
+
+| Anti-Feature | Why It Seems Useful | Why It Is Problematic for Motif | What to Do Instead |
+|--------------|---------------------|--------------------------------|-------------------|
+| **Full icon search/discovery engine** | "The agent should be able to search 1700+ icons to find the right one" | AI agents do not reliably search 1700 icons. They hallucinate icon names, pick visually wrong icons, and waste context tokens processing large icon catalogs. The strength of Motif is pre-researched domain knowledge, not runtime search. A curated vocabulary of 15-25 icons per vertical is far more reliable than an open-ended search across the full library. | Pre-curate a vertical-specific icon vocabulary (15-25 icons per vertical with semantic role mappings). The architect picks from this curated set; the composer uses exactly what the architect specified. No search needed. |
+| **Multiple icon libraries simultaneously** | "Support Lucide AND Phosphor AND Heroicons in the same project" | Multiple libraries mean multiple CDN scripts, inconsistent visual styles, larger page weight, and confused agents. Design systems use ONE icon set for visual consistency. Fonts are not mixed arbitrarily and neither should icons. | Pick ONE library per project. The system architect selects it. The vertical reference files provide icon name mappings for each supported library so switching libraries is a vocabulary swap, not a system redesign. |
+| **Custom icon upload/generation** | "Let users add their own SVG icons to the system" | Custom icons require validation (grid alignment, stroke width, visual consistency), hosting, and CDN management. This is a full icon design pipeline -- far beyond Motif's scope. Products that need custom icons (with logos, brand-specific glyphs) handle this outside the design system tool. | Document how to add custom icons alongside the selected library (e.g., "place SVGs in /public/icons/ and reference with `<img>`"). Do not build infrastructure for this. |
+| **Animated icon support** | "Support animated/interactive icons for micro-interactions" | Animated icons require JavaScript controllers, interaction state management, and significantly increase showcase and composition complexity. The motion tokens (`--duration-fast`, `--ease-default`) handle transitions; animated icons are a separate concern. | Use CSS transitions on icon containers (opacity, transform) referenced via motion tokens. Animated SVG icons are a v2+ feature if ever. |
+| **Icon font approach** | "Use icon fonts instead of inline SVG for simpler markup" | Icon fonts have well-documented accessibility problems (screen readers announce Unicode characters, no semantic meaning), cannot be styled per-path (no duotone), break when fonts fail to load, and are considered legacy practice in 2026. Both Lucide and Phosphor have moved to SVG-based approaches. | SVG-based approach only. Lucide uses `data-lucide` attributes resolved to inline SVGs. Phosphor uses web components or class-based SVGs. Both are accessible and stylable. |
+| **Runtime icon switching** | "Let the user change icon library after system generation without regenerating" | Icon names are library-specific (`lucide:store` vs `ph-storefront` vs `heroicon:building-storefront`). Changing libraries means rewriting every component spec and every composed screen. This is a system-level decision, not a runtime toggle. | The library is selected during system generation. Changing it means re-running `/motif:system`. The vertical reference files already provide name mappings per library, so the system architect just generates with the new library's vocabulary. |
+
+---
 
 ## Feature Dependencies
 
 ```
-[package.json + LICENSE]
+Vertical icon vocabularies (in vertical reference files)
     |
     v
-[Installer (bin/install.js)]
-    |-- requires --> [package.json bin field]
-    |-- requires --> [All core/ files to exist]
-    |-- requires --> [All runtimes/claude-code/ files to exist]
-    |-- copies ----> [commands, agents, hooks, core to target dirs]
+Icon library selection algorithm (in generate-system.md)
     |
-    v
-[/motif:init (already built)]
-    |-- requires --> [Installer completed successfully]
-    |-- creates ---> [STATE.md, PROJECT.md, DESIGN-BRIEF.md]
+    +---> Icon size tokens in tokens.css
     |
-    v
-[/motif:research (already built)]
-    |-- requires --> [init completed (STATE = INITIALIZED)]
-    |-- requires --> [Agents: forge-researcher.md]
-    |-- uses ------> [Vertical database (e.g., fintech.md)]
-    |-- creates ---> [DESIGN-RESEARCH.md, research/*.md]
+    +---> CDN link in token-showcase-template.html
     |
-    v
-[/motif:system (already built)]
-    |-- requires --> [research completed (STATE = RESEARCHED)]
-    |-- requires --> [Agent: forge-system-architect.md]
-    |-- creates ---> [tokens.css, COMPONENT-SPECS.md, DESIGN-SYSTEM.md, token-showcase.html]
+    +---> Icon names in COMPONENT-SPECS.md
+    |         |
+    |         v
+    |     Composer uses real icon markup (in compose-screen.md)
     |
-    v
-[/motif:compose (already built)]
-    |-- requires --> [system generated (STATE = SYSTEM_GENERATED)]
-    |-- requires --> [Agent: forge-screen-composer.md]
-    |-- uses ------> [Hooks: token-check, font-check, a11y-check (enforcement during compose)]
-    |-- creates ---> [Screen files, screen-SUMMARY.md]
+    +---> Iconography section in DESIGN-SYSTEM.md
     |
-    v
-[/motif:review (already built)]
-    |-- requires --> [at least one screen composed]
-    |-- requires --> [Agent: forge-design-reviewer.md]
-    |-- creates ---> [screen-REVIEW.md with score /100]
-    |
-    v
-[/motif:fix (already built)]
-    |-- requires --> [review completed with issues]
-    |-- requires --> [Agent: forge-fix-agent.md]
+    +---> Icon showcase section in token-showcase.html
 ```
 
-### Dependency Notes
+The critical dependency chain is: **vertical vocabularies MUST exist before** the system architect can select icons, and **COMPONENT-SPECS.md MUST contain real icon names before** the composer can emit valid markup. This means vertical reference files are modified first, then the system generation pipeline, then the composition pipeline.
 
-- **Agents require the installer to place them**: All 5 agents must be built before the installer can copy them. However, during development they can be tested by placing files manually.
-- **Hooks enhance compose but do not block it**: The compose workflow works without hooks. Hooks add enforcement (catching hardcoded values, banned fonts, a11y issues) but are not a hard dependency. This means hooks can ship in a later phase without blocking the core workflow.
-- **Verticals enhance research but do not block it**: The research workflow works without a vertical reference file -- agents will research the vertical from general knowledge. Vertical databases add depth and specificity (concrete hex values, specific component specs) but are not required for the workflow to function.
-- **Templates are consumed by agents**: STATE-TEMPLATE.md and SUMMARY-TEMPLATE.md define the format for agent outputs. Agents need to know these formats, but the formats are already defined in the reference docs (state-machine.md and compose-screen.md), so templates formalize what is already specified.
-- **Token showcase enhances system generation**: The HTML file is generated alongside tokens.css. It is the visual verification artifact. Not strictly necessary for the workflow but dramatically improves user experience ("see your design system" vs "read CSS custom properties").
-- **README and LICENSE are publishing dependencies**: Required for npm publish, not for functionality. Can be built last.
-- **CI/publish automation depends on everything else**: GitHub Actions for npm publishing only makes sense once the package is complete and tested.
+---
 
-## MVP Definition
+## Library Selection Criteria
 
-### Launch With (v1.0-alpha)
+The system architect needs a decision algorithm for icon library selection. Based on ecosystem research, the curated set should be:
 
-Minimum viable product -- what is needed to validate the concept with early adopters.
+### Recommended: Lucide (default)
 
-- [ ] **5 Claude Code agent definitions** -- Without agents, no workflow step can spawn subagents. This is the critical gap between "designed" and "functional."
-- [ ] **3 core templates (STATE, SUMMARY, token-showcase)** -- Formalize output formats for agents.
-- [ ] **Installer (bin/install.js)** -- Without this, users cannot install. Must handle Claude Code runtime detection and file placement.
-- [ ] **package.json + LICENSE** -- Without these, npm publish is impossible.
-- [ ] **Fintech vertical (already built)** -- Proves the concept with one vertical.
-- [ ] **README** -- npm storefront. Must be good enough to convince someone to try `npx motif@latest`.
-- [ ] **Full rebrand from Design Forge to Motif** -- Package name, commands, install dirs, all references. Ship with a clean identity.
+- **Why:** 1700+ icons, clean consistent stroke style, kebab-case naming, excellent CDN support via unpkg, MIT-equivalent license (ISC), strong community (fork of Feather Icons with active maintenance), used as default by shadcn/ui. Categories include Finance (56 icons), Medical (42), Shopping (27), Charts (31) -- covering all 4 Motif verticals.
+- **CDN pattern:** `<script src="https://unpkg.com/lucide@0.460.0"></script>` + `<i data-lucide="icon-name"></i>` + `lucide.createIcons()`
+- **Icon naming:** kebab-case, descriptive. Examples: `credit-card`, `trending-up`, `heart-pulse`, `shopping-cart`, `layout-dashboard`.
+- **Sizing:** Inherits from CSS `width`/`height`. Default 24x24.
+- **Coloring:** Inherits `currentColor` from parent CSS `color` property.
+- **Limitation:** Single style only (outline/stroke). No fill, bold, or duotone variants.
 
-### Add After Validation (v1.0-beta)
+### Alternative: Phosphor Icons
 
-Features to add once the core workflow is proven end-to-end.
+- **Why:** 6000+ icons, 6 weight variants (thin/light/regular/bold/fill/duotone), excellent for projects where the differentiation seed calls for varied icon weight. Web components approach via CDN.
+- **CDN pattern:** `<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>` + `<i class="ph ph-icon-name"></i>`
+- **Icon naming:** kebab-case with `ph-` prefix. Examples: `ph-credit-card`, `ph-trend-up`, `ph-heartbeat`, `ph-shopping-cart`, `ph-squares-four`.
+- **Sizing:** Via `font-size` CSS property (font-based) or `size` attribute (web components).
+- **Coloring:** Inherits `color` CSS property.
+- **Advantage:** Weight variants map cleanly to differentiation seed personality axis.
 
-- [ ] **3 additional verticals (health, SaaS, e-commerce)** -- "Any vertical" is the pitch. One vertical does not prove generalizability. Trigger: after battle test confirms the vertical database pattern works.
-- [ ] **4 PostToolUse hooks** -- Enforcement layer. Trigger: after compose workflow is tested and produces good output WITHOUT hooks (hooks should improve quality, not be load-bearing).
-- [ ] **2 utility scripts (contrast-checker, token-counter)** -- Developer convenience. Trigger: after tokens.css generation is validated.
-- [ ] **End-to-end battle test on real project** -- CryptoPay fintech vertical. Must prove: differentiation seed produces distinct outputs, brand colors lock in correctly, fresh context maintains quality across screens.
+### Selection Algorithm
 
-### Future Consideration (v2+)
+```
+DEFAULT: Lucide (widest adoption, shadcn ecosystem, single style = visual consistency)
 
-Features to defer until product-market fit is established.
+IF differentiation seed personality >= 7 (rebellious) AND seed formality <= 4 (casual):
+  CONSIDER: Phosphor with bold or duotone weight
+  RATIONALE: Visual personality through icon weight variation
 
-- [ ] **OpenCode runtime support** -- v1.1. Core/runtime architecture already supports it. Just add `runtimes/opencode/` directory.
-- [ ] **Cursor/Windsurf runtime support** -- v1.2. Note: no subagent support means degraded quality on multi-screen projects.
-- [ ] **Gemini CLI runtime support** -- v1.3. Wait for Gemini CLI to stabilize.
-- [ ] **Tailwind token export** -- v2. Separate command that generates tailwind.config.js from tokens.css.
-- [ ] **Additional verticals (social, education, marketplace, devtools)** -- v2. Proves broader generalizability.
-- [ ] **CHANGELOG** -- Post-v1 release cycle.
-- [ ] **Figma MCP integration** -- v2. Figma's MCP server (beta 2025, evolving in 2026) could allow Motif to read design tokens directly from Figma files. This is a natural extension of the "design file input" (Type D) but requires MCP server stability.
-- [ ] **W3C DTCG token format export** -- v2. The W3C Design Tokens Community Group spec reached first stable version in October 2025. Exporting tokens in DTCG JSON format alongside CSS custom properties would enable interoperability with tools like Style Dictionary, Penpot, and Tokens Studio.
+IF vertical is health AND seed temperature >= 6 (warm):
+  CONSIDER: Phosphor with light weight
+  RATIONALE: Thinner strokes feel gentler, more caring
 
-## Feature Prioritization Matrix
+OTHERWISE: Lucide
+  RATIONALE: Consistency, ecosystem alignment, simplest integration
+```
 
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| Agent definitions (5 agents) | HIGH | MEDIUM | P1 |
-| Installer (bin/install.js) | HIGH | MEDIUM | P1 |
-| package.json + LICENSE | HIGH | LOW | P1 |
-| Rebrand to Motif | HIGH | MEDIUM | P1 |
-| README | HIGH | LOW | P1 |
-| Core templates (3) | MEDIUM | LOW | P1 |
-| End-to-end test (controlled) | HIGH | MEDIUM | P1 |
-| Health vertical | MEDIUM | MEDIUM | P2 |
-| SaaS vertical | MEDIUM | MEDIUM | P2 |
-| E-commerce vertical | MEDIUM | MEDIUM | P2 |
-| PostToolUse hooks (4) | MEDIUM | MEDIUM | P2 |
-| Utility scripts (2) | LOW | LOW | P2 |
-| Battle test (real project) | HIGH | HIGH | P2 |
-| CI/publish automation | MEDIUM | LOW | P2 |
-| OpenCode adapter | LOW | MEDIUM | P3 |
-| Cursor adapter | LOW | MEDIUM | P3 |
-| Tailwind export | LOW | MEDIUM | P3 |
-| DTCG JSON export | LOW | MEDIUM | P3 |
-| Additional verticals (4+) | LOW | HIGH | P3 |
+---
 
-**Priority key:**
-- P1: Must have for v1.0-alpha launch
-- P2: Should have for v1.0-beta, add before public release
-- P3: Nice to have, future consideration
+## Icon Size Token Specification
 
-## Competitor Feature Analysis
+Based on the Michelin Design System pattern (8px multiples) and existing Motif component spec dimensions:
 
-| Feature | v0 (Vercel) | shadcn/ui CLI | Figma MCP | Emergent | Motif |
-|---------|-------------|---------------|-----------|----------|-------|
-| **Install method** | Web app (no install) | `npx shadcn@latest init` | MCP server config | Web app | `npx motif@latest` |
-| **Domain intelligence** | None -- generic | None -- generic | Reads existing Figma tokens | None -- generic | **Vertical databases with concrete values** |
-| **Design token generation** | Generates with components | Copies pre-built tokens | Reads, does not generate | Generates with UI | **Generates with domain reasoning + differentiation** |
-| **Component output** | Full React + Tailwind code | Copies full component source | Code Connect references | Full application code | **XML specs for AI agents to implement** |
-| **Design review** | None | None | QA scanning (beta) | None | **4-lens domain-aware review scored /100** |
-| **Context management** | N/A (web app) | N/A (one-shot) | N/A (MCP read) | Unknown | **Fresh 200K context per screen, orchestrator stays thin** |
-| **Multi-screen quality** | Degrades | N/A | N/A | Unknown | **Consistent via fresh context isolation** |
-| **Brand color support** | Limited | Theme selection only | Reads existing | Basic | **Lock-in with scale generation + contrast adjustment** |
-| **Differentiation** | None -- same prompt = same output | 5 base color presets | N/A | None | **Parameterized seed (personality, temperature, formality, density, era)** |
-| **Vertical specialization** | None | None | None | None | **Fintech, health, SaaS, e-commerce (and extensible)** |
-| **Target user** | Developers wanting quick UI | Developers building component libraries | Developers with Figma designs | Non-technical founders | **Developers using AI coding tools who want domain-appropriate UI** |
-| **Runtime dependency** | Browser | Node.js project | MCP-compatible editor | Browser | **AI coding assistant (Claude Code v1)** |
+| Token | Value | Pixel | Usage in Existing Component Specs |
+|-------|-------|-------|-----------------------------------|
+| `--icon-sm` | `1rem` | 16px | Inline text icons, badges, breadcrumb separators, shortcut hints |
+| `--icon-md` | `1.25rem` | 20px | Navigation items, filter chips, button icons, command palette results (`[Icon 20x20]` in SaaS CommandPalette) |
+| `--icon-lg` | `1.5rem` | 24px | Default standalone icons, card header icons, action buttons |
+| `--icon-xl` | `2rem` | 32px | Health MetricCard icons (`[MetricIcon 32x32]`), feature highlights |
+| `--icon-2xl` | `2.5rem` | 40px | Fintech TransactionRow merchant icons (`[MerchantIcon 40x40]`), profile avatars with icon fallback |
 
-### Key Competitive Insights
+These map directly to the placeholder dimensions already in the vertical reference files:
+- `[Icon 20x20]` in SaaS CommandPalette -> `--icon-md`
+- `[MetricIcon 32x32]` in Health MetricCard -> `--icon-xl`
+- `[CategoryIcon 36x36]` in Health LogEntry -> between `--icon-xl` and `--icon-2xl` (use `--icon-xl` with padding or add `--icon-xxl: 2.25rem` for 36px)
+- `[MerchantIcon 40x40]` in Fintech TransactionRow -> `--icon-2xl`
 
-1. **No tool does domain-specific design intelligence.** This is a genuine white space. v0, Emergent, and generic AI tools generate UI without understanding that fintech needs trust signals, health needs calming palettes, or e-commerce needs conversion patterns. Motif's vertical databases are the primary competitive moat.
+---
 
-2. **No tool reviews its own output against domain heuristics.** Code review tools (CodeRabbit, Qodo) review code quality. Design tools generate but do not review. Motif's 4-lens review that includes domain pattern adherence is unique.
+## Vertical Icon Vocabulary (Preliminary)
 
-3. **Context management is an unsolved problem for multi-screen generation.** v0 handles single screens well. No tool handles "build me 7 screens that are all consistent and all high quality." Motif's fresh-context-per-screen architecture directly addresses this.
+Each vertical needs a curated vocabulary. These are initial mappings using Lucide icon names (Phosphor alternatives in parentheses):
 
-4. **The shadcn install pattern is the gold standard for developer CLI tools.** `npx tool@latest init` with auto-detection, sensible defaults, and `--yes` for skipping prompts. Motif's installer should follow this pattern exactly.
+### Fintech (15-20 icons)
+| Semantic Role | Lucide Name | Phosphor Name | Used In |
+|---------------|-------------|---------------|---------|
+| Merchant/store | `store` | `ph-storefront` | TransactionRow |
+| Credit card | `credit-card` | `ph-credit-card` | Cards, payment |
+| Send money | `send` | `ph-paper-plane-tilt` | Primary CTA |
+| Receive money | `download` | `ph-arrow-down` | Receive flow |
+| Trending up | `trending-up` | `ph-trend-up` | Positive change |
+| Trending down | `trending-down` | `ph-trend-down` | Negative change |
+| Shield/security | `shield-check` | `ph-shield-check` | Security settings |
+| Bank | `landmark` | `ph-bank` | Bank accounts |
+| Wallet | `wallet` | `ph-wallet` | Wallet/balance |
+| QR code | `qr-code` | `ph-qr-code` | Scan/receive |
+| Receipt | `receipt` | `ph-receipt` | Transaction detail |
+| Bell/notification | `bell` | `ph-bell` | Notifications |
+| Settings | `settings` | `ph-gear` | Settings |
+| User profile | `user` | `ph-user` | Profile |
+| Search | `search` | `ph-magnifying-glass` | Search |
+| Eye (show/hide) | `eye` / `eye-off` | `ph-eye` / `ph-eye-slash` | Balance visibility |
 
-5. **Figma MCP is a future convergence point, not a current competitor.** Figma's MCP server lets AI agents read design systems from Figma. Motif generates design systems for projects that do not have Figma files. They are complementary -- Motif could eventually read from Figma MCP as an input source (Type D: design file input).
+### Health (15-20 icons)
+| Semantic Role | Lucide Name | Phosphor Name | Used In |
+|---------------|-------------|---------------|---------|
+| Heart/vitals | `heart-pulse` | `ph-heartbeat` | MetricCard (heart rate) |
+| Activity | `activity` | `ph-activity` | MetricCard (activity) |
+| Pill/medication | `pill` | `ph-pill` | Medication tracking |
+| Thermometer | `thermometer` | `ph-thermometer` | Temperature |
+| Droplet/water | `droplets` | `ph-drop` | Hydration |
+| Weight/scale | `scale` | `ph-scales` | Weight tracking |
+| Moon/sleep | `moon` | `ph-moon` | Sleep tracking |
+| Footprints/steps | `footprints` | `ph-footprints` | Step counter |
+| Apple/nutrition | `apple` | `ph-apple` | Nutrition |
+| Calendar | `calendar` | `ph-calendar` | Scheduling |
+| Plus/log entry | `plus` | `ph-plus` | Add log entry |
+| Chart/insights | `bar-chart-3` | `ph-chart-bar` | Insights |
+| Clock | `clock` | `ph-clock` | Timestamps |
+| User profile | `user` | `ph-user` | Profile |
+| Bell | `bell` | `ph-bell` | Reminders |
+
+### SaaS (15-20 icons)
+| Semantic Role | Lucide Name | Phosphor Name | Used In |
+|---------------|-------------|---------------|---------|
+| Dashboard | `layout-dashboard` | `ph-squares-four` | Dashboard nav |
+| Search | `search` | `ph-magnifying-glass` | CommandPalette, FilterBar |
+| Filter | `filter` | `ph-funnel` | FilterBar |
+| Sort ascending | `arrow-up-narrow-wide` | `ph-sort-ascending` | DataTable |
+| Sort descending | `arrow-down-wide-narrow` | `ph-sort-descending` | DataTable |
+| Checkbox | `check-square` | `ph-check-square` | DataTable selection |
+| More/actions | `more-horizontal` | `ph-dots-three` | Row actions |
+| Settings/gear | `settings` | `ph-gear` | Settings |
+| Users/team | `users` | `ph-users` | Team management |
+| Key/API | `key` | `ph-key` | API keys |
+| Bell | `bell` | `ph-bell` | Notifications |
+| Sidebar | `panel-left` | `ph-sidebar` | Sidebar toggle |
+| Command | `terminal` | `ph-terminal` | Command palette trigger |
+| Plus/create | `plus` | `ph-plus` | Create new |
+| Trash/delete | `trash-2` | `ph-trash` | Delete action |
+| External link | `external-link` | `ph-arrow-square-out` | External navigation |
+
+### E-commerce (15-20 icons)
+| Semantic Role | Lucide Name | Phosphor Name | Used In |
+|---------------|-------------|---------------|---------|
+| Shopping cart | `shopping-cart` | `ph-shopping-cart` | Cart, nav |
+| Heart/wishlist | `heart` | `ph-heart` | Wishlist toggle |
+| Search | `search` | `ph-magnifying-glass` | Product search |
+| Star/rating | `star` | `ph-star` | Product ratings |
+| Package/order | `package` | `ph-package` | Order tracking |
+| Truck/shipping | `truck` | `ph-truck` | Shipping status |
+| Tag/sale | `tag` | `ph-tag` | Sale badges |
+| Filter | `sliders-horizontal` | `ph-sliders-horizontal` | Product filters |
+| Grid/list view | `grid-3x3` / `list` | `ph-grid-four` / `ph-list` | View toggle |
+| Minus/plus | `minus` / `plus` | `ph-minus` / `ph-plus` | Quantity selector |
+| X/remove | `x` | `ph-x` | Remove from cart |
+| Chevron | `chevron-right` | `ph-caret-right` | Breadcrumbs, navigation |
+| Credit card | `credit-card` | `ph-credit-card` | Payment |
+| Check/success | `check-circle` | `ph-check-circle` | Order confirmed |
+| User | `user` | `ph-user` | Account |
+| Image | `image` | `ph-image` | Product image placeholder |
+
+---
+
+## MVP Recommendation
+
+### Must Ship (Table Stakes)
+
+1. **Vertical icon vocabularies** in all 4 vertical reference files -- the foundation everything else depends on
+2. **Icon library selection algorithm** in `generate-system.md` -- Lucide as default, Phosphor as alternative
+3. **Icon size tokens** in the token file template (`--icon-sm` through `--icon-2xl`)
+4. **CDN link** in `token-showcase-template.html`
+5. **Concrete icon names** in COMPONENT-SPECS.md component spec template
+6. **Composer icon markup** instructions in `motif-screen-composer.md`
+
+### Should Ship (Differentiators)
+
+7. **Icon showcase section** in token-showcase.html
+8. **Iconography section** in DESIGN-SYSTEM.md
+9. **Anti-slop icon instruction** in composer agent (instruction-based, not hook-based)
+
+### Defer
+
+- Icon weight matching to differentiation seed (Phosphor-only, low priority)
+- Hook-based icon name validation (v1.2)
+- Lucide MCP server integration for icon discovery (v2.0 -- interesting but premature)
+
+---
+
+## Pipeline Integration Map
+
+This shows exactly where each feature modifies the existing Motif pipeline, in execution order:
+
+```
+STEP 1: /motif:research
+  No changes. Research does not involve icons.
+
+STEP 2: /motif:system (system architect generates design system)
+  MODIFIED FILES:
+    generate-system.md          -- Add icon library decision algorithm
+                                -- Add icon size tokens to token file template
+                                -- Add iconography section to DESIGN-SYSTEM.md template
+                                -- Add icon vocabulary reference to COMPONENT-SPECS.md template
+    motif-system-architect.md   -- Add icon awareness to domain expertise section
+    token-showcase-template.html -- Add CDN script tag + icon showcase section
+    verticals/fintech.md        -- Replace [MerchantIcon] placeholders with Lucide/Phosphor names
+    verticals/health.md         -- Replace [MetricIcon], [CategoryIcon] placeholders
+    verticals/saas.md           -- Replace [Icon 20x20] placeholders
+    verticals/ecommerce.md      -- Add icon names to ProductCard, CartItem specs
+
+STEP 3: /motif:compose (screen composer builds screens)
+  MODIFIED FILES:
+    compose-screen.md           -- Add icon markup instructions to agent spawn prompt
+    motif-screen-composer.md    -- Add icon section to domain expertise
+                                -- Update anti-slop checklist item 8 with enforcement
+                                -- Add icon self-review checklist item
+```
+
+---
+
+## Confidence Assessment
+
+| Area | Confidence | Reason |
+|------|------------|--------|
+| Library selection (Lucide vs Phosphor) | HIGH | Verified via official docs, CDN availability confirmed, shadcn/ui ecosystem alignment confirmed, Chakra UI v3 dropped internal icons in favor of lucide-react |
+| CDN integration pattern | HIGH | Lucide unpkg CDN usage verified via official docs and multiple sources. `data-lucide` attribute pattern confirmed. Phosphor web components CDN also confirmed. |
+| Icon size token naming | MEDIUM | Modeled on Michelin Design System (8px multiples) pattern verified via official docs. Token names (`--icon-sm` etc.) follow Motif's existing naming conventions (`--text-sm`, `--radius-sm`). No precedent within Motif specifically for icon tokens. |
+| Vertical icon vocabularies | MEDIUM | Icon names verified against Lucide categories page (Finance: 56, Medical: 42, Shopping: 27). Specific names like `credit-card`, `heart-pulse`, `shopping-cart` confirmed to exist. Full vocabulary coverage per vertical needs validation against the live Lucide search. |
+| Composer markup integration | HIGH | The composer already handles fonts (CDN link in head) and tokens (CSS custom properties). Icons follow the same pattern: CDN in head, markup in body, styling via tokens. |
+
+---
 
 ## Sources
 
-### Verified (MEDIUM-HIGH confidence)
-- [Claude Code Hooks Documentation](https://code.claude.com/docs/en/hooks-guide) -- Official docs, verified PostToolUse format, JSON stdin, exit code control, matcher patterns, settings.json placement
-- [Claude Code Subagents Documentation](https://code.claude.com/docs/en/sub-agents) -- Official docs, verified Task() spawning, fresh context per agent, agent file format, tool restrictions, permission modes
-- [shadcn/ui CLI Documentation](https://ui.shadcn.com/docs/cli) -- Official docs, verified init command pattern, flags (--yes, --force, --template), package manager support
-- [W3C DTCG Design Tokens Spec](https://www.designtokens.org/) -- Official site, first stable version October 2025, 10+ tools supporting the standard
-- [Style Dictionary DTCG Support](https://styledictionary.com/info/dtcg/) -- Official docs, v4 first-class DTCG support
-- [Figma MCP Server Blog](https://www.figma.com/blog/design-systems-ai-mcp/) -- Official Figma blog, MCP server for design system context
-- [v0 by Vercel](https://v0.app/) -- Official site, AI UI generation capabilities
-
-### WebSearch-sourced (MEDIUM confidence)
-- [Fintech design patterns 2026](https://www.eleken.co/blog-posts/modern-fintech-design-guide) -- Domain-specific design conventions
-- [AI coding agents comparison 2026](https://www.faros.ai/blog/best-ai-coding-agents-2026) -- Context management trends
-- [Context engineering for coding agents](https://martinfowler.com/articles/exploring-gen-ai/context-engineering-coding-agents.html) -- Martin Fowler on context curation
-- [Node.js CLI best practices](https://github.com/lirantal/nodejs-cli-apps-best-practices) -- GitHub, comprehensive CLI patterns
-- [Vertical AI agents](https://www.ibm.com/think/topics/vertical-ai-agents) -- IBM, domain-specific AI specialization
-
-### Project-internal (HIGH confidence)
-- `core/references/context-engine.md` -- Context profiles, token budgets, anti-patterns
-- `core/references/runtime-adapters.md` -- Install mapping, runtime detection, path resolution
-- `core/workflows/generate-system.md` -- Color/typography/spacing decision algorithms
-- `core/references/verticals/fintech.md` -- Concrete vertical database example (226 lines)
-- `core/workflows/research.md` -- 4-agent parallel research orchestration
-- `runtimes/claude-code/commands/forge/init.md` -- Interactive interview flow, auto-mode, vertical detection
-- `GSD-PROJECT-SPEC.md` -- Full project architecture, what is built vs not built
-
----
-*Feature research for: AI design engineering system (Motif)*
-*Researched: 2026-03-01*
+- [Lucide Icons Official Docs](https://lucide.dev/guide/packages/lucide) -- CDN usage, data-lucide attribute pattern
+- [Lucide Categories](https://lucide.dev/icons/categories) -- 45 categories, icon counts per category
+- [Phosphor Icons GitHub](https://github.com/phosphor-icons/web) -- Web components CDN, weight variants
+- [Phosphor Icons Web Components](https://github.com/phosphor-icons/webcomponents) -- Web component approach
+- [shadcn/ui Icon Library Comparison](https://www.shadcndesign.com/blog/comparing-icon-libraries-shadcn-ui) -- Lucide as default, comparison with Heroicons/Material/Radix
+- [Michelin Design System Icon Size Tokens](https://designsystem.michelin.com/tokens/icon-size) -- 8px multiple sizing pattern
+- [Duet Design System Icon Component](https://www.duetds.com/components/icon/) -- Size variants, semantic naming, framework-agnostic approach
+- [Chakra UI v3 Announcement](https://www.chakra-ui.com/blog/00-announcing-v3) -- Dropped internal icons, recommends lucide-react
+- [Lucide MCP Server](https://deepwiki.com/SeeYangZhi/lucide-icons-mcp) -- MCP-based icon discovery (future reference)

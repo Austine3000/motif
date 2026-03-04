@@ -568,3 +568,863 @@ Layer 6: Additional runtimes               [FUTURE]
 ---
 *Architecture research for: npm-distributed AI design engineering tool*
 *Researched: 2026-03-01*
+
+---
+
+# Icon Library Integration Architecture
+
+**Domain:** Icon library selection and integration into the Motif design pipeline
+**Researched:** 2026-03-04
+**Overall Confidence:** HIGH
+
+## Problem Statement
+
+Motif's pipeline currently handles colors, typography, spacing, radii, shadows, and motion as first-class design system concerns. Icons are mentioned in multiple places (research workflow item #3 "Iconography -- outlined/filled/duotone", composer anti-slop check #8 "Am I using a generic icon set without checking the vertical?", system architect output "icon style recommendation") but have no formal infrastructure: no curated reference doc, no icon tokens, no delivery mechanism to the HTML output, and no reviewer lens for icon compliance. The composer agent is told to care about icon choice but given no tools to make an informed decision.
+
+## Current State: Where Icons Already Appear
+
+| File | How Icons Are Referenced | Gap |
+|------|------------------------|-----|
+| `workflows/research.md` | Visual language agent researches "Iconography -- outlined/filled/duotone, personality match" | Research happens but findings have no structured landing zone in the system |
+| `workflows/generate-system.md` | DESIGN-SYSTEM.md output includes "icon style recommendation" | One-line recommendation, not actionable for the composer |
+| `agents/motif-screen-composer.md` | Anti-slop #8: "Am I using a generic icon set without checking the vertical?" | Composer has no reference doc to check AGAINST |
+| `agents/motif-design-reviewer.md` | Nielsen #2 "unfamiliar iconography", #6 "unlabeled icons" | Reviewer has no icon compliance spec to grade against |
+| `references/verticals/*.md` | Icons referenced structurally (e.g., "MerchantIcon 40x40", "star icons", "heart icon", "bell icon") | Component specs name icons but never say which library or SVG to use |
+
+**Summary:** The pipeline has icon-shaped holes at every stage but no icon-shaped infrastructure to fill them.
+
+## Recommended Architecture
+
+### Design Principle: Icons as a Curated Reference, Not a Token System
+
+Icons differ from colors/typography/spacing in a critical way: they are not continuous values but discrete selections. You do not interpolate between two icons. You pick one. This means icons need a **reference catalog** (which icons exist and when to use each), not a **token scale** (graduated values on a spectrum).
+
+The architecture adds three things:
+1. **A curated icon reference doc** per vertical (what icons to use)
+2. **Icon metadata in DESIGN-SYSTEM.md / COMPONENT-SPECS.md** (how icons integrate with components)
+3. **A delivery mechanism** in the HTML output (how icons render)
+
+### Architecture Diagram
+
+```
+USER                          PIPELINE STAGE               ICON TOUCHPOINT
+──────────────────────────────────────────────────────────────────────────
+
+/motif:init                   DESIGN-BRIEF.md              Captures icon style
+                              (Inputs section)             preference if any
+                                    │
+                                    ▼
+/motif:research               research/02-visual-          Researches iconography
+                              language.md                  style per vertical
+                                    │
+                                    ▼
+                              DESIGN-RESEARCH.md           LOCKS icon direction:
+                              (synthesized)                library + style + sizing
+                                    │
+                                    ▼
+/motif:system                 DESIGN-SYSTEM.md             Documents icon system:
+                              (human-readable)             library, style, sizing,
+                                    │                      CDN source
+                                    │
+                                    ├──► tokens.css        NEW: --icon-size-sm/md/lg,
+                                    │                      --icon-stroke-width,
+                                    │                      --icon-color-*
+                                    │
+                                    ├──► COMPONENT-SPECS   MODIFIED: icon= attribute
+                                    │    .md               on components that use icons
+                                    │
+                                    └──► ICON-CATALOG.md   NEW: curated catalog of
+                                         (per-project)     ~40-80 icons for this
+                                                           project's vertical + screens
+                                    │
+                                    ▼
+/motif:compose                Screen HTML/JSX              Renders icons using the
+                              output                       chosen delivery mechanism
+                                    │                      (inline SVG or CDN img)
+                                    ▼
+/motif:review                 Lens 3 expanded:             Checks: correct library,
+                              Icon compliance              correct style, icon-only
+                                                           buttons have aria-label
+```
+
+## New Files
+
+### 1. `core/references/icon-libraries.md` (NEW -- ships with Motif)
+
+**Purpose:** Curated reference of recommended icon libraries per vertical, with CDN URLs, usage patterns, and style guidance. This is the authoritative source the system architect consults when choosing an icon library.
+
+**Location:** `.claude/get-motif/references/icon-libraries.md`
+
+**Context budget:** ~2000 tokens
+
+**Loaded by:** System architect agent (during `/motif:system`)
+
+**Content structure:**
+
+```markdown
+# Icon Library Reference
+
+## Recommended Libraries
+
+### Lucide (Default for most verticals)
+- **Style:** Outlined, consistent 24x24 grid, 2px stroke
+- **Icon count:** 1500+
+- **CDN (individual):** https://unpkg.com/lucide-static@latest/icons/{name}.svg
+- **CDN (sprite):** https://unpkg.com/lucide-static@latest/sprite.svg
+- **CSS class (font):** icon-{kebab-case-name}
+- **Sizing:** Designed at 24px, scales cleanly 16-48px
+- **Best for:** SaaS, Fintech (professional, precise, minimal)
+- **Personality range:** 1-6 on Motif personality axis
+- **Anti-convergence note:** Lucide is the default in many AI-generated
+  UIs. If differentiation seed personality >= 7, prefer Phosphor.
+
+### Phosphor (For expressive/distinctive projects)
+- **Style:** 6 weights (thin/light/regular/bold/fill/duotone)
+- **Icon count:** 6000+ (across all weights)
+- **CDN:** https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2/src/{weight}/style.css
+- **Usage:** <i class="ph-{weight} ph-{name}"></i>
+- **Sizing:** Inherits font-size from parent
+- **Best for:** Health, E-commerce, projects with personality >= 6
+- **Why:** Weight variants enable visual hierarchy within the icon
+  system itself -- thin for decorative, bold for navigation, fill
+  for active states
+
+### Heroicons (For Tailwind-integrated projects)
+- **Style:** Outlined (24px) + Solid (24px) + Mini (20px)
+- **Icon count:** 450+
+- **CDN:** https://unpkg.com/@heroicons/react@latest/...
+- **Best for:** Projects already using Tailwind CSS
+- **Limitation:** Smallest collection. No weight variants.
+
+## Selection Algorithm
+
+Based on DESIGN-BRIEF.md differentiation seed:
+
+IF personality <= 5 AND vertical is SaaS or Fintech:
+  → Lucide (precise, professional, extensive)
+IF personality >= 6 OR vertical is Health or E-commerce:
+  → Phosphor (expressive, weight hierarchy, distinctive)
+IF project stack includes Tailwind AND icon needs are simple:
+  → Heroicons (native integration, but limited)
+IF user has locked an icon library in DESIGN-BRIEF.md:
+  → Use that library (user choice overrides, like fonts)
+```
+
+**Rationale for Lucide as default:** Consistent stroke-based design, large collection, clean 24x24 grid, excellent SVG quality, CDN availability for standalone HTML, no build step required. Phosphor recommended when differentiation matters because its weight system (6 variants per icon) gives the design system more expressive range than Lucide's single outline style.
+
+### 2. Project-level `ICON-CATALOG.md` (NEW -- generated per project)
+
+**Purpose:** A curated subset of icons from the chosen library that this project actually uses. The composer reads this to know which icon name maps to which UI concept. Without this, the composer guesses icon names and often gets them wrong.
+
+**Location:** `.planning/design/system/ICON-CATALOG.md`
+
+**Context budget:** ~1000 tokens (kept lean -- it is a lookup table)
+
+**Generated by:** System architect agent (during `/motif:system`)
+
+**Loaded by:** Screen composer agent, Design reviewer agent
+
+**Content structure:**
+
+```markdown
+# Icon Catalog — [Product Name]
+
+**Library:** [Lucide | Phosphor | Heroicons]
+**Style:** [outlined | bold | duotone | fill]
+**CDN Base:** [URL]
+**Default Size:** var(--icon-size-md) (24px)
+
+## Delivery
+
+### For HTML output (no framework)
+[Inline SVG with stroke="currentColor" and class="icon icon-{name}"]
+
+### For React/Vue output
+[Import from @lucide/react or equivalent]
+
+## Icon Map
+
+### Navigation
+| Concept | Icon Name | Usage |
+|---------|-----------|-------|
+| Home/Dashboard | house | Bottom tab, sidebar |
+| Search | search | Top bar, command palette |
+| Settings | settings | Sidebar, profile menu |
+| Back | arrow-left | Screen header |
+| Menu | menu | Mobile hamburger |
+| Close | x | Modal, sheet, drawer |
+| Notifications | bell | Top bar |
+
+### Actions
+| Concept | Icon Name | Usage |
+|---------|-----------|-------|
+| Add/Create | plus | FAB, inline action |
+| Edit | pencil | Inline edit trigger |
+| Delete | trash-2 | Destructive action |
+| Share | share-2 | Content sharing |
+| Download | download | Export, receipt |
+| Filter | filter | List filtering |
+| Sort | arrow-up-down | Column sorting |
+
+### Status
+| Concept | Icon Name | Usage |
+|---------|-----------|-------|
+| Success | check-circle | Confirmation, completed |
+| Error | alert-circle | Failed, declined |
+| Warning | alert-triangle | Pending, attention |
+| Info | info | Informational |
+| Loading | loader-2 | Async operations |
+
+### [Vertical-Specific Section]
+| Concept | Icon Name | Usage |
+|---------|-----------|-------|
+| [domain concept] | [icon name] | [where used] |
+
+## Sizing Reference
+| Token | Value | Usage |
+|-------|-------|-------|
+| --icon-size-sm | 16px | Inline with text, badges |
+| --icon-size-md | 24px | Navigation, actions, default |
+| --icon-size-lg | 32px | Feature icons, empty states |
+| --icon-size-xl | 48px | Hero sections, onboarding |
+```
+
+## Modified Files
+
+### 1. `tokens.css` -- Add Icon Tokens
+
+**What changes:** Add an `/* -- Icons -- */` section with sizing and style tokens.
+
+**New tokens:**
+
+```css
+/* ── Icons ── */
+/* Library: [name]. Style: [style]. See ICON-CATALOG.md for icon names. */
+--icon-size-sm: 1rem;     /* 16px — inline with text, badges, chips */
+--icon-size-md: 1.5rem;   /* 24px — navigation, buttons, default */
+--icon-size-lg: 2rem;     /* 32px — feature icons, metric cards */
+--icon-size-xl: 3rem;     /* 48px — hero, empty states, onboarding */
+--icon-stroke-width: 2;   /* Default stroke width for outlined icons */
+--icon-color-default: var(--text-primary);
+--icon-color-muted: var(--text-secondary);
+--icon-color-action: var(--color-primary-500);
+```
+
+**Context budget impact:** ~100 tokens added to tokens.css. Within the 3000-token budget.
+
+**Why these tokens and not more:** Icons inherit color from `currentColor` in practice, so `--icon-color-*` tokens are for explicit overrides only. The sizing tokens formalize what is currently ad-hoc ("40x40", "32x32", "20x20" scattered across vertical docs). Stroke width is tokenized because it varies by library and style (Lucide = 2, Phosphor thin = 1, Phosphor bold = 2.5).
+
+### 2. `COMPONENT-SPECS.md` -- Add Icon Attributes to Components
+
+**What changes:** Components that use icons gain an `<icon>` element within their XML spec.
+
+**Example (Button with icon):**
+
+```xml
+<component name="Button" category="action">
+  <variants>
+    <variant name="primary">
+      <!-- existing styles unchanged -->
+    </variant>
+    <variant name="icon-only">
+      padding: var(--space-3);
+      min-width: 44px; min-height: 44px;
+      display: flex; align-items: center; justify-content: center;
+    </variant>
+  </variants>
+  <icon>
+    size: var(--icon-size-md);
+    stroke-width: var(--icon-stroke-width);
+    color: currentColor;
+    position: leading (before label) or trailing (after label) or solo (icon-only);
+    gap-from-label: var(--space-2);
+  </icon>
+  <accessibility>
+    IF icon-only: aria-label REQUIRED (describe the action, not the icon)
+    IF icon + label: icon is aria-hidden="true" (label provides semantics)
+  </accessibility>
+</component>
+```
+
+**Components that need `<icon>` additions:**
+- Button (icon-only variant, icon+label variant)
+- Input (leading icon, trailing icon for visibility toggle / clear)
+- Toast (status icon: check-circle, alert-circle, alert-triangle, info)
+- Modal (close icon: x)
+- Dropdown (chevron-down trigger, check for selected)
+- Nav item (leading icon per nav entry)
+- Badge (optional leading icon)
+
+**Vertical-specific components:**
+- TransactionRow: MerchantIcon (category-based, from ICON-CATALOG.md)
+- MetricCard: metric-type icon
+- CommandPalette: result-type icons
+- ProductCard: wishlist heart icon, cart icon
+- FilterBar: filter icon, sort icon, clear (x) icon
+
+### 3. `DESIGN-SYSTEM.md` -- Expand Icon Section
+
+**What changes:** The current "icon style recommendation" one-liner becomes a full section.
+
+**New content in DESIGN-SYSTEM.md:**
+
+```markdown
+## Iconography
+
+**Library:** [Lucide | Phosphor | Heroicons]
+**Style:** [outlined | weight variant]
+**Grid:** 24x24
+**Stroke:** var(--icon-stroke-width) — [value]px
+
+### Delivery
+[How icons are included in output — inline SVG or CDN reference]
+
+### Sizing Scale
+| Size | Token | When |
+|------|-------|------|
+| 16px | --icon-size-sm | Inline with body text, chips, badges |
+| 24px | --icon-size-md | Buttons, navigation, standard UI |
+| 32px | --icon-size-lg | Feature cards, metric displays |
+| 48px | --icon-size-xl | Empty states, onboarding, hero |
+
+### Icon + Text Rules
+- Icon precedes label in LTR (trailing for directional actions like "Next →")
+- Gap between icon and label: var(--space-2)
+- Icon color inherits from text via currentColor
+- Icon-only buttons: minimum 44x44px touch target, aria-label required
+
+### Style Rules
+- [Outlined/Regular] for navigation and actions
+- [Filled/Bold] for active/selected states (e.g., filled heart = wishlisted)
+- NEVER mix outlined and filled icons in the same context unless
+  indicating state change (unselected vs. selected)
+```
+
+**Context budget impact:** ~300 tokens added to DESIGN-SYSTEM.md. Within the 3000-token budget.
+
+### 4. `workflows/generate-system.md` -- Add Icon System Generation
+
+**What changes:** The system generator orchestrator adds ICON-CATALOG.md as a fourth required output and instructs the system architect agent to choose an icon library.
+
+**Specific additions:**
+
+In Step 1 (Read Context), add:
+```
+- `.claude/get-motif/references/icon-libraries.md`
+```
+
+In the agent spawn prompt, add a new output section:
+
+```markdown
+## Output 5: ICON-CATALOG.md (budget: ≤1000 tokens)
+
+Based on the chosen vertical, differentiation seed, and screen list:
+
+1. Select icon library using the algorithm in icon-libraries.md
+2. Choose style (outlined, bold, fill, duotone) based on:
+   - Personality 1-4: outlined/regular (precise, professional)
+   - Personality 5-7: regular or bold (balanced)
+   - Personality 8-10: bold or duotone (expressive)
+3. Curate 40-80 icons organized by:
+   - Navigation (home, search, settings, back, menu, close, notifications)
+   - Actions (add, edit, delete, share, download, filter, sort)
+   - Status (success, error, warning, info, loading)
+   - Vertical-specific (domain concepts from vertical reference)
+4. Document delivery mechanism:
+   - For HTML output: inline SVG with class="icon icon-{name}"
+   - For React: import { IconName } from 'lucide-react'
+   - For Vue: <Icon name="icon-name" />
+
+Save to `.planning/design/system/ICON-CATALOG.md`
+```
+
+In Step 3 (Collect & Validate), add:
+```
+- `.planning/design/system/ICON-CATALOG.md`
+```
+
+### 5. `workflows/compose-screen.md` -- Add ICON-CATALOG.md to Context
+
+**What changes:** The composer's context profile gains ICON-CATALOG.md as a required file.
+
+In Step 2 (Assemble Context Profile), under REQUIRED_FILES, add:
+```
+- .planning/design/system/ICON-CATALOG.md
+```
+
+In the agent spawn prompt, add to "Context Files -- Read These First":
+```
+5. `.planning/design/system/ICON-CATALOG.md` — icon names and delivery method. Use ONLY icons listed here.
+```
+
+In "Implementation Rules", add:
+```
+9. **Icon compliance:** Use ONLY icons from ICON-CATALOG.md. Use the specified
+   delivery mechanism. Icon-only buttons MUST have aria-label. Icons with labels
+   MUST have aria-hidden="true" on the icon element.
+```
+
+In "Anti-Slop Check", modify item 8:
+```
+8. **Am I using a random icon name?** STOP. Check ICON-CATALOG.md for the
+   correct icon name. If the concept isn't cataloged, add it to ICON-CATALOG.md
+   first and commit separately.
+```
+
+### 6. `workflows/review.md` -- Add Icon Compliance to Lens 3
+
+**What changes:** Lens 3 (Design System Compliance) gains icon-specific grep checks.
+
+Add to the agent spawn prompt under Lens 3:
+```markdown
+**Icon compliance checks:**
+- `grep -n 'class="icon' {files}` — verify icon class names match ICON-CATALOG.md
+- `grep -n 'aria-label' {files}` — verify all icon-only buttons have aria-labels
+- `grep -n 'aria-hidden' {files}` — verify icons with text labels have aria-hidden
+- Cross-reference every icon name used against ICON-CATALOG.md
+- Verify icon sizing uses --icon-size-* tokens, not hardcoded values
+```
+
+### 7. `agents/motif-system-architect.md` -- Add Icon Expertise
+
+**What changes:** The agent's domain expertise and context loading profile expand to include icon library selection.
+
+Add to "Context Loading Profile > Load If Exists":
+```
+- `.claude/get-motif/references/icon-libraries.md` — icon library options and selection algorithm
+```
+
+Add to "Domain Expertise":
+```markdown
+### Iconography Systems
+- **Library selection:** Choose based on vertical conventions, differentiation seed personality
+  axis, and project stack. Lucide for precision, Phosphor for expression, Heroicons for
+  Tailwind projects.
+- **Style consistency:** Never mix outlined and filled icons in the same UI context unless
+  indicating state change. Choose one primary weight and use it everywhere.
+- **Icon-text pairing:** Icons accompany labels except in well-known universal actions
+  (close, back, search). Icon-only buttons require aria-label.
+- **Sizing system:** Four stops (16/24/32/48) mapped to semantic tokens. Icons align to the
+  4px grid.
+```
+
+Add to "Output Format Expectations":
+```
+- **`ICON-CATALOG.md`** (max 1000 tokens) -- Curated icon catalog with library, style,
+  delivery mechanism, and concept-to-name mapping organized by category
+```
+
+Add to "Quality Checklist":
+```
+- [ ] Icon library chosen with justification (personality seed + vertical alignment)
+- [ ] ICON-CATALOG.md contains all icons referenced in COMPONENT-SPECS.md
+- [ ] Delivery mechanism documented for the project's stack
+- [ ] Icon sizing tokens added to tokens.css
+```
+
+### 8. `agents/motif-screen-composer.md` -- Add Icon Context Profile
+
+**What changes:** Add ICON-CATALOG.md to always-load and add icon-specific expertise.
+
+Add to "Context Loading Profile > Always Load":
+```
+- `.planning/design/system/ICON-CATALOG.md` — icon names, library, delivery mechanism
+```
+
+Add to "Anti-Slop Checklist" (expand item 8):
+```
+8. **Am I guessing an icon name?** STOP. Open ICON-CATALOG.md. Find the concept. Use the
+   exact name listed. If the concept is not cataloged, add it to ICON-CATALOG.md first.
+9. **Does my icon-only button have aria-label?** REQUIRED. The label describes the action
+   ("Close dialog"), not the icon ("X mark").
+10. **Am I hardcoding icon size?** STOP. Use var(--icon-size-sm/md/lg/xl).
+```
+
+Add to "Self-Review Checklist":
+```
+- [ ] All icon names match ICON-CATALOG.md entries
+- [ ] Icon-only interactive elements have aria-label
+- [ ] Icons paired with text labels have aria-hidden="true"
+- [ ] Icon sizes use --icon-size-* tokens
+```
+
+### 9. `agents/motif-design-reviewer.md` -- Add Icon Lens
+
+**What changes:** Add ICON-CATALOG.md to always-load. Expand Lens 3 scoring.
+
+Add to "Context Loading Profile > Always Load":
+```
+- `.planning/design/system/ICON-CATALOG.md` — for verifying icon name compliance
+```
+
+Expand Lens 3 scoring (adjust point allocation within existing /25):
+```
+- Zero hardcoded colors -- /5
+- Zero hardcoded fonts -- /4
+- Zero hardcoded radii/shadows/spacing -- /4
+- Component specs compliance -- /4
+- Token usage patterns -- /3
+- Icon compliance (correct names, delivery, sizing, aria) -- /5
+```
+
+### 10. `references/verticals/*.md` -- Add Icon Recommendations Per Vertical
+
+**What changes:** Each vertical reference gains an `## Iconography` section recommending icon style and listing domain-specific icon needs.
+
+**Example addition to `fintech.md`:**
+
+```markdown
+## Iconography
+
+### Recommended Style
+Outlined/regular weight -- precision and clarity over personality.
+Stroke-based icons match the data-precise fintech aesthetic.
+
+### Vertical-Specific Icons Needed
+| Concept | Suggested Icon | Notes |
+|---------|---------------|-------|
+| Send money | send | Primary action |
+| Receive | download | Paired with send |
+| Transaction | arrow-right-left | Activity/history |
+| Wallet | wallet | Account type |
+| Card | credit-card | Payment method |
+| Bank | landmark | Linked bank |
+| QR Code | qr-code | Scan to pay |
+| Security/Lock | shield-check | Trust signal |
+| Biometric | fingerprint | Auth method |
+| Exchange rate | refresh-cw | Currency conversion |
+| Chart/Analytics | trending-up | Portfolio performance |
+| Receipt | receipt | Transaction confirmation |
+
+### Icon Anti-Patterns
+- Decorative/playful icon styles (undermines trust with money)
+- Colored/multi-tone icons in data-dense contexts (visual noise)
+- Inconsistent stroke weights across the same screen
+- Using filled icons by default (outlined reads cleaner at small sizes in data UIs)
+```
+
+### 11. `agents/motif-researcher.md` -- Structured Iconography Output
+
+**What changes:** The visual language research agent's iconography investigation gets more structure.
+
+Modify the research prompt's item 3 from:
+```
+3. Iconography — outlined/filled/duotone, personality match
+```
+to:
+```
+3. Iconography:
+   - Dominant icon style in top products (outlined/filled/duotone/mixed)
+   - Common icon library used (if identifiable)
+   - Icon sizing conventions (what sizes at what UI positions)
+   - Icon + text vs icon-only patterns (when do products use each)
+   - Domain-specific icons unique to this vertical
+```
+
+### 12. `context-engine.md` -- Add ICON-CATALOG.md to Context Profiles
+
+**What changes:** ICON-CATALOG.md added to composer and reviewer profiles.
+
+```xml
+<!-- In composer profile -->
+<context_profile name="composer">
+  <always_load>
+    .planning/design/PROJECT.md
+    .planning/design/system/tokens.css
+    .planning/design/system/COMPONENT-SPECS.md
+    .planning/design/system/ICON-CATALOG.md    <!-- NEW -->
+  </always_load>
+  ...
+</context_profile>
+
+<!-- In reviewer profile -->
+<context_profile name="reviewer">
+  <always_load>
+    .planning/design/system/tokens.css
+    .planning/design/system/COMPONENT-SPECS.md
+    .planning/design/DESIGN-RESEARCH.md
+    .planning/design/system/ICON-CATALOG.md    <!-- NEW -->
+    The actual source code of the screen being reviewed
+  </always_load>
+  ...
+</context_profile>
+
+<!-- In system-generator profile -->
+<context_profile name="system-generator">
+  <always_load>
+    .planning/design/PROJECT.md
+    .planning/design/DESIGN-BRIEF.md
+    .planning/design/DESIGN-RESEARCH.md
+  </always_load>
+  <load_if_exists>
+    .planning/design/research/02-visual-language.md
+    .planning/design/research/03-accessibility.md
+    .claude/get-motif/references/verticals/{vertical}.md
+    .claude/get-motif/references/icon-libraries.md    <!-- NEW -->
+  </load_if_exists>
+  ...
+</context_profile>
+```
+
+**Context budget update** (add to context budget table in context-engine.md):
+```
+| ICON-CATALOG.md | 1,000 | Curated icon lookup table |
+```
+
+## Data Flow: Icon Selection to Output
+
+### Complete Pipeline Trace
+
+```
+Stage 1: /motif:init
+├── User answers "Do you have icon preferences?" (if added to init interview)
+├── DESIGN-BRIEF.md stores: icon library preference (if any) under Brand Constraints
+└── No icon infrastructure exists yet
+
+Stage 2: /motif:research
+├── Visual language agent investigates iconography in vertical
+├── Writes to: research/02-visual-language.md (iconography section)
+├── Research orchestrator synthesizes into DESIGN-RESEARCH.md
+└── DESIGN-RESEARCH.md LOCKS: "Icon direction: [library], [style] -- because [reason]"
+
+Stage 3: /motif:system
+├── System architect reads:
+│   ├── DESIGN-RESEARCH.md (locked icon direction)
+│   ├── icon-libraries.md (library reference with CDN URLs)
+│   └── verticals/{vertical}.md (domain-specific icon needs)
+├── Applies selection algorithm:
+│   ├── Check if user locked an icon library in DESIGN-BRIEF.md → use it
+│   ├── Else: personality seed + vertical → Lucide or Phosphor
+│   └── Document reasoning in DESIGN-SYSTEM.md
+├── Generates:
+│   ├── tokens.css += icon sizing/stroke tokens
+│   ├── COMPONENT-SPECS.md += <icon> elements on components
+│   ├── DESIGN-SYSTEM.md += Iconography section
+│   └── ICON-CATALOG.md (NEW file: curated icon map)
+└── token-showcase.html += icon preview section (optional enhancement)
+
+Stage 4: /motif:compose
+├── Composer reads ICON-CATALOG.md (always-load)
+├── For each component that needs an icon:
+│   ├── Look up concept in ICON-CATALOG.md
+│   ├── Use exact icon name from the catalog
+│   └── Render using documented delivery mechanism
+├── Delivery (for standalone HTML / no-framework output):
+│   ├── Inline SVG: paste the SVG markup directly
+│   │   <svg class="icon" width="24" height="24" ...>
+│   │     <path d="..." />
+│   │   </svg>
+│   └── CDN img: <img src="https://unpkg.com/lucide-static@latest/icons/{name}.svg"
+│                      class="icon" alt="" width="24" height="24" />
+├── Delivery (for React output):
+│   └── import { Home, Search, ... } from 'lucide-react'
+├── Icon-only buttons: add aria-label
+└── Icons with labels: add aria-hidden="true" to icon
+
+Stage 5: /motif:review
+├── Reviewer reads ICON-CATALOG.md (always-load)
+├── Lens 3 icon checks:
+│   ├── Grep for icon names → cross-reference against catalog
+│   ├── Grep for aria-label on icon-only buttons
+│   ├── Grep for aria-hidden on labeled icon buttons
+│   ├── Grep for hardcoded icon sizes (should use tokens)
+│   └── Check: no uncataloged icons used
+└── Score icon compliance within Lens 3 (/5 of /25)
+
+Stage 6: /motif:fix
+├── Fix agent addresses icon-related review findings
+├── Common fixes:
+│   ├── Replace wrong icon name with catalog name
+│   ├── Add missing aria-label to icon-only button
+│   ├── Replace hardcoded icon size with --icon-size-* token
+│   └── Add aria-hidden to decorative icons
+└── No new domain knowledge needed -- follows review prescriptions
+
+Stage 7: /motif:evolve
+├── User can request: "Add more icons to the catalog"
+├── Evolve agent reads ICON-CATALOG.md + adds new entries
+└── Documents change in EVOLUTION-LOG.md
+```
+
+### Fresh-Context Isolation: How Icon Data Flows Without Breaking It
+
+The critical constraint is that each subagent gets a fresh context window and reads files by path. Icon integration preserves this:
+
+1. **The orchestrator never reads ICON-CATALOG.md.** It passes the path.
+2. **Each composer subagent reads ICON-CATALOG.md fresh.** At ~1000 tokens, it fits easily in the ~15,000-token context budget.
+3. **Icon names are strings, not binary data.** No special handling needed for file reading.
+4. **The catalog is self-contained.** It includes the library name, CDN URL, and delivery mechanism -- the composer does not need to read icon-libraries.md (that reference doc is for the system architect only).
+
+### Core/Runtime Separation: How Icons Stay Runtime-Agnostic
+
+Icon infrastructure splits cleanly:
+
+| Layer | File | Content |
+|-------|------|---------|
+| **Core** (runtime-agnostic) | `core/references/icon-libraries.md` | Library catalog, selection algorithm, CDN URLs |
+| **Core** | `core/references/verticals/*.md` | Vertical icon recommendations |
+| **Per-project** (generated) | `.planning/design/system/ICON-CATALOG.md` | Project-specific curated icon map |
+| **Per-project** (generated) | `.planning/design/system/tokens.css` | Icon sizing/stroke tokens |
+| **Per-project** (generated) | `.planning/design/system/COMPONENT-SPECS.md` | Component-level icon specs |
+
+No runtime-specific files need modification. The Claude Code commands, OpenCode adapters, and Cursor rules do not need to know about icons -- they dispatch to workflows, and the workflows handle icon context.
+
+## Delivery Mechanism: How Icons Render in Output
+
+### For HTML output (token-showcase.html, standalone screens)
+
+**Recommended: Inline SVG with currentColor**
+
+```html
+<!-- Icon with label -->
+<button class="btn btn-primary">
+  <svg class="icon" width="24" height="24" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round"
+       aria-hidden="true">
+    <path d="M5 12h14M12 5l7 7-7 7" />
+  </svg>
+  <span>Send Money</span>
+</button>
+
+<!-- Icon-only button -->
+<button class="btn btn-icon" aria-label="Close dialog">
+  <svg class="icon" width="24" height="24" viewBox="0 0 24 24"
+       fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 6L6 18M6 6l12 12" />
+  </svg>
+</button>
+```
+
+**Why inline SVG over CDN img tags:**
+- `currentColor` inheritance means icons automatically match text color (tokens work)
+- No external HTTP requests (self-contained, like the rest of Motif HTML output)
+- Stroke-width can be controlled by CSS (tokenizable)
+- No CORS issues, no CDN dependency
+- Consistent with the existing token-showcase-template.html approach (zero JS, self-contained)
+
+**Why NOT icon fonts:**
+- Icon fonts are deprecated in favor of SVG across the industry
+- They do not support multi-color or stroke-width variation
+- Screen readers sometimes read them as characters
+- File size overhead (load ALL icons, not just the ones used)
+
+### For React/Vue output
+
+```jsx
+// React with Lucide
+import { Send, X } from 'lucide-react'
+
+<Button>
+  <Send size={24} aria-hidden="true" />
+  <span>Send Money</span>
+</Button>
+
+<Button variant="icon-only" aria-label="Close dialog">
+  <X size={24} />
+</Button>
+```
+
+The composer agent determines which mechanism to use based on the stack from PROJECT.md / STATE.md.
+
+## Icon CSS Integration with tokens.css
+
+```css
+/* Icon base styles — add to token-showcase-template.html or screen styles */
+.icon {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: var(--icon-stroke-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.icon-sm { width: var(--icon-size-sm); height: var(--icon-size-sm); }
+.icon-lg { width: var(--icon-size-lg); height: var(--icon-size-lg); }
+.icon-xl { width: var(--icon-size-xl); height: var(--icon-size-xl); }
+```
+
+These utility classes can be documented in ICON-CATALOG.md's delivery section or added to the token-showcase-template.html.
+
+## Build Order and Dependencies
+
+The implementation must respect dependency ordering:
+
+```
+Phase 1: Foundation (no dependencies)
+├── Create core/references/icon-libraries.md
+├── Add ## Iconography section to each verticals/*.md
+└── These are reference docs -- nothing reads them yet
+
+Phase 2: Pipeline Integration (depends on Phase 1)
+├── Modify workflows/generate-system.md (reads icon-libraries.md)
+├── Modify agents/motif-system-architect.md (uses icon-libraries.md)
+├── Modify workflows/research.md (structured iconography output)
+├── Modify agents/motif-researcher.md (structured iconography)
+└── These changes mean /motif:system will now produce ICON-CATALOG.md
+
+Phase 3: Consumer Integration (depends on Phase 2)
+├── Modify workflows/compose-screen.md (reads ICON-CATALOG.md)
+├── Modify agents/motif-screen-composer.md (icon anti-slop, checklist)
+├── Modify workflows/review.md (icon compliance checks)
+├── Modify agents/motif-design-reviewer.md (icon scoring)
+├── Modify context-engine.md (add ICON-CATALOG.md to profiles)
+└── These changes mean compose/review will enforce icon compliance
+
+Phase 4: Polish (depends on Phase 3)
+├── Update token-showcase-template.html (icon preview section)
+├── Update agents/motif-fix-agent.md (icon fix patterns)
+├── Test end-to-end: init → research → system → compose → review
+└── Verify: composer uses catalog, reviewer catches violations
+```
+
+## Anti-Patterns to Avoid
+
+### Anti-Pattern 1: Shipping All Icon SVGs as a Bundled File
+**What:** Including a complete icon sprite (1500+ icons) in the project.
+**Why bad:** Motif output is self-contained HTML. A full sprite file adds 200KB+ for icons the project will never use.
+**Instead:** The ICON-CATALOG.md curates a subset. The composer inlines only the SVGs it uses.
+
+### Anti-Pattern 2: Making the Composer Choose Icons on the Fly
+**What:** No catalog -- the composer picks icon names from memory.
+**Why bad:** LLMs hallucinate icon names. "lucide:money-send" does not exist. Without a catalog, every compose pass risks broken icon references.
+**Instead:** ICON-CATALOG.md is the lookup table. Composer checks it, not its training data.
+
+### Anti-Pattern 3: Putting Icon Names in tokens.css
+**What:** `--icon-home: "house"; --icon-send: "send";` as CSS custom properties.
+**Why bad:** CSS custom properties are for values, not identifiers. A separate ICON-CATALOG.md is the right abstraction for a name-to-concept mapping.
+**Instead:** tokens.css holds icon sizing/color tokens. ICON-CATALOG.md holds name mappings.
+
+### Anti-Pattern 4: Different Icon Libraries Per Screen
+**What:** Dashboard uses Lucide, settings uses Phosphor, checkout uses Heroicons.
+**Why bad:** Visual inconsistency. Users perceive the UI as stitched-together, not designed.
+**Instead:** One library per project, chosen during /motif:system, enforced by the reviewer.
+
+### Anti-Pattern 5: Skipping Icon Research
+**What:** System architect picks Lucide by default without checking the vertical or differentiation seed.
+**Why bad:** Same convergence problem Motif solves for colors and fonts. Every AI-generated UI uses Lucide outlined icons -- differentiation requires intentional choice.
+**Instead:** The selection algorithm in icon-libraries.md forces the architect to evaluate personality seed and vertical before defaulting.
+
+## Scalability Considerations
+
+| Concern | At v1 (current) | At v2 (future) | At v3 (scale) |
+|---------|------------------|-----------------|----------------|
+| Icon count | ~50 per project | ~100 per project | Custom icon creation |
+| Libraries supported | 3 (Lucide, Phosphor, Heroicons) | 5+ (add Tabler, Iconoir) | User-provided SVG sets |
+| Delivery | Inline SVG | Framework components | Design token integration |
+| Dark mode | currentColor (automatic) | Explicit dark mode icon variants | Theme-aware icon system |
+| Custom icons | Not supported | "Add to ICON-CATALOG.md" | Full custom icon pipeline |
+
+## Sources
+
+- [Lucide Static Documentation](https://lucide.dev/guide/packages/lucide-static) -- CDN usage, sprite, individual SVG files (HIGH confidence)
+- [Phosphor Icons](https://phosphoricons.com/) -- 6-weight system, CDN delivery via jsdelivr (HIGH confidence)
+- [Heroicons by Tailwind](https://heroicons.com/) -- Tailwind-native icon set (HIGH confidence)
+- [A Complete Guide to Iconography - Design Systems](https://www.designsystems.com/iconography-guide/) -- naming, organization, style consistency best practices (MEDIUM confidence)
+- [SVG Sprites vs Icon Fonts - CSS-Tricks](https://css-tricks.com/svg-sprites-use-better-icon-fonts/) -- technical comparison of delivery mechanisms (HIGH confidence)
+- [Iconography in Design Systems - Smashing Magazine](https://www.smashingmagazine.com/2024/04/iconography-design-systems-troubleshooting-maintenance/) -- maintenance and troubleshooting patterns (MEDIUM confidence)
+- [Lucide Icons CDN Usage Guide](https://kristianfreeman.com/how-to-use-lucide-icons-via-a-cdn) -- practical CDN integration patterns (MEDIUM confidence)
