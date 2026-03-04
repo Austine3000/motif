@@ -49,7 +49,7 @@ Different commands need different slices of context. These profiles define exact
     .planning/design/DESIGN-BRIEF.md
   </always_load>
   <load_if_exists>
-    .claude/get-motif/verticals/{vertical}.md
+    .claude/get-motif/references/verticals/{vertical}.md
   </load_if_exists>
   <never_load>
     tokens.css
@@ -70,7 +70,7 @@ Different commands need different slices of context. These profiles define exact
   <load_if_exists>
     .planning/design/research/02-visual-language.md
     .planning/design/research/03-accessibility.md
-    .claude/get-motif/verticals/{vertical}.md
+    .claude/get-motif/references/verticals/{vertical}.md
     .claude/get-motif/references/icon-libraries.md
   </load_if_exists>
   <never_load>
