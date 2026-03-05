@@ -5,30 +5,30 @@
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 14 — Token and System Integration (v1.2 Brownfield Intelligence)
+**Current focus:** Phase 15 — Compose Integration (v1.2 Brownfield Intelligence)
 
 ## Current Position
 
-Phase: 14 of 16 (Token and System Integration)
-Plan: 2 of 3 in current phase
+Phase: 15 of 16 (Compose Integration)
+Plan: 1 of ? in current phase
 Status: In Progress
-Last activity: 2026-03-05 — Completed 14-02 (component gap analysis)
+Last activity: 2026-03-05 — Completed 14-03 (system generator brownfield integration)
 
-Progress: [████░░░░░░] 40% (v1.2)
+Progress: [█████░░░░░] 50% (v1.2)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 36 (v1.0: 24, v1.1: 8, v1.2: 4)
+- Total plans completed: 37 (v1.0: 24, v1.1: 8, v1.2: 5)
 - Average duration: ~2.4 min
-- Total execution time: ~1 hour 55 min
+- Total execution time: ~1 hour 57 min
 
 **By Phase (v1.2):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 13. Scan Infrastructure | 2/2 | 7min | 3.5min |
-| 14. Token and System Integration | 2/3 | 7min | 3.5min |
+| 14. Token and System Integration | 3/3 | 9min | 3.0min |
 | 15. Compose Integration | - | - | - |
 | 16. Validation and Hardening | - | - | - |
 
@@ -53,6 +53,9 @@ Recent decisions affecting current work:
 - [14-02]: Line-based markdown table parsing instead of regex exec loop for reliability
 - [14-02]: 3-tier component matching (exact, alias, contains) with alias table for known equivalents
 - [14-02]: Contains match requires minimum 3 characters to avoid false positives
+- [14-03]: Token strategy presented as 3-option choice (adopt/merge/fresh) with merge as default
+- [14-03]: All brownfield additions existence-gated -- greenfield path has zero behavioral change
+- [14-03]: Existing components get reference-only specs to reduce COMPONENT-SPECS.md size
 
 ### Pending Todos
 
@@ -65,5 +68,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Completed 14-02-PLAN.md (component gap analysis). Plans 14-01 and 14-02 done. Ready for 14-03.
+Stopped at: Completed 14-03-PLAN.md (system generator brownfield integration). Phase 14 complete. Ready for Phase 15.
 Resume file: None
