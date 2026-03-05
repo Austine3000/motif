@@ -108,7 +108,7 @@ function parseProjectScan(projectRoot) {
   }
 
   // Find the Component Catalog section
-  const catalogMatch = content.match(/## Component Catalog\s*\n([\s\S]*?)(?=\n## |\n---|\Z)/);
+  const catalogMatch = content.match(/## Component Catalog\s*\n([\s\S]*?)(?=\n## |\n---|$)/);
   if (!catalogMatch) {
     return { components: [], source: scanPath };
   }
@@ -118,21 +118,21 @@ function parseProjectScan(projectRoot) {
   // Parse markdown table rows
   // Expected format: | Name | File | Type | Confidence |
   const components = [];
-  const tableRowPattern = /\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|/g;
-  let match;
-  let isHeader = true;
+  const lines = catalogSection.split('\n').filter(l => l.trim().startsWith('|'));
 
-  while ((match = tableRowPattern.exec(catalogSection)) !== null) {
-    const name = match[1].trim();
-    const file = match[2].trim();
-    const type = match[3].trim();
-    const confidence = match[4].trim().toUpperCase();
+  // Skip header row (index 0) and separator row (index 1)
+  const dataLines = lines.slice(2);
 
-    // Skip header row and separator row
-    if (isHeader) {
-      isHeader = false;
-      continue;
-    }
+  for (const line of dataLines) {
+    const cells = line.split('|').map(c => c.trim()).filter(c => c.length > 0);
+    if (cells.length < 4) continue;
+
+    const name = cells[0];
+    const file = cells[1];
+    const type = cells[2];
+    const confidence = cells[3].toUpperCase();
+
+    // Skip separator rows that might appear
     if (name.startsWith('-') || name.startsWith(':')) {
       continue;
     }
