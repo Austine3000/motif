@@ -79,12 +79,12 @@ Plans:
   2. User can choose a token strategy (adopt existing, merge with Motif, or start fresh) through a single top-level decision
   3. User can receive a selective token overlay that fills gaps in their existing tokens without overwriting what they already have
   4. User can see a gap analysis comparing their existing components against the vertical-required components, showing what needs to be generated versus what already exists
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 14-01: TBD
-- [ ] 14-02: TBD
-- [ ] 14-03: TBD
+- [ ] 14-01-PLAN.md — Build token extractor script and integrate into scan workflow
+- [ ] 14-02-PLAN.md — Build component gap analysis script
+- [ ] 14-03-PLAN.md — Wire brownfield mode into system generator workflow, agent, and context engine
 
 ### Phase 15: Compose Integration
 **Goal**: Users can receive decomposed screen compositions that reuse existing project components and are written to the project's actual directories following its conventions
@@ -137,6 +137,6 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 11. Pipeline Integration | v1.1 | 3/3 | Complete | 2026-03-04 |
 | 12. Enforcement and Validation | v1.1 | 2/2 | Complete | 2026-03-04 |
 | 13. Scan Infrastructure | v1.2 | 2/2 | Complete | 2026-03-05 |
-| 14. Token and System Integration | v1.2 | 0/TBD | Not started | - |
+| 14. Token and System Integration | v1.2 | 0/3 | Not started | - |
 | 15. Compose Integration | v1.2 | 0/TBD | Not started | - |
 | 16. Validation and Hardening | v1.2 | 0/TBD | Not started | - |
