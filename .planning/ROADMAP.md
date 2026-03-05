@@ -47,10 +47,10 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 
 **Milestone Goal:** Make Motif's entire pipeline project-aware — scan existing codebases, present findings to the user for decisions, and output properly decomposed components that integrate with existing project conventions.
 
-- [ ] **Phase 13: Scan Infrastructure** - Users can scan an existing project and review confirmed findings
-- [ ] **Phase 14: Token and System Integration** - Users can have their existing design tokens detected, choose a merge strategy, and see what components are missing
-- [ ] **Phase 15: Compose Integration** - Users can receive decomposed, project-aware screen output written to their actual directories
-- [ ] **Phase 16: Validation and Hardening** - Users can trust that decomposed output is validated, atomically committed, and rollback-safe
+- [ ] Phase 13: Scan Infrastructure - Users can scan an existing project and review confirmed findings
+- [ ] Phase 14: Token and System Integration - Users can have their existing design tokens detected, choose a merge strategy, and see what components are missing
+- [ ] Phase 15: Compose Integration - Users can receive decomposed, project-aware screen output written to their actual directories
+- [ ] Phase 16: Validation and Hardening - Users can trust that decomposed output is validated, atomically committed, and rollback-safe
 
 ## Phase Details
 
@@ -64,12 +64,11 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
   3. User can review and confirm or correct all scan findings before any downstream generation uses them
   4. User can see extracted conventions from existing components (recurring patterns like border-radius values, spacing scales, shadow usage)
   5. Existing greenfield workflow (`/motif:init` without prior scan) continues to work unchanged
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 13-01: TBD
-- [ ] 13-02: TBD
-- [ ] 13-03: TBD
+- [ ] 13-01-PLAN.md — Build core project scanner script (framework, CSS, structure, components, conventions)
+- [ ] 13-02-PLAN.md — Create /motif:scan command, scan workflow, init integration, state machine update
 
 ### Phase 14: Token and System Integration
 **Goal**: Users can have their existing design tokens detected and merged with Motif's system, and see a gap analysis of which components already exist versus what the vertical needs
@@ -137,7 +136,7 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 10. Vertical Migration | v1.1 | 2/2 | Complete | 2026-03-04 |
 | 11. Pipeline Integration | v1.1 | 3/3 | Complete | 2026-03-04 |
 | 12. Enforcement and Validation | v1.1 | 2/2 | Complete | 2026-03-04 |
-| 13. Scan Infrastructure | v1.2 | 0/TBD | Not started | - |
+| 13. Scan Infrastructure | v1.2 | 0/2 | Planned | - |
 | 14. Token and System Integration | v1.2 | 0/TBD | Not started | - |
 | 15. Compose Integration | v1.2 | 0/TBD | Not started | - |
 | 16. Validation and Hardening | v1.2 | 0/TBD | Not started | - |
