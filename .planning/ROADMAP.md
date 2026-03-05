@@ -95,12 +95,11 @@ Plans:
   2. User can have composed files written to the project's actual source directories (e.g., `src/components/`, `src/app/`) instead of only `.planning/design/screens/`
   3. User can have existing project components imported and reused in new compositions instead of being recreated from scratch
   4. Composed output follows the project's detected naming conventions, file structure, and framework patterns
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 15-01: TBD
-- [ ] 15-02: TBD
-- [ ] 15-03: TBD
+- [ ] 15-01-PLAN.md — Update context engine, summary template, and state machine for decomposed composition
+- [ ] 15-02-PLAN.md — Add decomposition, project-directory placement, and component reuse to compose workflow
 
 ### Phase 16: Validation and Hardening
 **Goal**: Users can trust that all decomposed output passes validation checks and is committed atomically with automatic rollback on failure
@@ -138,5 +137,5 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 12. Enforcement and Validation | v1.1 | 2/2 | Complete | 2026-03-04 |
 | 13. Scan Infrastructure | v1.2 | 2/2 | Complete | 2026-03-05 |
 | 14. Token and System Integration | v1.2 | 3/3 | Complete | 2026-03-05 |
-| 15. Compose Integration | v1.2 | 0/TBD | Not started | - |
+| 15. Compose Integration | v1.2 | 0/2 | Not started | - |
 | 16. Validation and Hardening | v1.2 | 0/TBD | Not started | - |
