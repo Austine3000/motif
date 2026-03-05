@@ -34,11 +34,26 @@ This generates two files:
 
 If the scanner fails, stop and report the error. Do NOT proceed with empty results.
 
+## Step 1b: Run Token Extractor
+
+After project-scanner.js completes successfully, run the token extractor:
+
+```bash
+node scripts/token-extractor.js [projectRoot]
+```
+
+This generates `.planning/design/TOKEN-INVENTORY.md` if design tokens are found in the project (CSS custom properties, Tailwind config theme customizations, or JS theme files).
+
+If the extractor finds zero tokens, no file is created — this is normal for projects without custom design tokens. Do NOT treat this as an error.
+
+If the extractor fails, log the error but continue with the scan — token extraction is optional enrichment, not a blocking requirement.
+
 ## Step 2: Read Scanner Output
 
-Read both generated files:
+Read the generated files:
 - `.planning/design/PROJECT-SCAN.md`
 - `.planning/design/CONVENTIONS.md`
+- `.planning/design/TOKEN-INVENTORY.md` (if it exists)
 
 Parse the key findings for presentation.
 
@@ -53,9 +68,12 @@ Show a compact overview to the user:
 - **CSS Approach:** [approaches] (confidence: [HIGH/MEDIUM/LOW])
 - **Components:** [N] found across [M] directories
 - **Conventions:** [key findings summary]
+- **Design Tokens:** [N] found ([X]% Motif coverage) OR "None detected"
 ```
 
 Keep this brief — the user sees the big picture first.
+
+**Note:** The "Design Tokens" line only appears if `.planning/design/TOKEN-INVENTORY.md` exists. If no tokens were found, show "None detected" — do NOT omit the line entirely when the extractor ran.
 
 ## Step 4: Drill-Down Confirmation
 
@@ -102,7 +120,7 @@ If adjusting: let the user reclassify confidence or category for specific compon
 
 ### 4d. Conventions
 
-Show key findings with any inconsistencies:
+Show key findings with any inconsistencies (if TOKEN-INVENTORY.md does not exist, skip to Step 4d conventions below):
 
 ```
 ### Conventions Detected
@@ -118,16 +136,42 @@ Show key findings with any inconsistencies:
 - Looks good
 - Override: [X should be Y]
 
+### 4e. Token Review
+
+**Only show this section if `.planning/design/TOKEN-INVENTORY.md` exists.**
+
+Present the token summary with per-category coverage:
+
+```
+### Tokens Detected
+
+- **Colors:** [N] tokens ([X]% coverage) — mapped: [list], missing: [list]
+- **Typography:** [N] tokens ([X]% coverage)
+- **Spacing:** [N] tokens ([X]% coverage)
+- **Radii:** [N] tokens ([X]% coverage)
+- **Shadows:** [N] tokens ([X]% coverage)
+- **Transitions:** [N] tokens ([X]% coverage)
+
+"These are the token mappings I found. Any corrections?"
+- Looks good
+- Override: [mapping X should be Y]
+```
+
+If the user provides overrides, note them for Step 5.
+
+**If TOKEN-INVENTORY.md does NOT exist, skip this section entirely.** Do not mention tokens to the user if no tokens were found.
+
 ## Step 5: Apply Corrections
 
 If the user made any corrections in Step 4:
 
-1. Read the current PROJECT-SCAN.md and CONVENTIONS.md
+1. Read the current PROJECT-SCAN.md, CONVENTIONS.md, and TOKEN-INVENTORY.md (if it exists)
 2. Apply each correction:
    - Framework/CSS changes: update the detection section
    - Component reclassification: update confidence or category
    - Component removal: remove from catalog
    - Convention overrides: update the relevant convention entry
+   - Token mapping overrides: update the Motif Equivalent column in TOKEN-INVENTORY.md
 3. Write the corrected files back
 
 If no corrections were made, skip this step.
@@ -139,6 +183,7 @@ Tell the user:
 "Scan complete. Results saved to:
 - `.planning/design/PROJECT-SCAN.md`
 - `.planning/design/CONVENTIONS.md`
+- `.planning/design/TOKEN-INVENTORY.md` (if tokens were found)
 
 You can manually edit these files before running `/motif:system`. The design system generator will use these findings for brownfield-aware token generation."
 
@@ -150,7 +195,10 @@ Read `.planning/design/STATE.md` and update it:
    ```
    | PROJECT-SCAN.md | ~1,200 | <=1,500 |
    | CONVENTIONS.md | ~800 | <=1,000 |
+   | TOKEN-INVENTORY.md | ~1,000 | <=1,500 |
    ```
+
+   **Note:** Only add TOKEN-INVENTORY.md to the table if the file was generated. If no tokens were found, omit it.
 
 2. Append to Decisions Log:
    - `[date] Project scanned: [framework] detected, [N] components cataloged`
@@ -161,6 +209,8 @@ Read `.planning/design/STATE.md` and update it:
 
 ```bash
 git add .planning/design/PROJECT-SCAN.md .planning/design/CONVENTIONS.md .planning/design/STATE.md
+# Only add TOKEN-INVENTORY.md if it exists
+[ -f .planning/design/TOKEN-INVENTORY.md ] && git add .planning/design/TOKEN-INVENTORY.md
 git commit -m "design(scan): scan project — [framework], [N] components found"
 ```
 
