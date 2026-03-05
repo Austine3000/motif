@@ -9,25 +9,25 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 
 ## Current Position
 
-Phase: 13 of 16 (Scan Infrastructure)
-Plan: 1 of 2 in current phase
-Status: Executing
-Last activity: 2026-03-05 — Completed 13-01 (project scanner pipeline)
+Phase: 13 of 16 (Scan Infrastructure) -- COMPLETE
+Plan: 2 of 2 in current phase
+Status: Phase Complete
+Last activity: 2026-03-05 — Completed 13-02 (scan workflow and command integration)
 
-Progress: [█░░░░░░░░░] 12% (v1.2)
+Progress: [██░░░░░░░░] 25% (v1.2)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 33 (v1.0: 24, v1.1: 8, v1.2: 1)
+- Total plans completed: 34 (v1.0: 24, v1.1: 8, v1.2: 2)
 - Average duration: ~2.4 min
-- Total execution time: ~1 hour 44 min
+- Total execution time: ~1 hour 48 min
 
 **By Phase (v1.2):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 13. Scan Infrastructure | 1/2 | 3min | 3min |
+| 13. Scan Infrastructure | 2/2 | 7min | 3.5min |
 | 14. Token and System Integration | - | - | - |
 | 15. Compose Integration | - | - | - |
 | 16. Validation and Hardening | - | - | - |
@@ -44,6 +44,9 @@ Recent decisions affecting current work:
 - [13-01]: Used regex over AST parsing for zero-dependency component detection with confidence tags
 - [13-01]: Multi-signal scoring (directory + export + JSX + filename) for component confidence
 - [13-01]: Split output: PROJECT-SCAN.md (~1200 tokens) and CONVENTIONS.md (~800 tokens)
+- [13-02]: Scan workflow runs in MAIN context for user interaction (not subagent)
+- [13-02]: Brownfield detection gated behind package.json AND source directory -- greenfield unchanged
+- [13-02]: No new SCANNED state -- scan is optional pre-step, not a phase transition
 
 ### Pending Todos
 
@@ -56,5 +59,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Completed 13-01-PLAN.md (project scanner pipeline). Ready for 13-02.
+Stopped at: Completed 13-02-PLAN.md (scan workflow and command integration). Phase 13 complete. Ready for Phase 14.
 Resume file: None
