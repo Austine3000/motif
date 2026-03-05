@@ -19,16 +19,16 @@ Progress: [████░░░░░░] 40% (v1.2)
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 35 (v1.0: 24, v1.1: 8, v1.2: 3)
+- Total plans completed: 36 (v1.0: 24, v1.1: 8, v1.2: 4)
 - Average duration: ~2.4 min
-- Total execution time: ~1 hour 51 min
+- Total execution time: ~1 hour 55 min
 
 **By Phase (v1.2):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 13. Scan Infrastructure | 2/2 | 7min | 3.5min |
-| 14. Token and System Integration | 1/3 | 3min | 3min |
+| 14. Token and System Integration | 2/3 | 7min | 3.5min |
 | 15. Compose Integration | - | - | - |
 | 16. Validation and Hardening | - | - | - |
 
@@ -47,6 +47,9 @@ Recent decisions affecting current work:
 - [13-02]: Scan workflow runs in MAIN context for user interaction (not subagent)
 - [13-02]: Brownfield detection gated behind package.json AND source directory -- greenfield unchanged
 - [13-02]: No new SCANNED state -- scan is optional pre-step, not a phase transition
+- [14-01]: Separate token-extractor.js script from project-scanner.js for single-responsibility
+- [14-01]: Regex Tailwind config parsing with confidence flags (LOW for dynamic configs)
+- [14-01]: All scan.md token references existence-gated -- greenfield path unchanged
 - [14-02]: Line-based markdown table parsing instead of regex exec loop for reliability
 - [14-02]: 3-tier component matching (exact, alias, contains) with alias table for known equivalents
 - [14-02]: Contains match requires minimum 3 characters to avoid false positives
