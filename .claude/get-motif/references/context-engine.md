@@ -34,6 +34,8 @@ Every planning/design file has a maximum token budget. If a file exceeds its bud
 | [screen]-SUMMARY.md | 500 each | Per-screen summary |
 | [screen]-REVIEW.md | 1,000 each | Per-screen review |
 | ICON-CATALOG.md | 1,000 | Per-project icon name lookup for composer |
+| TOKEN-INVENTORY.md | 1,500 | Existing token inventory (brownfield) |
+| COMPONENT-GAP.md | 800 | Component gap analysis (brownfield) |
 
 **Total context budget for a fully-loaded subagent**: ~15,000 tokens of context files, leaving ~185,000 tokens for the actual work.
 
@@ -72,6 +74,10 @@ Different commands need different slices of context. These profiles define exact
     .planning/design/research/03-accessibility.md
     .claude/get-motif/references/verticals/{vertical}.md
     .claude/get-motif/references/icon-libraries.md
+    .planning/design/TOKEN-INVENTORY.md
+    .planning/design/COMPONENT-GAP.md
+    .planning/design/PROJECT-SCAN.md
+    .planning/design/CONVENTIONS.md
   </load_if_exists>
   <never_load>
     research/01-vertical-patterns.md (already synthesized in DESIGN-RESEARCH.md)

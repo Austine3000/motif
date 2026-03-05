@@ -18,7 +18,7 @@ UNINITALIZED → INITIALIZED → RESEARCHED → SYSTEM_GENERATED → COMPOSING �
 | `UNINITIALIZED` | (default) | None | None |
 | `INITIALIZED` | `/motif:init` | None | PROJECT.md, DESIGN-BRIEF.md, STATE.md, (optional: PROJECT-SCAN.md, CONVENTIONS.md if brownfield) |
 | `RESEARCHED` | `/motif:research` | INITIALIZED | DESIGN-RESEARCH.md, research/*.md |
-| `SYSTEM_GENERATED` | `/motif:system` | RESEARCHED | system/tokens.css, system/DESIGN-SYSTEM.md, system/COMPONENT-SPECS.md, system/token-showcase.html |
+| `SYSTEM_GENERATED` | `/motif:system` | RESEARCHED | system/tokens.css, system/DESIGN-SYSTEM.md, system/COMPONENT-SPECS.md, system/token-showcase.html, system/ICON-CATALOG.md, (optional: TOKEN-INVENTORY.md, COMPONENT-GAP.md if brownfield) |
 | `COMPOSING` | `/motif:compose` | SYSTEM_GENERATED | screens/[name].*, screens/[name]-SUMMARY.md |
 | `REVIEWING` | `/motif:review` | ≥1 screen composed | reviews/[name]-REVIEW.md |
 | `ITERATING` | `/motif:fix` | ≥1 review exists | Updated screen files, updated reviews |
@@ -44,7 +44,7 @@ Every command reads STATE.md and validates before executing:
   <command>/motif:system</command>
   <requires_phase>RESEARCHED</requires_phase>
   <blocks_if>DESIGN-RESEARCH.md missing. Tell user to run /motif:research first.</blocks_if>
-  <note>If PROJECT-SCAN.md exists, system generator uses brownfield mode (Phase 14 integration).</note>
+  <note>If TOKEN-INVENTORY.md exists, presents token strategy choice (adopt/merge/fresh) before generation. If PROJECT-SCAN.md exists with components, runs gap analysis to produce COMPONENT-GAP.md.</note>
 </gate_check>
 
 <gate_check>
@@ -120,6 +120,8 @@ Every command reads STATE.md and validates before executing:
 | COMPONENT-SPECS.md | ~3,000 | ≤5,000 |
 | PROJECT-SCAN.md | ~1,200 | ≤1,500 |
 | CONVENTIONS.md | ~800 | ≤1,000 |
+| TOKEN-INVENTORY.md | ~1,500 | ≤1,500 |
+| COMPONENT-GAP.md | ~800 | ≤800 |
 ```
 
 ## State Update Protocol
