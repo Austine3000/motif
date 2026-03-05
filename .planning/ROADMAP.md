@@ -48,7 +48,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 **Milestone Goal:** Make Motif's entire pipeline project-aware — scan existing codebases, present findings to the user for decisions, and output properly decomposed components that integrate with existing project conventions.
 
 - [x] Phase 13: Scan Infrastructure - Users can scan an existing project and review confirmed findings — completed 2026-03-05
-- [ ] Phase 14: Token and System Integration - Users can have their existing design tokens detected, choose a merge strategy, and see what components are missing
+- [x] Phase 14: Token and System Integration - Users can have their existing design tokens detected, choose a merge strategy, and see what components are missing — completed 2026-03-05
 - [ ] Phase 15: Compose Integration - Users can receive decomposed, project-aware screen output written to their actual directories
 - [ ] Phase 16: Validation and Hardening - Users can trust that decomposed output is validated, atomically committed, and rollback-safe
 
@@ -82,9 +82,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 14-01-PLAN.md — Build token extractor script and integrate into scan workflow
-- [ ] 14-02-PLAN.md — Build component gap analysis script
-- [ ] 14-03-PLAN.md — Wire brownfield mode into system generator workflow, agent, and context engine
+- [x] 14-01-PLAN.md — Build token extractor script and integrate into scan workflow
+- [x] 14-02-PLAN.md — Build component gap analysis script
+- [x] 14-03-PLAN.md — Wire brownfield mode into system generator workflow, agent, and context engine
 
 ### Phase 15: Compose Integration
 **Goal**: Users can receive decomposed screen compositions that reuse existing project components and are written to the project's actual directories following its conventions
@@ -137,6 +137,6 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 11. Pipeline Integration | v1.1 | 3/3 | Complete | 2026-03-04 |
 | 12. Enforcement and Validation | v1.1 | 2/2 | Complete | 2026-03-04 |
 | 13. Scan Infrastructure | v1.2 | 2/2 | Complete | 2026-03-05 |
-| 14. Token and System Integration | v1.2 | 0/3 | Not started | - |
+| 14. Token and System Integration | v1.2 | 3/3 | Complete | 2026-03-05 |
 | 15. Compose Integration | v1.2 | 0/TBD | Not started | - |
 | 16. Validation and Hardening | v1.2 | 0/TBD | Not started | - |
