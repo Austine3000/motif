@@ -109,11 +109,11 @@ Plans:
   1. User can have all decomposed files from a composition committed atomically in a single git commit
   2. User can have the commit automatically rolled back if any post-decomposition validation check fails (import cycles, naming conflicts, missing props)
   3. Stale scan artifacts are detected before composition, preventing ghost component references from outdated scans
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 16-01: TBD
-- [ ] 16-02: TBD
+- [ ] 16-01-PLAN.md — Build compose-validator.js script (import cycles, naming conflicts, missing props)
+- [ ] 16-02-PLAN.md — Add validation gate, atomic commit/rollback, and staleness check to compose workflow
 
 ## Progress
 
@@ -138,4 +138,4 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 13. Scan Infrastructure | v1.2 | 2/2 | Complete | 2026-03-05 |
 | 14. Token and System Integration | v1.2 | 3/3 | Complete | 2026-03-05 |
 | 15. Compose Integration | v1.2 | 2/2 | Complete | 2026-03-06 |
-| 16. Validation and Hardening | v1.2 | 0/TBD | Not started | - |
+| 16. Validation and Hardening | v1.2 | 0/2 | Not started | - |
