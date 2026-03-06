@@ -19,7 +19,7 @@ UNINITALIZED → INITIALIZED → RESEARCHED → SYSTEM_GENERATED → COMPOSING �
 | `INITIALIZED` | `/motif:init` | None | PROJECT.md, DESIGN-BRIEF.md, STATE.md, (optional: PROJECT-SCAN.md, CONVENTIONS.md if brownfield) |
 | `RESEARCHED` | `/motif:research` | INITIALIZED | DESIGN-RESEARCH.md, research/*.md |
 | `SYSTEM_GENERATED` | `/motif:system` | RESEARCHED | system/tokens.css, system/DESIGN-SYSTEM.md, system/COMPONENT-SPECS.md, system/token-showcase.html, system/ICON-CATALOG.md, (optional: TOKEN-INVENTORY.md, COMPONENT-GAP.md if brownfield) |
-| `COMPOSING` | `/motif:compose` | SYSTEM_GENERATED | screens/[name].*, screens/[name]-SUMMARY.md |
+| `COMPOSING` | `/motif:compose` | SYSTEM_GENERATED | screens/[name]/ (decomposed components), screens/[name]-SUMMARY.md, OR project-directory files (brownfield) |
 | `REVIEWING` | `/motif:review` | ≥1 screen composed | reviews/[name]-REVIEW.md |
 | `ITERATING` | `/motif:fix` | ≥1 review exists | Updated screen files, updated reviews |
 
