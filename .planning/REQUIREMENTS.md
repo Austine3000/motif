@@ -1,162 +1,82 @@
 # Requirements: Motif
 
-**Defined:** 2026-03-01
+**Defined:** 2026-03-04
 **Core Value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
 
-## v1 Requirements
+## v1.2 Requirements
 
-Requirements for initial release. Each maps to roadmap phases.
+Requirements for Brownfield Intelligence milestone. Each maps to roadmap phases.
 
-### Agents
+### Scanning
 
-- [x] **AGNT-01**: Researcher agent definition with explicit context-loading profile and model selection
-- [x] **AGNT-02**: System Architect agent definition for design system generation with context profile
-- [x] **AGNT-03**: Screen Composer agent definition enforcing token compliance with fresh 200K context
-- [x] **AGNT-04**: Design Reviewer agent definition for 4-lens evaluation with context profile
-- [x] **AGNT-05**: Fix Agent definition for systematically fixing review findings with context profile
+- [x] **SCAN-01**: User can run a project scan that detects framework, directory layout, CSS approach, and naming conventions
+- [x] **SCAN-02**: User can see a catalog of existing components found in the project (file path, export name)
+- [x] **SCAN-03**: User can see a gap analysis comparing existing components against vertical-required components
+- [x] **SCAN-04**: User can review and confirm/correct scan findings before any generation happens
+- [x] **SCAN-05**: User can see extracted conventions from existing components (recurring patterns like border-radius, spacing, shadow usage)
 
-### Templates
+### Tokens
 
-- [x] **TMPL-01**: STATE-TEMPLATE.md matching format defined in state-machine.md
-- [x] **TMPL-02**: SUMMARY-TEMPLATE.md matching format defined in compose-screen.md
-- [x] **TMPL-03**: Token showcase HTML — self-contained page displaying all design tokens visually
+- [x] **TOKN-01**: User can have existing CSS custom properties or Tailwind config tokens detected and presented
+- [x] **TOKN-02**: User can choose token strategy: adopt existing, merge with Motif, or start fresh
+- [x] **TOKN-03**: User can receive a selective token overlay that fills gaps without overwriting existing tokens
 
-### Installer
+### Composition
 
-- [x] **INST-01**: `npx motif@latest` auto-detects Claude Code runtime and installs
-- [x] **INST-02**: Copies core/ to `.claude/get-motif/` and commands to `.claude/commands/motif/`
-- [x] **INST-03**: Injects config snippet into CLAUDE.md with sentinel markers (`<!-- MOTIF-START/END -->`)
-- [x] **INST-04**: Backs up existing files before overwrite on re-install
-- [x] **INST-05**: Manifest-based upgrade tracking (`.motif-manifest.json`) with content-hash diffing
-- [x] **INST-06**: Supports `--runtime`, `--force`, `--dry-run`, `--uninstall` CLI flags
-- [x] **INST-07**: Post-install verification confirms zero unresolved `{FORGE_ROOT}` path variables
-- [x] **INST-08**: Resolves `{FORGE_ROOT}` to correct runtime path at install time
+- [x] **COMP-01**: User can receive decomposed screen output with one component per file
+- [x] **COMP-02**: User can have composed files written to the project's actual directories (not just `.planning/`)
+- [x] **COMP-03**: User can have existing project components imported and reused instead of recreated
+- [x] **COMP-04**: User can have all decomposed files committed atomically with rollback on validation failure
 
-### Distribution
+## Future Requirements
 
-- [x] **DIST-01**: `package.json` with name "motif", bin field, files whitelist, engines >=22.0.0
-- [x] **DIST-02**: MIT LICENSE file
-- [x] **DIST-03**: README with pitch, install command, command reference, architecture diagram, how it works
-- [ ] **DIST-04**: GitHub Actions CI workflow for automated npm publish on git tag
+### Convention Learning (v1.3+)
 
-### Verticals
+Convention extraction is included in v1.2 (SCAN-05). Deeper convention learning features deferred:
 
-- [x] **VERT-01**: Health vertical following fintech.md structure exactly
-- [x] **VERT-02**: SaaS vertical following fintech.md structure exactly
-- [x] **VERT-03**: E-commerce vertical following fintech.md structure exactly
+- **CONV-01**: User can have conventions automatically applied to all future compositions without re-scanning
+- **CONV-02**: User can override extracted conventions with explicit preferences
 
-### Hooks
+### Multi-Runtime (v1.3+)
 
-- [x] **HOOK-01**: Token-check PostToolUse hook flags hardcoded CSS values in .css/.tsx/.jsx/.vue/.html
-- [x] **HOOK-02**: Font-check PostToolUse hook flags banned fonts (unless user-locked)
-- [x] **HOOK-03**: A11y-check PostToolUse hook flags div+onClick, img without alt, inputs without labels
-- [x] **HOOK-04**: Context-monitor statusline hook displays context %, warns at 50%
-
-### Scripts
-
-- [x] **SCRP-01**: Contrast checker — WCAG contrast ratio calculator, pure Node.js
-- [x] **SCRP-02**: Token counter — approximate token count in .planning/design/ files
-
-### Rebrand
-
-- [x] **BRND-01**: Rename package, commands (`/forge:*` → `/motif:*`), install dirs, all references to "Motif"
-
-### Validation
-
-- [x] **VALD-01**: End-to-end workflow completes on controlled test project (init → research → system → compose → review → fix)
-- [x] **VALD-02**: Battle test on real project (CryptoPay fintech) — full workflow succeeds
-- [x] **VALD-03**: Differentiation seed produces visibly different designs for same vertical
-- [x] **VALD-04**: Brand colors flow through token generation without being overridden
-- [x] **VALD-05**: Screen quality remains consistent across 5+ screens (fresh context works)
-
-## v2 Requirements
-
-Deferred to future release. Tracked but not in current roadmap.
-
-### Multi-Runtime Support
-
-- **RUNT-01**: OpenCode runtime adapter (commands, agents, config snippet)
-- **RUNT-02**: Cursor/Windsurf runtime adapter
-- **RUNT-03**: Gemini CLI runtime adapter
-
-### Token Formats
-
-- **TOKN-01**: Tailwind token export command
-- **TOKN-02**: W3C DTCG JSON token format export
-
-### Vertical Expansion
-
-- **VERT-04**: Social vertical
-- **VERT-05**: Education vertical
-- **VERT-06**: Marketplace vertical
-- **VERT-07**: DevTools vertical
-
-### Integrations
-
-- **INTG-01**: Figma MCP integration for design-to-code pipeline
-
-### Polish
-
-- **PLSH-01**: CHANGELOG.md with release tracking
+- **RUNT-01**: User can install Motif for OpenCode runtime
+- **RUNT-02**: User can install Motif for Cursor runtime
+- **RUNT-03**: User can install Motif for Gemini CLI runtime
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Component library / pre-built UI components | Motif generates specs, not components. Framework-agnostic. |
-| Runtime UI / visual editor | CLI-first tool. Visual editing adds complexity without core value. |
-| Real-time collaboration | Single-user tool for solo devs/founders. |
-| CSS-in-JS token output | CSS custom properties are framework-agnostic. CSS-in-JS fragments the approach. |
-| Figma plugin | MCP integration is the modern path. Plugin adds maintenance burden. |
-| Windows CI testing | macOS-only v1. Windows support deferred to community feedback. |
+| Full AST parsing of existing components | Framework-specific parsers are npm dependencies; AI agents read source files better than parsed ASTs |
+| Automatic code migration/refactoring | Touching existing working code destroys user trust; Motif is additive, not destructive |
+| Runtime component discovery | Requires running dev server + browser automation; Motif operates at design-time via file analysis |
+| Design system migration assistant | Motif coexists with existing design systems, does not replace them |
+| Intelligent merge conflict resolution | Design decisions require human judgment; auto-merge is wrong as often as right |
+| Cross-project design system sharing | Monorepo distribution is a separate concern from brownfield awareness |
+| Storybook/docs generation | Separate tool category; existing tools (react-docgen, auto-docs) do this better |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AGNT-01 | Phase 1 | Complete |
-| AGNT-02 | Phase 1 | Complete |
-| AGNT-03 | Phase 1 | Complete |
-| AGNT-04 | Phase 1 | Complete |
-| AGNT-05 | Phase 1 | Complete |
-| TMPL-01 | Phase 2 | Complete |
-| TMPL-02 | Phase 2 | Complete |
-| TMPL-03 | Phase 2 | Complete |
-| INST-01 | Phase 3 | Complete |
-| INST-02 | Phase 3 | Complete |
-| INST-03 | Phase 3 | Complete |
-| INST-04 | Phase 3 | Complete |
-| INST-05 | Phase 3 | Complete |
-| INST-06 | Phase 3 | Complete |
-| INST-07 | Phase 3 | Complete |
-| INST-08 | Phase 3 | Complete |
-| DIST-01 | Phase 4 | Complete |
-| DIST-02 | Phase 4 | Complete |
-| DIST-03 | Phase 4 | Complete |
-| DIST-04 | Phase 8 | Pending |
-| VERT-01 | Phase 5 | Complete |
-| VERT-02 | Phase 5 | Complete |
-| VERT-03 | Phase 5 | Complete |
-| HOOK-01 | Phase 6 | Complete |
-| HOOK-02 | Phase 6 | Complete |
-| HOOK-03 | Phase 6 | Complete |
-| HOOK-04 | Phase 6 | Complete |
-| SCRP-01 | Phase 6 | Complete |
-| SCRP-02 | Phase 6 | Complete |
-| BRND-01 | Phase 4 | Complete |
-| VALD-01 | Phase 7 | Complete |
-| VALD-02 | Phase 7 | Complete |
-| VALD-03 | Phase 7 | Complete |
-| VALD-04 | Phase 7 | Complete |
-| VALD-05 | Phase 7 | Complete |
+| SCAN-01 | Phase 13 | Satisfied |
+| SCAN-02 | Phase 13 | Satisfied |
+| SCAN-03 | Phase 14 | Satisfied |
+| SCAN-04 | Phase 13 | Satisfied |
+| SCAN-05 | Phase 13 | Satisfied |
+| TOKN-01 | Phase 14 | Satisfied |
+| TOKN-02 | Phase 14 | Satisfied |
+| TOKN-03 | Phase 14 | Satisfied |
+| COMP-01 | Phase 15 | Satisfied |
+| COMP-02 | Phase 15 | Satisfied |
+| COMP-03 | Phase 15 | Satisfied |
+| COMP-04 | Phase 16 | Satisfied |
 
 **Coverage:**
-- v1 requirements: 35 total
-- Mapped to phases: 35
+- v1.2 requirements: 12 total
+- Mapped to phases: 12
 - Unmapped: 0
 
 ---
-*Requirements defined: 2026-03-01*
-*Last updated: 2026-03-03 after Phase 7 completion*
+*Requirements defined: 2026-03-04*
+*Last updated: 2026-03-06 after v1.2 milestone audit (all requirements satisfied)*

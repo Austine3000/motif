@@ -119,7 +119,7 @@ Health data needs breathing room to avoid feeling overwhelming. Users should nev
 <component name="MetricCard" category="data-display">
   <description>Health metric with current value, trend, and context. The primary data display in any health app.</description>
   <structure>
-    Card: [MetricIcon 32x32] [Label + Value stack] [Trend + Sparkline right-aligned]
+    Card: [icon: health metric --icon-xl in 32x32 --radius-md container] [Label + Value stack] [Trend + Sparkline right-aligned]
     Label: --font-body --text-sm --weight-medium --text-secondary
     Value: --font-mono --text-2xl --weight-bold --text-primary, tabular-nums
     Unit: --font-mono --text-sm --weight-medium --text-secondary (80% of value size)
@@ -169,7 +169,7 @@ Health data needs breathing room to avoid feeling overwhelming. Users should nev
 <component name="LogEntry" category="data-display">
   <description>Single health event in a timeline. Meals, workouts, symptoms, medications.</description>
   <structure>
-    Row: [CategoryIcon 36x36] [Title + Details stack] [Timestamp right-aligned]
+    Row: [icon: log category --icon-lg in 36x36 --radius-md container] [Title + Details stack] [Timestamp right-aligned]
     Title: --font-body --text-base --weight-medium --text-primary (e.g., "Morning Walk")
     Details: --font-body --text-sm --text-secondary (e.g., "32 min, 2.1 km, 187 cal")
     Timestamp: --font-mono --text-xs --text-secondary right-aligned (e.g., "8:32 AM")
@@ -226,6 +226,52 @@ Health data needs breathing room to avoid feeling overwhelming. Users should nev
 | shadow-sm | 0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03) | Subtle metric card elevation |
 | shadow-md | 0 4px 16px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.03) | Elevated cards, active states |
 | shadow-lg | 0 8px 32px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.03) | Modals, popovers, overlays |
+
+<!-- Verified against Material Symbols via GitHub google/material-design-icons/symbols/web/ -->
+
+## Icon Vocabulary
+
+Primary library: Material Symbols Rounded (from icon-libraries.md domain affinity matrix)
+
+Note: Material Symbols uses underscores, not hyphens. Double-check every name.
+
+### Navigation
+| Semantic Role | Material Symbols | Phosphor | Lucide | Tabler |
+|---------------|-----------------|----------|--------|--------|
+| home | home | ph-house | house | ti-home |
+| search | search | ph-magnifying-glass | search | ti-search |
+| settings | settings | ph-gear | settings | ti-settings |
+| profile | person | ph-user | user | ti-user |
+| notifications | notifications | ph-bell | bell | ti-bell |
+
+### Health & Medical
+| Semantic Role | Material Symbols | Phosphor | Lucide | Tabler |
+|---------------|-----------------|----------|--------|--------|
+| vitals | monitor_heart | ph-heartbeat | heart-pulse | ti-heartbeat |
+| medication | medication | ph-pill | pill | ti-pill |
+| medical-service | medical_services | ph-first-aid | cross | ti-first-aid |
+| health-safety | health_and_safety | ph-shield-plus | shield-plus | ti-shield-plus |
+| stethoscope | stethoscope | ph-stethoscope | stethoscope | ti-stethoscope |
+| fitness | fitness_center | ph-barbell | dumbbell | ti-barbell |
+| nutrition | restaurant | ph-fork-knife | utensils | ti-tools-kitchen-2 |
+| hydration | water_drop | ph-drop | droplets | ti-droplet |
+
+### Status & Feedback
+| Semantic Role | Material Symbols | Phosphor | Lucide | Tabler |
+|---------------|-----------------|----------|--------|--------|
+| success | check_circle | ph-check-circle | check-circle | ti-circle-check |
+| error | cancel | ph-x-circle | x-circle | ti-circle-x |
+| warning | warning | ph-warning | alert-triangle | ti-alert-triangle |
+| info | info | ph-info | info | ti-info-circle |
+| goal-complete | emoji_events | ph-trophy | trophy | ti-trophy |
+
+### Actions
+| Semantic Role | Material Symbols | Phosphor | Lucide | Tabler |
+|---------------|-----------------|----------|--------|--------|
+| add-entry | add_circle | ph-plus-circle | plus-circle | ti-circle-plus |
+| calendar | calendar_month | ph-calendar | calendar | ti-calendar |
+| timer | timer | ph-timer | timer | ti-clock |
+| close | close | ph-x | x | ti-x |
 
 ## Health-Specific Additions
 - **Medication reminders:** Persistent banner in Today view when medication is due. Dismiss requires explicit "Taken" or "Skip" -- no passive dismissal. Show next dose countdown.

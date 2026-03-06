@@ -1,570 +1,669 @@
-# Architecture Research
+# Architecture Research: Brownfield Intelligence Integration
 
-**Domain:** npm-distributed AI design engineering tool with plugin/adapter architecture
-**Researched:** 2026-03-01
-**Confidence:** HIGH
+**Domain:** Brownfield project scanning, component decomposition, and user-driven design decisions for an existing AI design engineering system (Motif)
+**Researched:** 2026-03-04
+**Confidence:** HIGH (based on deep analysis of existing Motif architecture)
 
-## Standard Architecture
+## Existing Architecture Summary
 
-### System Overview
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         NPM Package (design-forge)                  │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌──────────────┐                                                   │
-│  │  bin/         │  Entry: install.js                                │
-│  │  install.js   │  npx design-forge@latest                         │
-│  └──────┬───────┘                                                   │
-│         │                                                           │
-│         ▼                                                           │
-│  ┌──────────────┐   ┌──────────────┐   ┌──────────────────────┐    │
-│  │  Detector    │──▶│  Resolver    │──▶│  Copier              │    │
-│  │              │   │              │   │                      │    │
-│  │  Which AI    │   │  Map source  │   │  Copy files to       │    │
-│  │  runtime?    │   │  → target    │   │  project directory   │    │
-│  └──────────────┘   └──────────────┘   └──────────┬───────────┘    │
-│                                                    │                │
-│  ┌──────────────┐   ┌──────────────┐              │                │
-│  │  Injector    │◀──│  Verifier    │◀─────────────┘                │
-│  │              │   │              │                                │
-│  │  Append to   │   │  Post-install│                                │
-│  │  config file │   │  health check│                                │
-│  └──────────────┘   └──────────────┘                                │
-│                                                                     │
-├─────────────────────────────────────────────────────────────────────┤
-│                     Source Content (shipped in npm package)          │
-├──────────────────────────┬──────────────────────────────────────────┤
-│                          │                                          │
-│  ┌─────────────────┐    │    ┌──────────────────────────────────┐  │
-│  │  core/           │    │    │  runtimes/                       │  │
-│  │                  │    │    │                                  │  │
-│  │  references/     │    │    │  claude-code/                    │  │
-│  │  workflows/      │    │    │    commands/forge/*.md            │  │
-│  │  templates/      │    │    │    agents/*.md                    │  │
-│  │  (90% of value)  │    │    │    hooks/*.js                     │  │
-│  │                  │    │    │    CLAUDE-MD-SNIPPET.md            │  │
-│  │  Runtime-agnostic│    │    │                                  │  │
-│  │  Shared by ALL   │    │    │  opencode/ (future)              │  │
-│  └─────────────────┘    │    │  cursor/ (future)                │  │
-│                          │    │  gemini/ (future)                │  │
-│                          │    │                                  │  │
-│                          │    │  Runtime-specific                │  │
-│                          │    │  Thin adapters (10%)             │  │
-│                          │    └──────────────────────────────────┘  │
-│                          │                                          │
-├──────────────────────────┴──────────────────────────────────────────┤
-│  scripts/                                                           │
-│    contrast-checker.js, token-counter.js (standalone utilities)     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-After installation, in the user's project:
+Before proposing brownfield integration, here is how Motif works today:
 
 ```
-project/
-├── .claude/                              (created/augmented by installer)
-│   ├── commands/forge/                   ◀── FROM runtimes/claude-code/commands/
-│   │   ├── init.md                           Thin routing files
-│   │   ├── research.md                       Each points to a workflow
-│   │   ├── system.md
-│   │   ├── compose.md
-│   │   ├── review.md
-│   │   ├── fix.md
-│   │   ├── evolve.md
-│   │   ├── quick.md
-│   │   ├── help.md
-│   │   └── progress.md
-│   │
-│   ├── get-design-forge/                 ◀── FROM core/ + runtime agents/hooks
-│   │   ├── references/
-│   │   │   ├── state-machine.md              Gate checks, phase transitions
-│   │   │   ├── context-engine.md             Context budgets, profiles
-│   │   │   ├── design-inputs.md              Input type handling
-│   │   │   └── verticals/                    Domain intelligence
-│   │   │       ├── fintech.md
-│   │   │       ├── health.md
-│   │   │       └── ...
-│   │   ├── workflows/                        Orchestration logic
-│   │   │   ├── research.md                   4-agent parallel research
-│   │   │   ├── generate-system.md            Token decisions
-│   │   │   ├── compose-screen.md             Fresh agent per screen
-│   │   │   ├── review.md                     4-lens evaluation
-│   │   │   ├── fix.md                        Review fix loop
-│   │   │   ├── evolve.md                     System evolution
-│   │   │   └── quick.md                      Ad-hoc mode
-│   │   ├── templates/                        Output format templates
-│   │   ├── agents/                           Agent personality definitions
-│   │   ├── hooks/                            PostToolUse enforcement
-│   │   └── scripts/                          Standalone utilities
-│   │
-│   └── CLAUDE.md                         ◀── Design Forge snippet APPENDED
-│
-├── .planning/design/                     (created at runtime by workflows)
-│   ├── PROJECT.md                            Product context
-│   ├── DESIGN-BRIEF.md                       Aesthetic direction
-│   ├── STATE.md                              Phase tracking
-│   ├── DESIGN-RESEARCH.md                    Synthesized research
-│   ├── research/                             Raw research outputs
-│   ├── system/
-│   │   ├── tokens.css                        Design tokens
-│   │   ├── DESIGN-SYSTEM.md                  System documentation
-│   │   ├── COMPONENT-SPECS.md                Component XML specs
-│   │   └── token-showcase.html               Visual token display
-│   ├── screens/                              Per-screen outputs
-│   └── reviews/                              Per-screen reviews
+User Command (/motif:init, /motif:research, etc.)
+    |
+    v
+Thin Slash Command (.claude/commands/motif/*.md)
+    |
+    v
+Core Workflow (.claude/get-motif/workflows/*.md)
+    |  - Reads STATE.md (gate check)
+    |  - Assembles file paths (NOT contents)
+    |
+    v
+Task() Subagent (fresh 200K context)
+    |  - Reads file paths passed by orchestrator
+    |  - Produces artifacts in .planning/design/
+    |  - Commits atomically
+    |
+    v
+Orchestrator collects SUMMARY.md only
+    |
+    v
+Updates STATE.md, advises next step
 ```
 
-### Component Responsibilities
+**State machine:** UNINITIALIZED -> INITIALIZED -> RESEARCHED -> SYSTEM_GENERATED -> COMPOSING -> REVIEWING -> ITERATING
 
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|------------------------|
-| **bin/install.js** | Entry point. Detects runtime, orchestrates install, reports results. | Single Node.js file, no dependencies. ~200-300 lines. |
-| **Detector** | Identifies which AI coding runtime is present in the project. | Check for `.claude/`, `.opencode/`, `.gemini/`, `.cursorrules`, `.windsurfrules` directories/files. Accept `--runtime` flag override. |
-| **Resolver** | Maps source paths in the npm package to destination paths in the user's project. | Runtime-specific mapping table. Each runtime has its own prefix and target structure. |
-| **Copier** | Recursively copies core/ and runtime-specific files to resolved destinations. | `fs.cpSync` with recursive option. Handles directory creation, file overwrite with backup. |
-| **Injector** | Appends config snippet to the runtime's config file (CLAUDE.md, .cursorrules, etc.). | Read target config, check if snippet already present (idempotent), append if missing. |
-| **Verifier** | Post-install health check confirming all expected files exist in the right locations. | Walk expected file list, report pass/fail per file, print summary. |
-| **core/** | All runtime-agnostic content: design intelligence, workflow orchestration, templates. | Markdown files. No executable code. Read by AI agents at runtime. |
-| **runtimes/{name}/** | Thin adapter layer per runtime: commands, agent definitions, hooks, config snippets. | Mostly markdown (commands, agents, config). Hooks are JS. Commands are 4-7 line routing files that point to core workflows. |
-| **scripts/** | Standalone Node.js utilities (contrast checker, token counter). | Pure Node.js, no dependencies. Used by agents during workflows. |
+**Key constraints:**
+- Orchestrators stay at <=30% context, pass file paths not contents
+- Each subagent gets fresh 200K context
+- All intelligence is markdown-first, generated artifacts go in `.planning/design/`
+- Zero npm dependencies, pure Node.js
+- Token budgets enforced per artifact (PROJECT.md <=1000, DESIGN-RESEARCH.md <=3000, tokens.css <=3000, COMPONENT-SPECS.md <=5000)
 
-## Recommended Project Structure
+## Recommended Architecture: Brownfield Integration
+
+### Where Scanning Fits in the Pipeline
+
+Scanning is a **new step before init**, implemented as a separate command `/motif:scan`. It does NOT replace init -- it produces artifacts that init, research, system, and compose all consume downstream.
+
+**Why before init, not during init:**
+1. Init already has a heavy interview flow (4 rounds). Adding scanning inflates it beyond the 30% orchestrator budget.
+2. Scanning is optional -- greenfield projects skip it entirely. Gating it inside init creates branching complexity.
+3. Scan results need to be reviewable by the user before init decisions are made. The user should see "here is what I found in your codebase" and then answer init questions with that context.
+4. Scan can be re-run independently without re-initializing.
+
+**Why not during research:**
+Research spawns 4 parallel agents for domain patterns. Scanning is project-introspective, not domain-research. Mixing them would overload the research orchestrator and create dependency ordering issues (research agents need scan results to calibrate their findings).
+
+### Updated State Machine
 
 ```
-design-forge/
-├── bin/
-│   └── install.js              # CLI entry point (npx design-forge@latest)
-├── core/
-│   ├── references/             # Design knowledge (state machine, context engine, verticals)
-│   │   ├── state-machine.md
-│   │   ├── context-engine.md
-│   │   ├── design-inputs.md
-│   │   ├── runtime-adapters.md
-│   │   └── verticals/
-│   │       ├── fintech.md
-│   │       ├── health.md
-│   │       ├── saas.md
-│   │       └── ecommerce.md
-│   ├── workflows/              # Orchestration logic (runtime-agnostic)
-│   │   ├── research.md
-│   │   ├── generate-system.md
-│   │   ├── compose-screen.md
-│   │   ├── review.md
-│   │   ├── fix.md
-│   │   ├── evolve.md
-│   │   └── quick.md
-│   └── templates/              # Output format templates
-│       ├── STATE-TEMPLATE.md
-│       ├── SUMMARY-TEMPLATE.md
-│       ├── VERTICAL-TEMPLATE.md
-│       └── token-showcase.html
-├── runtimes/
-│   ├── claude-code/            # v1.0 target
-│   │   ├── commands/forge/     # 10 thin routing files
-│   │   ├── agents/             # 5 agent personality definitions
-│   │   ├── hooks/              # 4 PostToolUse enforcement hooks
-│   │   └── CLAUDE-MD-SNIPPET.md
-│   ├── opencode/               # v1.1 target
-│   ├── cursor/                 # v1.2 target
-│   └── gemini/                 # v1.3 target
-├── scripts/
-│   ├── contrast-checker.js
-│   └── token-counter.js
-├── package.json
-├── README.md
-├── LICENSE
-└── CHANGELOG.md
+                    SCANNED (new)
+                       |
+UNINITIALIZED ----+----v-----> INITIALIZED -> RESEARCHED -> SYSTEM_GENERATED -> ...
+                  |                                                              |
+                  +--- (greenfield, skip scan) --->                              |
+                                                                                 |
+                  <-------------- (evolve loops back) --------------------------+
 ```
 
-### Structure Rationale
+New phase: `SCANNED` sits between UNINITIALIZED and INITIALIZED, but is **optional**. Init accepts both `UNINITIALIZED` and `SCANNED` as valid predecessor states. This preserves the greenfield flow while adding the brownfield path.
 
-- **bin/:** Single entry point. The `bin` field in package.json points here. This is the only executable code that runs during `npx`. Everything else is content that gets copied.
-- **core/:** The heart of Design Forge. 90% of the value. Completely runtime-agnostic. If you deleted every runtime adapter, core/ would still be a valid design engineering knowledge base.
-- **runtimes/:** One subdirectory per supported AI coding runtime. Each contains only the thin translation layer: how this runtime triggers workflows, spawns agents, and enforces rules. Adding a runtime never touches core/.
-- **scripts/:** Standalone utilities that agents invoke during workflows. Not part of the installer pipeline -- they get copied into the installed location alongside core content.
+### System Overview with Brownfield Integration
+
+```
++=========================================================================+
+|                        Brownfield Layer (NEW)                            |
+|                                                                          |
+|  /motif:scan                                                             |
+|       |                                                                  |
+|       v                                                                  |
+|  Scan Orchestrator (thin)                                                |
+|       |                                                                  |
+|       +---> Task(): File Scanner Agent                                   |
+|       |         - Walks project tree                                     |
+|       |         - Identifies framework, CSS approach, component files    |
+|       |         - Outputs: PROJECT-SCAN.md                               |
+|       |                                                                  |
+|       +---> Task(): Component Decomposer Agent                           |
+|       |         - Reads component files identified by scanner            |
+|       |         - Extracts: tokens, patterns, component inventory        |
+|       |         - Outputs: COMPONENT-SCAN.md, TOKEN-SCAN.md              |
+|       |                                                                  |
+|       v                                                                  |
+|  Orchestrator synthesizes -> SCAN-SUMMARY.md                             |
+|  User reviews scan results                                               |
+|  STATE.md -> SCANNED                                                     |
+|                                                                          |
++===========================+=============================================+
+                            |
+                            v
++=========================================================================+
+|                    Existing Motif Pipeline (MODIFIED)                     |
+|                                                                          |
+|  /motif:init (now reads SCAN-SUMMARY.md if SCANNED)                      |
+|       |  - Pre-fills interview answers from scan                         |
+|       |  - Detects vertical, stack, existing design patterns             |
+|       |  - User confirms/overrides scan findings                         |
+|       |                                                                  |
+|  /motif:research (now receives scan context)                             |
+|       |  - Research agents get TOKEN-SCAN.md as additional context        |
+|       |  - "The project already uses these colors/fonts. Research         |
+|       |    should consider how to systematize them, not replace them."    |
+|       |                                                                  |
+|  /motif:system (now in EXTRACT+EXTEND mode)                              |
+|       |  - Reads TOKEN-SCAN.md for existing values                       |
+|       |  - Generates tokens.css that formalizes existing patterns         |
+|       |  - Fills gaps from vertical research                             |
+|       |                                                                  |
+|  /motif:compose (now receives COMPONENT-SCAN.md)                         |
+|       |  - Composer knows existing component structure                    |
+|       |  - Composes screens using existing component patterns             |
+|       |  - Bridges between old ad-hoc styles and new token system         |
+|       |                                                                  |
++=========================================================================+
+```
+
+### Component Boundaries
+
+| Component | Responsibility | New vs Modified | Communicates With |
+|-----------|---------------|-----------------|-------------------|
+| `/motif:scan` command | Thin entry point for scanning | **NEW** | Scan workflow |
+| `workflows/scan.md` | Scan orchestrator -- spawns scanner and decomposer agents | **NEW** | Scanner agent, Decomposer agent |
+| `agents/motif-scanner.md` | File Scanner agent definition | **NEW** | Project filesystem |
+| `agents/motif-decomposer.md` | Component Decomposer agent definition | **NEW** | Project filesystem, scanner output |
+| `SCAN-SUMMARY.md` | Compressed scan synthesis (<=2000 tokens) | **NEW** artifact | init, research, system, compose |
+| `PROJECT-SCAN.md` | Raw scan: files, framework, structure | **NEW** artifact | Scan orchestrator |
+| `COMPONENT-SCAN.md` | Component inventory with patterns | **NEW** artifact | System generator, composer |
+| `TOKEN-SCAN.md` | Extracted design tokens from existing code | **NEW** artifact | System generator, research |
+| `scan/` directory | Raw scan data | **NEW** directory | Orchestrator synthesis |
+| `workflows/research.md` | Research orchestrator | **MODIFIED** -- conditionally loads scan context | Research agents |
+| `workflows/generate-system.md` | System generator orchestrator | **MODIFIED** -- adds EXTRACT+EXTEND mode | System generator agent |
+| `workflows/compose-screen.md` | Compose orchestrator | **MODIFIED** -- passes COMPONENT-SCAN.md path | Composer agent |
+| `references/state-machine.md` | State machine definition | **MODIFIED** -- adds SCANNED phase | All commands |
+| `commands/motif/init.md` | Init command | **MODIFIED** -- reads scan if SCANNED | Init workflow |
+
+## Data Structures
+
+### PROJECT-SCAN.md (raw, consumed by orchestrator only)
+
+This is the raw output of the File Scanner agent. Budget: <=3000 tokens. Not loaded by downstream subagents -- the orchestrator compresses it into SCAN-SUMMARY.md.
+
+```markdown
+# Project Scan
+
+## Framework Detection
+- **Framework:** React 18 (detected via package.json dependencies)
+- **Build tool:** Vite 5.x
+- **CSS approach:** Tailwind CSS 3.x + CSS Modules for overrides
+- **Component library:** None (custom components)
+- **State management:** Zustand
+- **Routing:** React Router v6
+
+## Project Structure
+```
+src/
+  components/          # 23 component files
+    ui/                # 8 generic UI components (Button, Card, Input, ...)
+    features/          # 15 feature-specific components
+  pages/               # 6 page components
+  styles/              # Global CSS, Tailwind config
+  hooks/               # 4 custom hooks
+  utils/               # Helper functions
+```
+
+## File Inventory
+| Category | Count | Key Files |
+|----------|-------|-----------|
+| Components | 23 | Button.tsx, Card.tsx, TransactionRow.tsx, ... |
+| Pages | 6 | Dashboard.tsx, Settings.tsx, ... |
+| Styles | 3 | globals.css, tailwind.config.ts, variables.css |
+| Assets | 12 | Logo, icons, images |
+
+## Existing Design Patterns Detected
+- Color values: 14 unique hex values across stylesheets
+- Font declarations: 2 font families referenced
+- Spacing: mix of Tailwind classes + hardcoded px values
+- Border radius: 3 distinct values used (4px, 8px, 12px)
+
+## Screens Detected
+| # | Route/File | Purpose (inferred) |
+|---|-----------|-------------------|
+| 1 | /dashboard | Main dashboard view |
+| 2 | /settings | User settings |
+| ... | ... | ... |
+```
+
+### COMPONENT-SCAN.md (consumed by system generator + composer)
+
+This is the Component Decomposer agent's output. Budget: <=3000 tokens. Loaded by the system generator (to formalize existing components into COMPONENT-SPECS.md) and by the composer (to understand the existing component library).
+
+```markdown
+# Component Inventory
+
+## Scan Source
+Scanned: [date] | Files analyzed: [N] | Framework: [detected]
+
+## Existing Component Library
+
+### Generic UI Components
+| Component | File | Variants Detected | Props/API | Design Token Coverage |
+|-----------|------|-------------------|-----------|----------------------|
+| Button | src/components/ui/Button.tsx | primary, secondary, ghost | size, variant, disabled, loading | Partial -- colors hardcoded, spacing uses Tailwind |
+| Card | src/components/ui/Card.tsx | default, elevated | children, className | None -- all styles inline |
+| Input | src/components/ui/Input.tsx | text, password, search | type, placeholder, error | Partial -- border colors hardcoded |
+
+### Feature Components
+| Component | File | Domain Pattern | Reusable? |
+|-----------|------|---------------|-----------|
+| TransactionRow | src/components/features/TransactionRow.tsx | Transaction list item | Yes -- extract to design system |
+| BalanceCard | src/components/features/BalanceCard.tsx | Balance display | Yes -- standardize |
+| QuickAction | src/components/features/QuickAction.tsx | Action shortcut grid | Project-specific |
+
+### Component Patterns Observed
+- **Composition:** Components use children prop, some use render props
+- **Styling:** Mix of Tailwind utility classes + inline styles + CSS modules
+- **State handling:** Loading states present in 3/23 components, error states in 2/23
+- **Accessibility:** aria-label on 4/23 components, no systematic focus management
+
+### Gap Analysis
+- Missing: Toast/notification, Modal, Dropdown, Table (using raw HTML)
+- Incomplete states: Most components lack loading/empty/error states
+- No design system: No shared token file, no component specs document
+```
+
+### TOKEN-SCAN.md (consumed by system generator + research agents)
+
+This is the extracted design token data from the existing codebase. Budget: <=2000 tokens. The system generator uses this to build tokens.css that formalizes (not replaces) existing patterns.
+
+```markdown
+# Token Scan
+
+## Extracted Color Palette
+| Source | Value | Usage Context | Frequency |
+|--------|-------|--------------|-----------|
+| globals.css | #1E40AF | Primary buttons, links | 12 occurrences |
+| globals.css | #EF4444 | Error text, destructive buttons | 6 occurrences |
+| Tailwind config | blue-600 (#2563EB) | Hover states | 8 occurrences |
+| Inline styles | #F3F4F6 | Card backgrounds | 15 occurrences |
+| ... | ... | ... | ... |
+
+## Extracted Typography
+| Property | Value | Source | Frequency |
+|----------|-------|--------|-----------|
+| font-family | 'Poppins', sans-serif | globals.css | Global |
+| font-family | 'JetBrains Mono' | TransactionRow.tsx | Numbers only |
+| font-size | 14px | Body text default | ~20 occurrences |
+| font-weight | 600 | Headings | ~10 occurrences |
+
+## Extracted Spacing Patterns
+| Token Candidate | Values Found | Frequency |
+|----------------|-------------|-----------|
+| space-sm | 8px, 0.5rem, p-2 | 25 occurrences |
+| space-md | 16px, 1rem, p-4 | 40 occurrences |
+| space-lg | 24px, 1.5rem, p-6 | 15 occurrences |
+| space-xl | 32px, 2rem, p-8 | 8 occurrences |
+
+## Extracted Radii
+| Value | Frequency | Context |
+|-------|-----------|---------|
+| 4px | 8 | Inputs, small cards |
+| 8px | 15 | Cards, containers |
+| 12px | 4 | Modal, large cards |
+| 9999px | 6 | Pills, avatars |
+
+## Inconsistencies Found
+- Primary blue used as both #1E40AF and #2563EB (two different blues serving same role)
+- Spacing inconsistent: same visual spacing achieved with 14px, 16px, and 1rem in different files
+- No shadow system: 4 different box-shadow values, none reused
+```
+
+### SCAN-SUMMARY.md (the compressed artifact -- consumed by ALL downstream agents)
+
+This is what the scan orchestrator produces after synthesizing PROJECT-SCAN.md, COMPONENT-SCAN.md, and TOKEN-SCAN.md. Budget: <=2000 tokens. This is the ONE scan artifact that gets loaded into every downstream subagent context (init, research, system, compose).
+
+```markdown
+# Scan Summary
+
+## Project Profile
+- **Framework:** React 18 + Vite + Tailwind CSS 3.x
+- **Components:** 23 total (8 generic UI, 15 feature-specific)
+- **Design system maturity:** None -- ad-hoc styles, no token file, no component specs
+- **Screens:** 6 detected (Dashboard, Settings, ...)
+
+## Existing Design Identity
+- **Primary color:** #1E40AF (institutional blue, used 12x)
+- **Font:** Poppins (display/body), JetBrains Mono (numbers)
+- **Spacing base:** ~4px grid detected (8/16/24/32 most common)
+- **Radius:** 4/8/12px scale detected
+- **Density:** Comfortable (space-4 dominant)
+
+## Reusable Components
+Button (3 variants), Card (2 variants), Input (3 types), TransactionRow, BalanceCard
+
+## Gaps
+- Missing: Toast, Modal, Dropdown, Table
+- States: Only 13% of components handle loading/error
+- Accessibility: Minimal (4/23 have aria-labels)
+- Token coverage: 0% -- all values hardcoded
+
+## Inconsistencies to Resolve
+- Two competing blues (#1E40AF vs #2563EB)
+- Spacing inconsistent (14px vs 16px for same visual intent)
+- 4 unique shadow values, none reused
+
+## Brownfield Constraints
+These values are LOCKED (user-confirmed existing brand):
+- Primary: #1E40AF
+- Font: Poppins
+- Mono: JetBrains Mono
+```
+
+## Data Flow: How Scan Results Flow Through the Pipeline
+
+### Flow 1: Scan -> Init
+
+```
+/motif:scan produces:
+    .planning/design/scan/PROJECT-SCAN.md     (raw, ~3000 tokens)
+    .planning/design/scan/COMPONENT-SCAN.md   (raw, ~3000 tokens)
+    .planning/design/scan/TOKEN-SCAN.md        (raw, ~2000 tokens)
+    .planning/design/SCAN-SUMMARY.md           (compressed, ~2000 tokens)
+
+/motif:init reads SCAN-SUMMARY.md:
+    - Pre-fills "What are you building?" from detected project purpose
+    - Pre-fills "Technical stack?" from detected framework
+    - Pre-fills "Screens for v1?" from detected routes/pages
+    - Sets Input Type to B (Brand Constraints) or C (Visual References)
+      based on what the scanner found
+    - Presents findings to user for confirmation/override:
+      "I scanned your project and found: [summary]. Does this look right?"
+    - User can override any finding
+    - LOCKED values from scan flow into DESIGN-BRIEF.md Brand Constraints
+```
+
+### Flow 2: Scan -> Research
+
+```
+/motif:research reads SCAN-SUMMARY.md (via orchestrator):
+    - Passes to research agents as additional context:
+      "This is a brownfield project. The existing codebase uses [colors/fonts/patterns].
+       Research should consider how to systematize these, not replace them.
+       Existing components: [list]. Research should identify gaps."
+    - Visual language agent gets TOKEN-SCAN.md to understand existing palette
+    - Competitor audit agent gets component list to benchmark coverage
+```
+
+### Flow 3: Scan -> System Generation
+
+```
+/motif:system reads TOKEN-SCAN.md + COMPONENT-SCAN.md:
+    - Enters EXTRACT+EXTEND mode (new mode alongside fresh/Figma):
+      1. Map existing colors to token scale (e.g., #1E40AF -> --color-primary-600)
+      2. Generate missing scale values around existing colors
+      3. Formalize existing spacing into --space-* tokens
+      4. Map existing components to COMPONENT-SPECS.md
+      5. Fill gaps from vertical research
+    - Token comments reference scan:
+      "/* Primary-600: #1E40AF -- extracted from existing codebase (12 occurrences).
+          Scale generated around this value. */"
+```
+
+### Flow 4: Scan -> Compose
+
+```
+/motif:compose reads COMPONENT-SCAN.md:
+    - Composer knows which components already exist
+    - Can import existing components instead of rebuilding
+    - Knows which components need token migration
+    - Produces screens that use existing component patterns where they match
+      COMPONENT-SPECS.md, and new components where gaps exist
+```
 
 ## Architectural Patterns
 
-### Pattern 1: Core/Adapter Separation (Primary Architecture)
+### Pattern 1: Layered Scan with Compression
 
-**What:** All design intelligence, workflow logic, and templates live in `core/` (shared). Each AI coding runtime gets a thin adapter in `runtimes/{name}/` that translates runtime-specific concerns (commands, agent spawning, hooks, config format).
+**What:** Two-agent scan (scanner + decomposer) produces raw artifacts that the orchestrator compresses into a single summary.
 
-**When to use:** Always. This is the foundational pattern. Every file must belong to exactly one of these categories.
+**Why:** Raw scan data is too large for downstream agent contexts. A 23-component project might produce 10,000+ tokens of raw analysis. The orchestrator compresses to <=2000 tokens, ensuring every downstream agent can load it without blowing context budget.
 
-**Trade-offs:**
-- Pro: Adding a new runtime is O(adapter), not O(system). Claude Code support cost ~30 files; OpenCode will cost ~15 files with zero core changes.
-- Pro: Bug fixes in design logic (core/) automatically improve all runtimes.
-- Con: Workflows use `{FORGE_ROOT}` path variable that must resolve differently per runtime. The installer handles this, but it adds a layer of indirection.
-- Con: The "thin command" pattern means debugging requires tracing: command -> workflow -> agent definition. Three files, not one.
-
-**Decision boundary (where does code go):**
+**Structure:**
 ```
-Does it mention Task(), agent(), .claude, .opencode, .cursorrules,
-or any runtime-specific spawning/config mechanism?
-  YES → runtimes/{name}/
-  NO  → core/
-```
-
-**Example -- thin command (4 lines):**
-```markdown
----
-description: Research domain-specific design patterns for your product vertical
----
-Load and follow the workflow at `.claude/get-design-forge/workflows/research.md`
+Scanner Agent (raw)     Decomposer Agent (raw)
+    |                       |
+    v                       v
+PROJECT-SCAN.md         COMPONENT-SCAN.md + TOKEN-SCAN.md
+    |                       |
+    +-------+-------+-------+
+            |
+            v
+    Scan Orchestrator (synthesis)
+            |
+            v
+    SCAN-SUMMARY.md (<=2000 tokens)
 ```
 
-**Example -- shared workflow (200+ lines):**
-```markdown
-# /forge:research -- Research Orchestrator
+**Trade-off:** The orchestrator does one "heavy" operation (reading all three raw files to synthesize). This temporarily pushes it above 30% context, but it is a bounded operation -- synthesize once, then the orchestrator drops the raw data and proceeds thin.
 
+### Pattern 2: Optional Phase Gate
+
+**What:** The SCANNED phase is optional. Init accepts both UNINITIALIZED and SCANNED.
+
+**Why:** Preserves the greenfield flow entirely. Users who start fresh never encounter brownfield scanning. The state machine gate check becomes:
+
+```
 <gate_check>
-Read `.planning/design/STATE.md`.
-If Phase is not `INITIALIZED`, stop.
+  <command>/motif:scan</command>
+  <requires_phase>UNINITIALIZED</requires_phase>
+  <blocks_if>Already scanned or initialized. Delete .planning/design/ to restart.</blocks_if>
 </gate_check>
 
-## Step 3: Spawn Research Agents (PARALLEL)
-<agent_spawn id="vertical-patterns">
-  [agent instructions -- runtime-agnostic]
-</agent_spawn>
+<gate_check>
+  <command>/motif:init</command>
+  <requires_phase>UNINITIALIZED or SCANNED</requires_phase>
+  <blocks_if>Already initialized.</blocks_if>
+</gate_check>
 ```
 
-### Pattern 2: Orchestrator/Agent Separation (Runtime Pattern)
+### Pattern 3: Scan-Aware Mode Flags
 
-**What:** Workflows run in the "orchestrator" context (the user's main AI session). Heavy work happens in spawned subagents with fresh 200K-token context windows. The orchestrator stays below 30% context usage by passing file paths, never file contents.
+**What:** Downstream workflows detect brownfield mode by checking for SCAN-SUMMARY.md existence, not by explicit mode flags.
 
-**When to use:** Every workflow that produces artifacts (research, compose, review, fix). Only `/forge:init` runs in the main context because it requires user interaction.
-
-**Trade-offs:**
-- Pro: Quality doesn't degrade on screen 5 of a 10-screen project. Each screen gets a fresh context.
-- Pro: Parallel execution possible (4 research agents spawn simultaneously).
-- Con: Runtimes without subagent support (Cursor/Windsurf) lose this benefit and experience context degradation.
-- Con: Subagent spawning syntax differs per runtime, which is why agent definitions live in `runtimes/`.
-
-**Information contract between orchestrator and agent:**
-```
-Orchestrator → Agent:  file PATHS to read, task description, output location, commit message
-Agent → Orchestrator:  SUMMARY.md (compressed result), git commit
-```
-
-The orchestrator NEVER reads full agent output. It reads only the SUMMARY.md the agent creates. This prevents context accumulation.
-
-### Pattern 3: State Machine for Workflow Gating
-
-**What:** A STATE.md file tracks the current phase (UNINITIALIZED -> INITIALIZED -> RESEARCHED -> SYSTEM_GENERATED -> COMPOSING -> REVIEWING -> ITERATING). Every command checks STATE.md before executing and updates it after completing.
-
-**When to use:** Every command entry point. Gate checks are the first thing each workflow does.
-
-**Trade-offs:**
-- Pro: Prevents nonsensical operations (can't compose without a design system, can't review without composed screens).
-- Pro: STATE.md survives `/clear` commands, so users never lose progress.
-- Pro: Enables the orchestrator to determine "what's next" automatically.
-- Con: STATE.md is another file to keep in sync. But at ~500 tokens it's cheap to read.
-
-### Pattern 4: Manifest-Based Install Tracking
-
-**What:** The installer writes a `.design-forge-manifest.json` to the project root after successful installation. This manifest records the installed version, runtime, timestamp, and file list. On reinstall/upgrade, the installer reads the manifest to determine what to back up, replace, or skip.
-
-**When to use:** Every install and upgrade operation.
-
-**Trade-offs:**
-- Pro: Makes upgrades idempotent. Running `npx design-forge@latest` twice produces the same result.
-- Pro: Enables selective upgrade (only replace files that changed between versions).
-- Pro: Provides an uninstall path (read manifest, delete listed files).
-- Con: One more file in the project root. Mitigated by making it a dotfile.
-
-**Example manifest:**
-```json
-{
-  "version": "1.0.0",
-  "runtime": "claude-code",
-  "installedAt": "2026-03-01T12:00:00Z",
-  "files": {
-    ".claude/commands/forge/init.md": { "hash": "a1b2c3", "source": "runtimes/claude-code/commands/forge/init.md" },
-    ".claude/get-design-forge/references/state-machine.md": { "hash": "d4e5f6", "source": "core/references/state-machine.md" },
-    "...": "..."
-  },
-  "configInjections": [
-    { "target": ".claude/CLAUDE.md", "marker": "# Design Forge Rules" }
-  ]
-}
-```
-
-### Pattern 5: Content-Hash Diffing for Safe Upgrades
-
-**What:** On upgrade, the installer computes content hashes for currently-installed files and compares against both the manifest (what was originally installed) and the new package version. Three cases:
-
-1. **File unchanged since install** (current hash matches manifest hash): Safe to overwrite with new version.
-2. **File modified by user** (current hash differs from manifest hash): Back up to `.design-forge-backup/`, then overwrite. Warn the user.
-3. **File doesn't exist in manifest** (new file in newer version): Copy without backup.
-
-**When to use:** Upgrade operations. First install skips diffing entirely.
-
-**Trade-offs:**
-- Pro: Never silently destroys user modifications.
-- Pro: Users can customize agent definitions or workflow tweaks without fear of losing them on upgrade.
-- Con: Adds complexity to the installer. But the alternative (blindly overwriting) is worse.
-
-## Data Flow
-
-### Install Flow
+**Why:** No configuration needed. If `SCAN-SUMMARY.md` exists, the workflow adapts. If it does not exist, the workflow runs in standard greenfield mode. This is the same pattern used for Input Type D (Figma files) -- presence of artifacts drives behavior, not configuration.
 
 ```
-npx design-forge@latest [--runtime claude-code]
-    │
-    ▼
-bin/install.js
-    │
-    ├── 1. Parse args (--runtime flag, --force, --dry-run)
-    │
-    ├── 2. Detect runtime
-    │   ├── Check --runtime flag first
-    │   ├── Check fs: .claude/ → claude-code
-    │   ├── Check fs: .opencode/ → opencode
-    │   ├── Check fs: .gemini/ → gemini
-    │   ├── Check fs: .cursorrules → cursor
-    │   └── No match → prompt user or fail with helpful message
-    │
-    ├── 3. Check for existing manifest (.design-forge-manifest.json)
-    │   ├── No manifest → fresh install
-    │   └── Manifest exists → upgrade flow (diff + backup)
-    │
-    ├── 4. Resolve paths
-    │   ├── core/references/ → {runtime_config_dir}/get-design-forge/references/
-    │   ├── core/workflows/ → {runtime_config_dir}/get-design-forge/workflows/
-    │   ├── core/templates/ → {runtime_config_dir}/get-design-forge/templates/
-    │   ├── scripts/ → {runtime_config_dir}/get-design-forge/scripts/
-    │   ├── runtimes/{runtime}/commands/ → {runtime_config_dir}/commands/forge/
-    │   ├── runtimes/{runtime}/agents/ → {runtime_config_dir}/get-design-forge/agents/
-    │   └── runtimes/{runtime}/hooks/ → {runtime_config_dir}/hooks/ (merge)
-    │
-    ├── 5. Copy files (fs.cpSync recursive + individual copies)
-    │
-    ├── 6. Inject config snippet
-    │   ├── Read target config file
-    │   ├── Check for existing "Design Forge" marker (idempotent)
-    │   └── Append snippet if not present
-    │
-    ├── 7. Write manifest
-    │
-    └── 8. Verify + report
-        ├── Walk expected files, confirm existence
-        └── Print summary: N files installed, runtime detected, next steps
+# In generate-system.md workflow:
+Check if .planning/design/SCAN-SUMMARY.md exists.
+IF YES:
+  - Also load .planning/design/scan/TOKEN-SCAN.md
+  - Also load .planning/design/scan/COMPONENT-SCAN.md
+  - Enter EXTRACT+EXTEND mode
+IF NO:
+  - Standard generation mode
 ```
 
-### Runtime Data Flow (User Using Design Forge)
+### Pattern 4: User Confirmation Gate
 
+**What:** After scanning, the orchestrator presents findings and requires user confirmation before proceeding.
+
+**Why:** Brownfield scanning involves interpretation. The scanner might misidentify a primary color, miss a component, or misclassify the framework. The user must review and can override any finding. Overrides are captured in SCAN-SUMMARY.md as explicit LOCKED/UNLOCKED markers.
+
+**Flow:**
 ```
-User types: /forge:compose dashboard
-    │
-    ▼
-.claude/commands/forge/compose.md                    THIN COMMAND
-    │  "Load .claude/get-design-forge/workflows/compose-screen.md"
-    ▼
-.claude/get-design-forge/workflows/compose-screen.md  SHARED WORKFLOW
-    │
-    ├── Gate check: read STATE.md, verify phase
-    ├── Determine screen name
-    ├── Assemble context PATHS (not contents)
-    │
-    ▼
-Task() spawn → fresh 200K context                    SUBAGENT
-    │
-    ├── Agent reads its personality from agents/forge-screen-composer.md
-    ├── Agent reads PROJECT.md, tokens.css, COMPONENT-SPECS.md
-    ├── Agent reads DESIGN-RESEARCH.md
-    ├── Agent builds the screen
-    ├── Agent creates SUMMARY.md
-    └── Agent commits: design(compose): implement dashboard
-    │
-    ▼
-Orchestrator reads SUMMARY.md only                   BACK TO THIN
-    │
-    ├── Updates STATE.md (phase, screen status)
-    └── Suggests next command
+Scan completes
+    |
+    v
+"I found: React 18, Tailwind, 23 components, primary color #1E40AF.
+ Here are the details: [shows SCAN-SUMMARY.md]
+
+ Anything wrong? You can:
+ - Confirm: proceed to /motif:init
+ - Override: 'The real primary is #2563EB' (updates SCAN-SUMMARY.md)
+ - Rescan: re-run with different scope"
+    |
+    v
+User confirms -> STATE.md -> SCANNED
 ```
 
-### Upgrade Flow
+## File Layout: New Artifacts
 
 ```
-npx design-forge@latest                              USER RUNS UPGRADE
-    │
-    ▼
-bin/install.js
-    │
-    ├── Read .design-forge-manifest.json              CHECK EXISTING
-    │   version: "1.0.0" → upgrading to "1.1.0"
-    │
-    ├── For each file in manifest:                    DIFF EACH FILE
-    │   ├── Compute current hash
-    │   ├── Compare to manifest hash
-    │   │   ├── Match → safe to overwrite
-    │   │   └── Mismatch → user modified, backup first
-    │   └── Copy new version
-    │
-    ├── For new files not in old manifest:            ADD NEW FILES
-    │   └── Copy directly
-    │
-    ├── Update manifest with new version + hashes     UPDATE MANIFEST
-    │
-    └── Report: "Upgraded 1.0.0 → 1.1.0. 3 files backed up to .design-forge-backup/"
+.planning/design/
+  SCAN-SUMMARY.md              # NEW - compressed scan (<=2000 tokens)
+  scan/                        # NEW - raw scan data directory
+    PROJECT-SCAN.md            # NEW - framework, structure, file inventory
+    COMPONENT-SCAN.md          # NEW - component inventory with patterns
+    TOKEN-SCAN.md              # NEW - extracted design values
+  PROJECT.md                   # existing (init reads scan to pre-fill)
+  DESIGN-BRIEF.md              # existing (scan data flows into Brand Constraints)
+  DESIGN-RESEARCH.md           # existing (research considers scan context)
+  STATE.md                     # MODIFIED (adds SCANNED phase)
+  system/
+    tokens.css                 # existing (system generator uses TOKEN-SCAN.md)
+    COMPONENT-SPECS.md         # existing (system generator uses COMPONENT-SCAN.md)
+    ...
+  screens/
+    ...
+  research/
+    ...
+
+.claude/get-motif/
+  workflows/
+    scan.md                    # NEW - scan orchestrator workflow
+    compose-screen.md          # MODIFIED - passes COMPONENT-SCAN.md path
+    generate-system.md         # MODIFIED - adds EXTRACT+EXTEND mode
+    research.md                # MODIFIED - conditionally loads scan context
+  agents/
+    motif-scanner.md           # NEW - file scanner agent definition
+    motif-decomposer.md        # NEW - component decomposer agent definition
+    ...existing agents...
+  references/
+    state-machine.md           # MODIFIED - adds SCANNED phase
+    scan-heuristics.md         # NEW - framework detection rules, file patterns
+
+.claude/commands/motif/
+  scan.md                      # NEW - thin slash command entry point
+  init.md                      # MODIFIED - accepts SCANNED state
 ```
 
-### Key Data Flows
+## Context Budget Impact
 
-1. **Install-time path resolution:** The npm package contains source files with `{FORGE_ROOT}` references in workflows. The installer does NOT rewrite these. Instead, workflows include a `<path_resolution>` block that documents per-runtime resolution. The command layer (which IS runtime-specific) ensures the correct path context. This means core files are copied verbatim -- no template processing during install.
+| File | Tokens (approx) | Budget | Loaded By |
+|------|-----------------|--------|-----------|
+| SCAN-SUMMARY.md | ~2,000 | <=2,000 | init, research agents, system generator, composer |
+| PROJECT-SCAN.md | ~3,000 | <=3,000 | Scan orchestrator only (not downstream) |
+| COMPONENT-SCAN.md | ~3,000 | <=3,000 | System generator, composer |
+| TOKEN-SCAN.md | ~2,000 | <=2,000 | System generator, research (visual language) |
 
-2. **Context budgets flow downward:** The context-engine.md defines token budgets per file type. Workflows enforce these budgets when assembling subagent prompts. The orchestrator passes paths but the subagent decides what to read. Context never flows upward beyond SUMMARY.md.
+**Total added context per downstream agent:**
+- Init: +2,000 tokens (SCAN-SUMMARY.md only)
+- Research agents: +2,000-4,000 tokens (SCAN-SUMMARY.md + TOKEN-SCAN.md for visual language agent)
+- System generator: +7,000 tokens (SCAN-SUMMARY.md + COMPONENT-SCAN.md + TOKEN-SCAN.md)
+- Composer: +5,000 tokens (SCAN-SUMMARY.md + COMPONENT-SCAN.md)
 
-3. **State flows through STATE.md:** Every command reads STATE.md at entry (gate check) and writes STATE.md at exit (phase transition). STATE.md is the single source of truth for "where are we in the design process." It survives `/clear` commands because it lives on disk.
+These are within budget. The composer agent currently loads ~12,000 tokens of context (PROJECT.md + tokens.css + COMPONENT-SPECS.md + DESIGN-RESEARCH.md + ICON-CATALOG.md). Adding 5,000 tokens brings it to ~17,000 -- well within the 200K context window.
 
-## Scaling Considerations
+## Scanning Implementation: What the Agents Do
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| 1-4 runtimes (current plan) | Single installer with runtime-specific mapping tables. Each runtime is a subdirectory. Simple switch/case or object lookup. |
-| 5-10 runtimes | Consider extracting runtime adapters into a registry pattern where each runtime self-describes its capabilities (has subagents: yes/no, has hooks: yes/no, config file: path). The installer reads the registry instead of hardcoding mappings. |
-| 10+ verticals | Verticals are already self-contained markdown files. No scaling concern for the architecture, only for package size. Consider lazy-loading: ship popular verticals (fintech, saas, ecommerce) and download others on first use via `npx design-forge add-vertical health`. |
-| Community verticals | Extend the vertical template to include a `source` field. The installer or a subcommand fetches verticals from a registry (GitHub repo, npm package, or URL). |
+### File Scanner Agent
 
-### Scaling Priorities
+**Input:** Project root path
+**Output:** PROJECT-SCAN.md
 
-1. **First bottleneck: npm package size.** Each vertical is ~200 lines of markdown (~5KB). 20 verticals = ~100KB. Not a problem. But 50+ verticals with associated test fixtures could push the package to multi-MB territory. Solution: ship core verticals, lazy-fetch the rest.
+**Heuristics (stored in references/scan-heuristics.md):**
 
-2. **Second bottleneck: runtime adapter duplication.** As runtime count grows, the mapping tables in install.js and the command files start to feel duplicative. Solution: extract a runtime descriptor format so each `runtimes/{name}/` directory contains a `runtime.json` that declares its paths, capabilities, and install mapping. The installer becomes generic.
+1. **Framework detection:** Read package.json dependencies for react, vue, next, svelte, angular. Check for framework config files (next.config.*, vite.config.*, nuxt.config.*).
+2. **CSS approach detection:** Check for tailwind.config.*, postcss.config.*, styled-components in deps, .module.css files, .scss files.
+3. **Component file identification:** Glob for *.tsx, *.vue, *.svelte in src/components/ or components/. Fall back to scanning all directories for files exporting JSX/template elements.
+4. **Page/route detection:** Check for pages/ or app/ directory (Next.js/Nuxt convention), or routes defined in router config.
+5. **Style file identification:** Glob for *.css, *.scss, *.module.css, tailwind.config.*, theme.* files.
+6. **Asset inventory:** Check for public/, assets/, images/ directories.
 
-## Anti-Patterns
+**Important:** The scanner uses `Glob` and `Read` tools only -- it does NOT execute project code, run builds, or install dependencies.
 
-### Anti-Pattern 1: Putting Runtime Logic in Core
+### Component Decomposer Agent
 
-**What people do:** Add Claude-Code-specific Task() syntax directly in `core/workflows/compose-screen.md`.
-**Why it's wrong:** Breaks the core/adapter contract. When adding OpenCode support, you'd need to fork the workflow or add conditionals, creating a maintenance nightmare.
-**Do this instead:** Workflows use runtime-agnostic `<agent_spawn>` markers. The command layer (in runtimes/) translates these to runtime-specific syntax. The init command (which runs in main context) is the one exception -- it uses runtime-specific spawning directly because it's already in runtimes/.
+**Input:** File list from PROJECT-SCAN.md (or parallel scan)
+**Output:** COMPONENT-SCAN.md, TOKEN-SCAN.md
 
-### Anti-Pattern 2: Template Processing During Install
+**Process:**
 
-**What people do:** Run the installer as a template engine that rewrites `{FORGE_ROOT}` in every file before copying.
-**Why it's wrong:** Creates a maintenance burden (every file needs template processing), makes it impossible to diff installed files against source, and adds failure modes.
-**Do this instead:** Workflows include a `<path_resolution>` block that maps the variable per runtime. The thin command files (which ARE runtime-specific) provide the correct path prefix. Core files are copied byte-for-byte.
+1. Read each identified component file.
+2. For each component, extract:
+   - **Name:** Component export name
+   - **Variants:** Conditional className/style branches (e.g., `variant === 'primary'`)
+   - **Props:** TypeScript interface or PropTypes
+   - **Styling approach:** Tailwind classes, CSS modules, styled-components, inline
+   - **States handled:** Loading, error, empty, disabled
+   - **Accessibility:** aria-* attributes, semantic elements, keyboard handlers
+3. For style files, extract:
+   - **Color values:** All hex, rgb, hsl values with usage context
+   - **Font declarations:** font-family, font-size, font-weight with frequency
+   - **Spacing values:** padding, margin, gap values with frequency
+   - **Radius values:** border-radius values
+   - **Shadow values:** box-shadow values
+4. For Tailwind projects, also parse `tailwind.config.*` for:
+   - Custom color palette
+   - Custom spacing scale
+   - Custom font configuration
+   - Extended theme values
 
-### Anti-Pattern 3: Reading Agent Output in Orchestrator
+**Important:** The decomposer reads source files statically. It does NOT import modules, evaluate expressions, or run the application.
 
-**What people do:** Use TaskOutput or equivalent to read the full output of a spawned agent back into the orchestrator context.
-**Why it's wrong:** Defeats the purpose of fresh-context agents. The orchestrator's context grows linearly with each spawned agent, eventually degrading quality.
-**Do this instead:** Agents write a SUMMARY.md (max 500 tokens) to a known path. The orchestrator reads only that summary. Full output stays in the agent's committed files.
+## Anti-Patterns to Avoid
 
-### Anti-Pattern 4: Blind Overwrite on Upgrade
+### Anti-Pattern 1: Scanning Everything
 
-**What people do:** `npx design-forge@latest` deletes the entire get-design-forge directory and replaces it with the new version.
-**Why it's wrong:** Destroys user customizations to agent definitions, workflow tweaks, or added verticals.
-**Do this instead:** Use manifest-based diffing. Compare content hashes to detect user modifications. Back up modified files before overwriting. Report what changed.
+**What people do:** Scan node_modules, build output, test files, storybook files -- every file in the project.
+**Why it is wrong:** Blows up scan time, produces noise that drowns signal, wastes context tokens on irrelevant data.
+**Do this instead:** Scan only src/ (or the configured source directory), package.json, and CSS/config files. Exclude: node_modules, dist, build, .next, coverage, __tests__, *.test.*, *.spec.*, *.stories.*
 
-### Anti-Pattern 5: Hooks That Modify the Runtime Config Directory
+### Anti-Pattern 2: Replacing Existing Styles
 
-**What people do:** Hooks in `.claude/hooks/` that write to `.claude/get-design-forge/`.
-**Why it's wrong:** Hooks run on every file write. If a hook modifies Design Forge's own files, it can trigger infinite loops or corrupt the installation.
-**Do this instead:** Hooks should ONLY read from get-design-forge/ (for reference data like tokens.css). They should NEVER write to it. Hook output goes to stderr or the AI's response, not to the filesystem.
+**What people do:** Scan finds ad-hoc styles, system generator ignores them and generates a fresh palette.
+**Why it is wrong:** The user chose those colors/fonts for a reason. Replacing them breaks the product's visual identity and creates migration friction.
+**Do this instead:** Formalize existing values into tokens. If two blues compete (#1E40AF vs #2563EB), present the choice to the user during scan review, then lock the chosen value.
 
-## Integration Points
+### Anti-Pattern 3: Deep AST Parsing
 
-### External Services
+**What people do:** Build a full AST parser to extract component structure with perfect accuracy.
+**Why it is wrong:** Motif is runtime-agnostic markdown-first. Adding AST parsers means npm dependencies, framework-specific code, and maintenance burden. The existing zero-dependency constraint exists for good reasons.
+**Do this instead:** Use heuristic text analysis via the AI agent's pattern recognition. The LLM reading a component file can identify variants, props, and styling patterns without an AST. Accuracy is ~90% vs ~99% for AST, but cost is near zero.
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| npm registry | Package distribution via `npx design-forge@latest` | Standard npm bin pattern. No postinstall -- runs as an explicit CLI command. |
-| AI coding runtimes (Claude Code, OpenCode, Gemini CLI, Cursor) | File-based integration. No API calls. | Design Forge installs markdown files that the runtime reads. Zero runtime dependencies on Design Forge code. |
-| Git | Subagents commit with `design(...)` prefix | Requires git to be initialized in the project. Installer should verify. |
-| Node.js fs module | `fs.cpSync`, `fs.readFileSync`, `fs.writeFileSync`, `fs.existsSync` | All synchronous. No async needed for installer operations. Zero external dependencies. |
+### Anti-Pattern 4: Storing Scan Data in STATE.md
 
-### Internal Boundaries
+**What people do:** Put scan results directly in STATE.md because "everything goes through state."
+**Why it is wrong:** STATE.md has a strict format and must stay small (it is read by every command for gate checks). Adding scan data to it would bloat every context load.
+**Do this instead:** Scan data lives in dedicated files. STATE.md only tracks the phase (SCANNED) and a one-line scan reference.
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| bin/install.js <-> core/ | Installer reads core/ as opaque content to copy. Never parses or transforms markdown. | One-directional: installer reads source, writes to target. |
-| bin/install.js <-> runtimes/ | Installer reads runtime directory structure to determine what to copy where. | Runtime detection drives which runtimes/ subdirectory is used. |
-| commands/ <-> workflows/ | Commands contain a single instruction: "Load and follow workflow at [path]". | The command IS the routing layer. It translates a slash-command invocation into a workflow file read. |
-| workflows/ <-> agents/ | Workflows define the task prompt inline (what to do). Agent files define personality (how to do it). | The thin command or orchestrator assembles both into a Task() call. |
-| workflows/ <-> references/ | Workflows reference `{FORGE_ROOT}/verticals/{VERTICAL}.md` and other reference files by path. | Workflows never inline reference content. They pass paths to agents. |
-| workflows/ <-> STATE.md | Every workflow reads STATE.md (gate check) and writes STATE.md (phase transition). | STATE.md is the inter-workflow communication channel. |
-| agents/ <-> .planning/design/ | Agents read from and write to .planning/design/ during execution. | This is the runtime output directory. Never part of the Design Forge installation itself. |
-| hooks/ <-> .planning/design/system/ | Hooks read tokens.css and COMPONENT-SPECS.md to validate code being written. | Read-only access to design system files. Never write to them. |
+## Suggested Build Order
 
-## Build Order Dependencies
+Build order considers dependency chains between new/modified components.
 
-The architecture has clear dependency layers that inform what must be built first:
+### Phase 1: Scan Infrastructure (no downstream changes)
 
-```
-Layer 0: core/ content                      [DONE - already built]
-    │  references/, workflows/, templates/
-    │  No dependencies. Pure content.
-    │
-Layer 1: Runtime adapter content            [PARTIALLY DONE]
-    │  runtimes/claude-code/commands/       [DONE]
-    │  runtimes/claude-code/agents/         [NOT BUILT - needs core/references/context-engine.md]
-    │  runtimes/claude-code/hooks/          [NOT BUILT - needs tokens.css format knowledge]
-    │  runtimes/claude-code/CLAUDE-MD-SNIPPET.md [DONE]
-    │
-    │  Dependencies: Requires Layer 0 to define contracts
-    │  (what context profiles exist, what STATE.md format is, etc.)
-    │
-Layer 2: Templates                          [PARTIALLY DONE]
-    │  core/templates/STATE-TEMPLATE.md     [NOT BUILT - needs state-machine.md format]
-    │  core/templates/SUMMARY-TEMPLATE.md   [NOT BUILT - needs compose-screen.md format]
-    │  core/templates/token-showcase.html   [NOT BUILT - needs tokens.css format]
-    │
-    │  Dependencies: Requires Layer 0 for format definitions
-    │
-Layer 3: Installer                          [NOT BUILT]
-    │  bin/install.js                       [NOT BUILT]
-    │  package.json                         [NOT BUILT]
-    │
-    │  Dependencies: Requires Layer 0 + Layer 1 to exist as content to copy.
-    │  Requires runtime-adapters.md for mapping definitions.
-    │
-Layer 4: Distribution + Polish             [NOT BUILT]
-    │  README.md, LICENSE, CHANGELOG.md
-    │  scripts/contrast-checker.js
-    │  scripts/token-counter.js
-    │
-    │  Dependencies: Requires Layer 3 for install instructions in README.
-    │
-Layer 5: Additional verticals              [NOT BUILT]
-    │  health.md, saas.md, ecommerce.md
-    │
-    │  Dependencies: Only requires VERTICAL-TEMPLATE.md format [DONE].
-    │  Can be built in parallel with Layers 1-4.
-    │
-Layer 6: Additional runtimes               [FUTURE]
-    runtimes/opencode/, cursor/, gemini/
-    Dependencies: Requires Layer 3 installer to support multiple runtimes.
-```
+Build the scan pipeline independently. It produces artifacts but nothing consumes them yet.
 
-**Recommended build sequence:**
+1. `references/scan-heuristics.md` -- framework detection rules, exclusion patterns
+2. `agents/motif-scanner.md` -- File Scanner agent definition
+3. `agents/motif-decomposer.md` -- Component Decomposer agent definition
+4. `workflows/scan.md` -- Scan orchestrator workflow
+5. `commands/motif/scan.md` -- Thin slash command
+6. `references/state-machine.md` -- Add SCANNED phase (backward compatible)
 
-1. **Agents + Templates (Layer 1 + 2):** Complete the runtime adapter content. Agents are needed for workflows to actually function. Templates provide the output format. This is the "make it work" step.
+**Test:** Run `/motif:scan` on a sample brownfield project. Verify PROJECT-SCAN.md, COMPONENT-SCAN.md, TOKEN-SCAN.md, and SCAN-SUMMARY.md are produced.
 
-2. **Installer + Package (Layer 3):** Build install.js once there is content to install. This unlocks `npx` distribution.
+### Phase 2: Init Integration (reads scan, produces modified init artifacts)
 
-3. **Verticals (Layer 5, parallel):** Can be built alongside Layer 3. Each vertical is independent. Start with health and saas to prove the template works beyond fintech.
+Modify init to consume scan results when available.
 
-4. **Hooks + Scripts (Layer 4):** Polish layer. Hooks enforce design system compliance automatically. Scripts provide utility functions. Not needed for core workflow.
+1. `commands/motif/init.md` -- Accept SCANNED phase, read SCAN-SUMMARY.md
+2. Modified interview flow: pre-fill from scan, present for confirmation
+3. DESIGN-BRIEF.md generation: flow scan-detected Brand Constraints
 
-5. **End-to-end validation:** Run the full workflow on a real project. This is where integration bugs surface.
+**Test:** Run `/motif:scan` then `/motif:init`. Verify init pre-fills correctly and user can override.
+
+### Phase 3: Research + System Integration (downstream consumers)
+
+Modify research and system generation to operate in brownfield-aware mode.
+
+1. `workflows/research.md` -- Pass scan context to research agents
+2. `workflows/generate-system.md` -- Add EXTRACT+EXTEND mode
+3. `agents/motif-system-architect.md` -- Update to handle TOKEN-SCAN.md input
+
+**Test:** Full pipeline: scan -> init -> research -> system. Verify tokens.css formalizes existing values.
+
+### Phase 4: Compose Integration (final consumer)
+
+Modify compose to leverage existing component knowledge.
+
+1. `workflows/compose-screen.md` -- Pass COMPONENT-SCAN.md to composer
+2. `agents/motif-screen-composer.md` -- Update context loading profile
+
+**Test:** Full pipeline: scan -> init -> research -> system -> compose. Verify composer uses existing component patterns.
+
+## Integration Points Summary
+
+| Integration Point | Type | Description |
+|-------------------|------|-------------|
+| scan.md -> STATE.md | Write | Sets phase to SCANNED |
+| SCAN-SUMMARY.md -> init.md | Read | Pre-fills interview |
+| SCAN-SUMMARY.md -> research agents | Read | Contextualizes domain research |
+| TOKEN-SCAN.md -> generate-system.md | Read | EXTRACT+EXTEND mode input |
+| COMPONENT-SCAN.md -> generate-system.md | Read | Component formalization input |
+| COMPONENT-SCAN.md -> compose-screen.md | Read | Existing component awareness |
+| state-machine.md -> all commands | Read | SCANNED phase gate checks |
 
 ## Sources
 
-- [Node.js CLI Apps Best Practices](https://github.com/lirantal/nodejs-cli-apps-best-practices) - Community-maintained best practices for Node.js CLI tools (HIGH confidence)
-- [Node.js fs.cpSync documentation](https://nodejs.org/api/fs.html) - Official Node.js filesystem API for recursive directory copying (HIGH confidence)
-- [npm bin executable docs](https://docs.npmjs.com/cli/v7/configuring-npm/folders/) - How npm resolves bin entries for package executables (HIGH confidence)
-- [Husky init pattern](https://typicode.github.io/husky/get-started.html) - Reference implementation for npx-driven file installation into project directories (MEDIUM confidence)
-- [claude-code-templates](https://github.com/davila7/claude-code-templates) - Existing npm tool that installs Claude Code configurations, agents, and commands into .claude/ directory (MEDIUM confidence)
-- [Plugin Architecture in Node.js](https://medium.com/@Modexa/plugin-architecture-in-node-js-without-regrets-e02ba78660c7) - Plugin system patterns for Node.js applications (LOW confidence - single source)
-- [npm issue #11260](https://github.com/npm/npm/issues/11260) - Discussion of challenges copying files from packages to project directories via postinstall (MEDIUM confidence)
-- Project spec (`GSD-PROJECT-SPEC.md`) and existing codebase analysis (HIGH confidence)
-- `core/references/runtime-adapters.md` - Existing architecture documentation within the project (HIGH confidence)
-- `core/references/context-engine.md` - Context management strategy documentation (HIGH confidence)
+- Existing Motif architecture: `.claude/get-motif/workflows/*.md`, `.claude/get-motif/references/state-machine.md`, `.claude/get-motif/references/runtime-adapters.md`, `.claude/get-motif/references/design-inputs.md`
+- Existing agent definitions: `.claude/get-motif/agents/*.md`
+- Existing command definitions: `.claude/commands/motif/*.md`
+- Existing data flow patterns: compose-screen.md (how orchestrators pass file paths to subagents), generate-system.md (how system generator consumes research)
+- Design Inputs reference: Input Type B/C/D patterns for handling existing design assets (directly analogous to brownfield scanning)
 
 ---
-*Architecture research for: npm-distributed AI design engineering tool*
-*Researched: 2026-03-01*
+*Architecture research for: Brownfield intelligence features for Motif design engineering system*
+*Researched: 2026-03-04*

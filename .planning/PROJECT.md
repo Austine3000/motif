@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Motif is an npm-installable design engineering system for AI coding assistants. It researches your product vertical's design patterns, generates a domain-intelligent design system (tokens, component specs), composes screens with fresh agent contexts, and reviews everything against heuristics. It ships as `npx motif@latest`, auto-detects your AI runtime, and installs accordingly. v1.0 targets Claude Code; other runtimes (OpenCode, Cursor, Gemini CLI) follow via the core/runtime adapter architecture.
+Motif is an npm-installable design engineering system for AI coding assistants. It researches your product vertical's design patterns, generates a domain-intelligent design system (tokens, component specs, icon catalog), composes screens with fresh agent contexts, and reviews everything against heuristics and accessibility standards. It ships as `npx motif-design@latest`, auto-detects your AI runtime, and installs accordingly. v1.0-v1.1 targets Claude Code; other runtimes (OpenCode, Cursor, Gemini CLI) follow via the core/runtime adapter architecture.
 
 **Audience:** Solo developers, founders, and indie hackers using AI coding tools who want their UI to look intentional — not like generic AI slop.
 
@@ -10,70 +10,74 @@ Motif is an npm-installable design engineering system for AI coding assistants. 
 
 Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1. Without domain intelligence it's just another UI generator; without fresh context per screen, quality degrades. Both are non-negotiable.
 
+## Current State
+
+**Shipped:** v1.1 (2026-03-04)
+**Published:** motif-design@0.1.0 on npm
+
+Two milestones delivered:
+- **v1.0 Core Design System** — Full pipeline (research → system → compose → review → fix), 4 verticals, installer, hooks, CI/CD, npm publishing
+- **v1.1 Icon Library Integration** — 4 curated icon libraries, per-vertical vocabularies, ICON-CATALOG.md generation, composer anti-slop enforcement, reviewer icon checks, aria-check icon detection
+
+**Stats:** 12 phases, 32 plans executed across 2 milestones
+
 ## Requirements
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ 5 Claude Code agent definitions — v1.0
+- ✓ 3 core templates — v1.0
+- ✓ Runtime-detecting installer with manifest-based upgrades — v1.0
+- ✓ npm package (motif-design) with MIT LICENSE and README — v1.0
+- ✓ Full rebrand from "Design Forge" to "Motif" — v1.0
+- ✓ 4 verticals (fintech, health, SaaS, e-commerce) — v1.0
+- ✓ 4 compliance hooks + 2 utility scripts — v1.0
+- ✓ GitHub Actions CI for automated npm publish — v1.0
+- ✓ E2e validation + CryptoPay battle test — v1.0
+- ✓ Differentiation seed + brand color flow-through — v1.0
+- ✓ Curated icon library reference (4 libraries) — v1.1
+- ✓ Deterministic icon selection algorithm — v1.1
+- ✓ Icon size tokens (8px-multiple scale) — v1.1
+- ✓ Per-vertical icon vocabularies (22-23 validated icons each) — v1.1
+- ✓ ICON-CATALOG.md generation in design system pipeline — v1.1
+- ✓ Composer icon anti-slop enforcement — v1.1
+- ✓ Reviewer icon catalog compliance + vertical appropriateness checks — v1.1
+- ✓ aria-check hook icon element detection — v1.1
 
 ### Active
 
-- [ ] Full rebrand from "Design Forge" to "Motif" (package name, commands `/motif:*`, install dir `.claude/get-motif/`, all references)
-- [ ] 5 Claude Code agent definitions (researcher, system architect, screen composer, design reviewer, fix agent)
-- [ ] 3 core templates (STATE-TEMPLATE.md, SUMMARY-TEMPLATE.md, token-showcase.html)
-- [ ] Runtime-detecting installer (`bin/install.js`) with Claude Code mapping
-- [ ] `package.json` — npm package, name: "motif", bin: `{ "motif": "bin/install.js" }`, no dependencies
-- [ ] MIT LICENSE
-- [ ] 3 additional verticals (health, SaaS, e-commerce) following fintech.md format exactly
-- [ ] 4 Claude Code hooks (token-check, font-check, a11y-check, context-monitor) — required before battle test
-- [ ] 2 utility scripts (contrast-checker.js, token-counter.js)
-- [ ] README with pitch, install command, command reference, architecture diagram, how it works, contributing
-- [ ] GitHub Actions CI for automated npm publishing on tag/release
-- [ ] End-to-end test on controlled test project (sanity check)
-- [ ] End-to-end battle test on real project (CryptoPay fintech vertical)
-- [ ] Differentiation seed produces visibly different designs for same vertical
-- [ ] Brand colors flow through without being overridden
+**Current Milestone: v1.2 Brownfield Intelligence**
+
+**Goal:** Make Motif's entire pipeline project-aware — scan existing codebases, present findings to the user for decisions, and output properly decomposed components that integrate with existing project conventions.
+
+**Target features:**
+- Project scanning (folder conventions, existing components, existing tokens/styles)
+- User-driven design decisions (adopt existing tokens, merge, or start fresh)
+- Component decomposition (one component per file, always)
+- Brownfield-aware composition (reuse existing components, follow project conventions)
 
 ### Out of Scope
 
-- OpenCode runtime support — v1.1, core/runtime arch already supports it without refactoring
-- Cursor/Windsurf runtime support — v1.2+, same arch
-- Gemini CLI runtime support — v1.3+, same arch
-- Tailwind token export — future command, CSS custom properties only for v1
-- Social/Education/Marketplace/DevTools verticals — v2 expansion, fintech+3 proves generalizability
+- OpenCode/Cursor/Gemini CLI runtime support — v1.2+, same core/runtime arch
+- Tailwind token export — future command, CSS custom properties only
+- Additional verticals (Social, Education, Marketplace, DevTools) — v2
+- Advanced icon features (dark mode weight, duotone colors, variable fonts, icon search) — v1.2+
 - CHANGELOG.md — defer to post-v1 release cycle
+- Custom icon creation/generation — use established libraries only
+- Icon font bundling — CDN-first, user handles build integration
 
 ## Context
 
-**What already exists (~90% of the design intelligence):**
-- 7 core reference docs (state machine, context engine, design inputs, runtime adapters, fintech vertical, vertical template, build spec)
-- 7 core workflows (research, generate-system, compose-screen, review, fix, evolve, quick)
-- 10 Claude Code slash commands (thin routing files)
-- Claude Code config snippet (CLAUDE-MD-SNIPPET.md)
+**Architecture:** Core (shared, runtime-agnostic) + Runtimes (thin adapters). Workflows use `{FORGE_ROOT}` path variable — resolves per runtime.
 
-**Architecture:** Core (shared, runtime-agnostic) + Runtimes (thin adapters). Workflows use `{FORGE_ROOT}` path variable — resolves per runtime. Adding a new runtime = create `runtimes/{name}/` directory, zero core changes.
-
-**Architecture flow:** User command → runtime command (thin) → core workflow (orchestrator) → Task() subagent with fresh 200K context → reads tokens/specs/research → creates output → commits atomically.
+**Architecture flow:** User command → runtime command (thin) → core workflow (orchestrator) → Task() subagent with fresh 200K context → reads tokens/specs/research/icon-catalog → creates output → commits atomically.
 
 **Installed file layout (Claude Code):**
 - `.claude/commands/motif/` — slash commands
 - `.claude/get-motif/` — core references, workflows, templates, agents, hooks, scripts
-- `.planning/design/` — generated design artifacts (coexists with GSD's `.planning/phases/`)
+- `.planning/design/` — generated design artifacts
 
-**Key reference files for building:**
-- Agents → read `core/references/context-engine.md` for context profiles
-- Verticals → read `core/references/verticals/fintech.md` (model) + `core/templates/VERTICAL-TEMPLATE.md` (format)
-- Installer → read `core/references/runtime-adapters.md` + `runtimes/claude-code/CLAUDE-MD-SNIPPET.md`
-- Hooks → web search Claude Code hooks format
-- Token showcase → read `core/workflows/generate-system.md`
-- STATE template → read `core/references/state-machine.md`
-- SUMMARY template → read `core/workflows/compose-screen.md`
-
-**Do NOT modify existing files** (design-complete unless bugs found during testing):
-- All `core/references/*.md`, `core/workflows/*.md`, `core/templates/VERTICAL-TEMPLATE.md`
-- All `runtimes/claude-code/commands/forge/*.md`, `runtimes/claude-code/CLAUDE-MD-SNIPPET.md`
-
-**Note:** Existing command files are under `commands/forge/`. The rebrand to Motif means these become `commands/motif/` in the installed location. The rename applies to new files and the installer's copy mapping.
+**Codebase:** ~10K LOC across 54 files modified in v1.1, pure Node.js installer, markdown-first design intelligence.
 
 ## Constraints
 
@@ -84,19 +88,24 @@ Domain-intelligent design delivered through fresh context — a fintech app must
 - **Git atomic commits**: Every agent commits with `design(...)` prefix.
 - **Coexist with GSD**: Uses `.planning/design/`, never touches `.planning/phases/`.
 - **Core/runtime separation**: Never put runtime-specific logic in `core/`. Never put shared design knowledge in `runtimes/`.
-- **v1.0 Claude Code only**: Codebase structured for multi-runtime, but only Claude Code adapter ships in v1.
+- **CDN version pinning**: Icon library CDN URLs must be version-pinned, never `@latest`.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Rebrand to "Motif" | Better name — evokes design patterns, visual motifs, intentionality | — Pending |
-| Full rebrand scope | Package, commands, install dirs, all references. Clean break. | — Pending |
-| Hooks required before battle test | Without enforcement, agents hardcode values defeating the purpose | — Pending |
-| All 3 additional verticals in v1 | "Any vertical" is the pitch — one vertical doesn't prove generalizability | — Pending |
-| CI/publish automation | GitHub Actions on tag/release for npm publishing | — Pending |
-| Battle test = test project + real project | Controlled test catches setup issues, real project catches workflow issues | — Pending |
-| v1 Claude Code only | Focus. Other runtimes are just adding a directory later. | — Pending |
+| Rebrand to "Motif" | Better name — evokes design patterns, visual motifs, intentionality | ✓ Good |
+| Full rebrand scope | Package, commands, install dirs, all references. Clean break. | ✓ Good |
+| Hooks required before battle test | Without enforcement, agents hardcode values defeating the purpose | ✓ Good |
+| All 3 additional verticals in v1 | "Any vertical" is the pitch — one vertical doesn't prove generalizability | ✓ Good |
+| CI/publish automation | GitHub Actions on tag/release for npm publishing | ✓ Good |
+| Battle test = test project + real project | Controlled test catches setup issues, real project catches workflow issues | ✓ Good |
+| v1 Claude Code only | Focus. Other runtimes are just adding a directory later. | ✓ Good |
+| 4 curated icon libraries | Phosphor, Lucide, Material Symbols, Tabler — covers all verticals | ✓ Good |
+| Deterministic icon selection | vertical + personality → library + weight, no agent guesswork | ✓ Good |
+| ICON-CATALOG.md required | Mandatory for composition, not optional — prevents hallucination | ✓ Good |
+| CSS class + CDN delivery | Inline SVG is anti-pattern for agents; CDN is zero-config | ✓ Good |
+| Icon size as system invariant | Fixed 8px-multiple scale, not project-adjustable | ✓ Good |
 
 ---
-*Last updated: 2026-03-01 after initialization*
+*Last updated: 2026-03-04 after v1.2 milestone start*

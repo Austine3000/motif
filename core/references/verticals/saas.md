@@ -155,7 +155,7 @@ Information density matters — SaaS users scan tables, lists, and dashboards �
     Search input: --font-body --text-base, placeholder "Type a command or search...", auto-focused
     Results: categorized list [Category label] [Result items with icon + title + shortcut hint]
     Category label: --text-xs --weight-medium --text-secondary uppercase
-    Result item: [Icon 20x20] [Title --text-sm] [Shortcut badge --text-xs --surface-tertiary]
+    Result item: [icon: contextual --icon-sm] [Title --text-sm] [Shortcut badge --text-xs --surface-tertiary]
     Footer: navigation hints "↑↓ Navigate  ↵ Open  esc Close"
   </structure>
   <dimensions>
@@ -238,6 +238,53 @@ Information density matters — SaaS users scan tables, lists, and dashboards �
 | shadow-sm | 0 1px 2px rgba(0,0,0,0.05) | Subtle card elevation, table header sticky |
 | shadow-md | 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05) | Dropdowns, popovers, filter bar |
 | shadow-lg | 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04) | Command palette, modals, slide-over panels |
+
+<!-- Verified against Lucide lucide@0.576.0 via GitHub lucide-icons/lucide/icons/ -->
+
+## Icon Vocabulary
+
+Primary library: Lucide (from icon-libraries.md domain affinity matrix)
+
+Lucide uses bare kebab-case names with no prefix.
+
+### Navigation
+| Semantic Role | Lucide | Phosphor | Material Symbols | Tabler |
+|---------------|--------|----------|-----------------|--------|
+| home | house | ph-house | home | ti-home |
+| search | search | ph-magnifying-glass | search | ti-search |
+| settings | settings | ph-gear | settings | ti-settings |
+| profile | user | ph-user | person | ti-user |
+| notifications | bell | ph-bell | notifications | ti-bell |
+
+### SaaS & Productivity
+| Semantic Role | Lucide | Phosphor | Material Symbols | Tabler |
+|---------------|--------|----------|-----------------|--------|
+| dashboard | layout-dashboard | ph-squares-four | dashboard | ti-layout-dashboard |
+| layers | layers | ph-stack | layers | ti-stack-2 |
+| inbox | inbox | ph-tray | inbox | ti-inbox |
+| kanban | columns-3 | ph-kanban | view_column | ti-columns-3 |
+| terminal | terminal | ph-terminal-window | terminal | ti-terminal-2 |
+| webhook | webhook | ph-webhooks-logo | webhook | ti-webhook |
+| api-key | key | ph-key | key | ti-key |
+| git-branch | git-branch | ph-git-branch | fork_right | ti-git-branch |
+
+### Status & Feedback
+| Semantic Role | Lucide | Phosphor | Material Symbols | Tabler |
+|---------------|--------|----------|-----------------|--------|
+| success | check-circle | ph-check-circle | check_circle | ti-circle-check |
+| error | x-circle | ph-x-circle | cancel | ti-circle-x |
+| warning | alert-triangle | ph-warning | warning | ti-alert-triangle |
+| info | info | ph-info | info | ti-info-circle |
+| loading | loader | ph-spinner | progress_activity | ti-loader |
+
+### Actions
+| Semantic Role | Lucide | Phosphor | Material Symbols | Tabler |
+|---------------|--------|----------|-----------------|--------|
+| filter | filter | ph-funnel | filter_list | ti-filter |
+| sort | arrow-up-down | ph-arrows-down-up | sort | ti-arrows-sort |
+| add | plus | ph-plus | add | ti-plus |
+| edit | pencil | ph-pencil-simple | edit | ti-pencil |
+| close | x | ph-x | close | ti-x |
 
 ## SaaS-Specific Additions
 - **Keyboard shortcuts display:** Footer hint bar showing context-sensitive shortcuts (e.g., "? Help  N New  / Search"). Full shortcut reference via "?" key press in modal overlay.

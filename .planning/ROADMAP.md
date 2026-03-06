@@ -1,8 +1,10 @@
 # Roadmap: Motif
 
-## Overview
+## Milestones
 
-Motif is an npm-installable design engineering system for AI coding assistants. The build follows a strict dependency order: first create the agent definitions and templates that make workflows functional, then build the installer that delivers them, rebrand from "Design Forge" to "Motif" before adding new content, expand domain coverage with verticals and enforcement hooks, validate everything end-to-end on real projects, and finally automate publishing. Eight phases take the project from "designed but inert" to "published and battle-tested."
+- v1.0 Core Design System — Phases 1-8 (shipped 2026-03-04)
+- v1.1 Icon Library Integration — Phases 9-12 (shipped 2026-03-04)
+- v1.2 Brownfield Intelligence — Phases 13-16 (shipped 2026-03-06)
 
 ## Phases
 
@@ -12,173 +14,128 @@ Motif is an npm-installable design engineering system for AI coding assistants. 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [x] **Phase 1: Agent Definitions** - Create the 5 subagent personality definitions that make workflows executable
-- [x] **Phase 2: Templates** - Build the 3 core output templates that formalize agent outputs
-- [x] **Phase 3: Installer** - Build the runtime-detecting installer that delivers Motif to user projects
-- [x] **Phase 4: Rebrand and Distribution** - Rename everything from "Design Forge" to "Motif" and prepare npm package identity
-- [x] **Phase 5: Verticals** - Add health, SaaS, and e-commerce domain intelligence databases
-- [x] **Phase 6: Hooks and Scripts** - Build PostToolUse enforcement hooks and utility scripts
-- [x] **Phase 7: Validation** - End-to-end testing on controlled and real projects
-- [x] **Phase 8: CI and Publish** - Automate npm publishing via GitHub Actions
+<details>
+<summary>v1.0 Core Design System (Phases 1-8) — SHIPPED 2026-03-04</summary>
+
+- [x] Phase 1: Agent Definitions (3/3 plans) — completed 2026-03-01
+- [x] Phase 2: Templates (2/2 plans) — completed 2026-03-01
+- [x] Phase 3: Installer (3/3 plans) — completed 2026-03-02
+- [x] Phase 4: Rebrand and Distribution (4/4 plans) — completed 2026-03-02
+- [x] Phase 5: Verticals (3/3 plans) — completed 2026-03-02
+- [x] Phase 6: Hooks and Scripts (3/3 plans) — completed 2026-03-02
+- [x] Phase 7: Validation (3/3 plans) — completed 2026-03-03
+- [x] Phase 8: CI and Publish (2/2 plans) — completed 2026-03-04
+- [x] Phase 8.1: Pre-Publish Fixes (1/1 plan) — completed 2026-03-03
+
+See: `.planning/milestones/v1.0-ROADMAP.md`
+
+</details>
+
+<details>
+<summary>v1.1 Icon Library Integration (Phases 9-12) — SHIPPED 2026-03-04</summary>
+
+- [x] Phase 9: Foundation (1/1 plan) — completed 2026-03-04
+- [x] Phase 10: Vertical Migration (2/2 plans) — completed 2026-03-04
+- [x] Phase 11: Pipeline Integration (3/3 plans) — completed 2026-03-04
+- [x] Phase 12: Enforcement and Validation (2/2 plans) — completed 2026-03-04
+
+See: `.planning/milestones/v1.1-ROADMAP.md`
+
+</details>
+
+### v1.2 Brownfield Intelligence (In Progress)
+
+**Milestone Goal:** Make Motif's entire pipeline project-aware — scan existing codebases, present findings to the user for decisions, and output properly decomposed components that integrate with existing project conventions.
+
+- [x] Phase 13: Scan Infrastructure - Users can scan an existing project and review confirmed findings — completed 2026-03-05
+- [x] Phase 14: Token and System Integration - Users can have their existing design tokens detected, choose a merge strategy, and see what components are missing — completed 2026-03-05
+- [x] Phase 15: Compose Integration - Users can receive decomposed, project-aware screen output written to their actual directories — completed 2026-03-06
+- [x] Phase 16: Validation and Hardening - Users can trust that decomposed output is validated, atomically committed, and rollback-safe — completed 2026-03-06
 
 ## Phase Details
 
-### Phase 1: Agent Definitions
-**Goal**: Workflows become executable -- every subagent spawn has a defined personality, context profile, model selection, and tool restrictions
-**Depends on**: Nothing (first phase; existing core references and workflows are read-only inputs)
-**Requirements**: AGNT-01, AGNT-02, AGNT-03, AGNT-04, AGNT-05
+### Phase 13: Scan Infrastructure
+**Goal**: Users can scan an existing project and review confirmed findings about its structure, components, and conventions before any generation happens
+**Depends on**: Phase 12 (v1.1 complete)
+**Requirements**: SCAN-01, SCAN-02, SCAN-04, SCAN-05
 **Success Criteria** (what must be TRUE):
-  1. Each of the 5 agent definitions (researcher, system-architect, screen-composer, design-reviewer, fix-agent) exists as a markdown file in `runtimes/claude-code/agents/`
-  2. Each agent definition specifies which files to load and which to never load (explicit context-loading profile per context-engine.md)
-  3. Each agent definition specifies model selection, tool restrictions, and output format expectations
-  4. A workflow orchestrator can read an agent definition and know exactly what to pass to Task() -- no ambiguity about context, model, or tools
-**Plans:** 3 plans
+  1. User can run `/motif:scan` on an existing project and receive a structured report of framework, directory layout, CSS approach, and naming conventions
+  2. User can see a catalog of existing components found in the project with file paths and export names
+  3. User can review and confirm or correct all scan findings before any downstream generation uses them
+  4. User can see extracted conventions from existing components (recurring patterns like border-radius values, spacing scales, shadow usage)
+  5. Existing greenfield workflow (`/motif:init` without prior scan) continues to work unchanged
+**Plans**: 2 plans
 
 Plans:
-- [x] 01-01-PLAN.md — Researcher + System Architect agent definitions (AGNT-01, AGNT-02)
-- [x] 01-02-PLAN.md — Screen Composer + Design Reviewer agent definitions (AGNT-03, AGNT-04)
-- [x] 01-03-PLAN.md — Fix Agent definition (AGNT-05)
+- [x] 13-01-PLAN.md — Build core project scanner script (framework, CSS, structure, components, conventions)
+- [x] 13-02-PLAN.md — Create /motif:scan command, scan workflow, init integration, state machine update
 
-### Phase 2: Templates
-**Goal**: Agent outputs have standardized formats -- state tracking, screen summaries, and token visualization all follow defined structures
-**Depends on**: Phase 1 (templates formalize the output formats that agents produce; agent definitions reference these templates)
-**Requirements**: TMPL-01, TMPL-02, TMPL-03
+### Phase 14: Token and System Integration
+**Goal**: Users can have their existing design tokens detected and merged with Motif's system, and see a gap analysis of which components already exist versus what the vertical needs
+**Depends on**: Phase 13
+**Requirements**: TOKN-01, TOKN-02, TOKN-03, SCAN-03
 **Success Criteria** (what must be TRUE):
-  1. STATE-TEMPLATE.md matches the state machine format defined in `core/references/state-machine.md` and can be used by any workflow to initialize design state
-  2. SUMMARY-TEMPLATE.md matches the format defined in `core/workflows/compose-screen.md` and provides the structure for screen composition summaries
-  3. Token showcase HTML is a self-contained page (no external dependencies) that visually displays all design tokens -- colors, typography, spacing -- and can be opened in any browser
-**Plans:** 2 plans
+  1. User can see existing CSS custom properties or Tailwind config tokens detected and presented from their project
+  2. User can choose a token strategy (adopt existing, merge with Motif, or start fresh) through a single top-level decision
+  3. User can receive a selective token overlay that fills gaps in their existing tokens without overwriting what they already have
+  4. User can see a gap analysis comparing their existing components against the vertical-required components, showing what needs to be generated versus what already exists
+**Plans**: 3 plans
 
 Plans:
-- [x] 02-01-PLAN.md — STATE-TEMPLATE.md + SUMMARY-TEMPLATE.md (TMPL-01, TMPL-02)
-- [x] 02-02-PLAN.md — Token showcase HTML template (TMPL-03)
+- [x] 14-01-PLAN.md — Build token extractor script and integrate into scan workflow
+- [x] 14-02-PLAN.md — Build component gap analysis script
+- [x] 14-03-PLAN.md — Wire brownfield mode into system generator workflow, agent, and context engine
 
-### Phase 3: Installer
-**Goal**: Users can install Motif with a single `npx` command and have a fully functional design system in their project
-**Depends on**: Phase 1, Phase 2 (installer copies agents and templates; they must exist before the installer can deliver them)
-**Requirements**: INST-01, INST-02, INST-03, INST-04, INST-05, INST-06, INST-07, INST-08
+### Phase 15: Compose Integration
+**Goal**: Users can receive decomposed screen compositions that reuse existing project components and are written to the project's actual directories following its conventions
+**Depends on**: Phase 14
+**Requirements**: COMP-01, COMP-02, COMP-03
 **Success Criteria** (what must be TRUE):
-  1. Running `npx motif@latest` in a project with Claude Code detects the runtime automatically and completes installation without errors
-  2. After install, `core/` content exists at `.claude/get-motif/` and commands exist at `.claude/commands/motif/` with correct directory structure
-  3. CLAUDE.md contains the Motif config snippet between `<!-- MOTIF-START -->` and `<!-- MOTIF-END -->` sentinel markers, preserving any existing CLAUDE.md content
-  4. Re-installing on an existing installation backs up modified files and updates cleanly via manifest-based content-hash diffing
-  5. Post-install verification confirms zero unresolved `{FORGE_ROOT}` path variables in any installed file
-**Plans:** 3 plans
+  1. User can receive screen output decomposed into one component per file, each in its own file with proper imports
+  2. User can have composed files written to the project's actual source directories (e.g., `src/components/`, `src/app/`) instead of only `.planning/design/screens/`
+  3. User can have existing project components imported and reused in new compositions instead of being recreated from scratch
+  4. Composed output follows the project's detected naming conventions, file structure, and framework patterns
+**Plans**: 2 plans
 
 Plans:
-- [x] 03-01-PLAN.md — package.json + bin/install.js fresh-install pipeline (INST-01, INST-02, INST-03, INST-06 partial, INST-07, INST-08)
-- [x] 03-02-PLAN.md — Manifest-based upgrade tracking, backup, and uninstall (INST-04, INST-05, INST-06 complete)
-- [x] 03-03-PLAN.md — End-to-end lifecycle verification (all INST requirements)
+- [x] 15-01-PLAN.md — Update context engine, summary template, and state machine for decomposed composition
+- [x] 15-02-PLAN.md — Add decomposition, project-directory placement, and component reuse to compose workflow
 
-### Phase 4: Rebrand and Distribution
-**Goal**: The product ships under the "Motif" identity with all packaging required for npm distribution
-**Depends on**: Phase 3 (installer must work before documenting it; rebrand touches paths the installer references)
-**Requirements**: BRND-01, DIST-01, DIST-02, DIST-03
+### Phase 16: Validation and Hardening
+**Goal**: Users can trust that all decomposed output passes validation checks and is committed atomically with automatic rollback on failure
+**Depends on**: Phase 15
+**Requirements**: COMP-04
 **Success Criteria** (what must be TRUE):
-  1. Zero references to "Design Forge", "design-forge", "forge", or `/forge:` remain in any shipped file -- all replaced with "Motif", "motif", or `/motif:` equivalents
-  2. `package.json` has name "motif", correct bin field pointing to `bin/install.js`, files whitelist (`bin/`, `core/`, `runtimes/`, `scripts/`), and engines `>=22.0.0`
-  3. MIT LICENSE file exists at project root
-  4. README.md contains pitch, one-command install instructions, command reference for all 10 slash commands, architecture overview, and how-it-works section
-**Plans:** 4 plans
+  1. User can have all decomposed files from a composition committed atomically in a single git commit
+  2. User can have the commit automatically rolled back if any post-decomposition validation check fails (import cycles, naming conflicts, missing props)
+  3. Stale scan artifacts are detected before composition, preventing ghost component references from outdated scans
+**Plans**: 2 plans
 
 Plans:
-- [x] 04-01-PLAN.md — Complete rebrand of source files, directories, installer, and CLAUDE.md (BRND-01)
-- [x] 04-02-PLAN.md — MIT LICENSE and comprehensive README.md (DIST-02, DIST-03)
-- [x] 04-03-PLAN.md — End-to-end verification of all Phase 4 requirements (BRND-01, DIST-01, DIST-02, DIST-03)
-- [x] 04-04-PLAN.md — UAT gap closure: fix stale forge references in runtime-adapters.md, generate-system.md, BUILD-SPEC.md, e2e-installer.js
-
-### Phase 5: Verticals
-**Goal**: Motif proves domain generalizability -- three new verticals demonstrate that the system produces domain-intelligent designs beyond fintech
-**Depends on**: Phase 4 (rebrand must happen before adding new content to avoid renaming new files later)
-**Requirements**: VERT-01, VERT-02, VERT-03
-**Success Criteria** (what must be TRUE):
-  1. Health vertical exists at `core/references/verticals/health.md` and follows the exact structure of `fintech.md` (same sections, same depth of domain intelligence)
-  2. SaaS vertical exists at `core/references/verticals/saas.md` and follows the exact structure of `fintech.md`
-  3. E-commerce vertical exists at `core/references/verticals/ecommerce.md` and follows the exact structure of `fintech.md`
-  4. Each vertical contains domain-specific patterns, color palettes, typography guidance, component patterns, and anti-patterns that would produce visibly different designs from fintech
-**Plans:** 3 plans
-
-Plans:
-- [x] 05-01-PLAN.md — Health vertical design intelligence (VERT-01)
-- [x] 05-02-PLAN.md — SaaS vertical design intelligence (VERT-02)
-- [x] 05-03-PLAN.md — E-commerce vertical design intelligence (VERT-03)
-
-### Phase 6: Hooks and Scripts
-**Goal**: Design system compliance is enforced automatically during composition, and utility scripts support agent workflows
-**Depends on**: Phase 4 (hooks reference Motif paths and token formats; rebrand must be complete)
-**Requirements**: HOOK-01, HOOK-02, HOOK-03, HOOK-04, SCRP-01, SCRP-02
-**Success Criteria** (what must be TRUE):
-  1. Token-check hook flags hardcoded CSS color/spacing/font-size values in .css/.tsx/.jsx/.vue/.html files written by Claude Code, suggesting token alternatives
-  2. Font-check hook flags banned fonts (system defaults, generic sans-serif) unless the user has explicitly locked them as brand fonts
-  3. A11y-check hook flags accessibility violations: div+onClick without role/tabindex, img without alt, input without label
-  4. Context-monitor hook displays current context usage percentage in the status line and warns when context exceeds 50%
-  5. Contrast checker script calculates WCAG contrast ratios for any two colors using pure Node.js (no dependencies)
-**Plans:** 3 plans
-
-Plans:
-- [x] 06-01-PLAN.md — PostToolUse compliance hooks: token-check, font-check, a11y-check (HOOK-01, HOOK-02, HOOK-03)
-- [x] 06-02-PLAN.md — Context monitor statusLine and utility scripts (HOOK-04, SCRP-01, SCRP-02)
-- [x] 06-03-PLAN.md — Installer integration: hooks copy mapping and settings.json injection
-
-### Phase 7: Validation
-**Goal**: The complete Motif system works end-to-end on real projects, proving that domain intelligence, fresh context, differentiation, and brand color preservation all function as designed
-**Depends on**: Phase 5, Phase 6 (full product must exist -- all verticals, all hooks -- before comprehensive validation)
-**Requirements**: VALD-01, VALD-02, VALD-03, VALD-04, VALD-05
-**Success Criteria** (what must be TRUE):
-  1. Full workflow (init, research, system, compose, review, fix) completes without errors on a controlled test project
-  2. Full workflow completes on CryptoPay (real fintech project) producing usable design artifacts
-  3. Running the same vertical with two different differentiation seeds produces visibly distinct color palettes, typography choices, and component styling
-  4. User-specified brand colors appear in generated tokens without being overridden or replaced by the system's palette generation
-  5. Screen quality (token compliance, design coherence) remains consistent across 5+ screens composed in sequence, demonstrating fresh context isolation
-**Plans:** 3 plans
-
-Plans:
-- [x] 07-01-PLAN.md — Build validation scripts: workflow artifact checker, token quality checker, differentiation comparator (VALD-01 through VALD-05 tooling)
-- [x] 07-02-PLAN.md — Controlled test project end-to-end workflow validation (VALD-01)
-- [x] 07-03-PLAN.md — CryptoPay battle test, differentiation, brand color preservation, screen consistency (VALD-02, VALD-03, VALD-04, VALD-05)
-
-### Phase 8: CI and Publish
-**Goal**: Motif is published to npm and future releases are automated
-**Depends on**: Phase 7 (never publish an unvalidated product)
-**Requirements**: DIST-04
-**Success Criteria** (what must be TRUE):
-  1. GitHub Actions workflow triggers on git tag creation and publishes the package to npm automatically
-  2. `npx motif-design@latest` installs the published package from npm and completes the installation flow successfully
-**Plans:** 2 plans
-
-Plans:
-- [x] 08-01-PLAN.md — Pre-publish package preparation: .gitignore, package.json identity, CI workflow, README update (DIST-04)
-- [x] 08-02-PLAN.md — GitHub repo setup, npm trusted publishing, first publish, end-to-end install verification (DIST-04)
-
-### Phase 8.1: Pre-Publish Integration Fixes (INSERTED)
-**Goal**: All cross-phase integration gaps identified by milestone audit are resolved before publishing — vertical paths load correctly, CI workflow runs, and package name references are consistent
-**Depends on**: Phase 8 Plan 01 (fixes target files created/modified in 08-01)
-**Gap Closure**: Closes gaps from v1.0-MILESTONE-AUDIT.md
-**Success Criteria** (what must be TRUE):
-  1. Workflow and agent vertical references resolve to the actual installed path (`{MOTIF_ROOT}/references/verticals/`) — vertical intelligence loads successfully
-  2. `.github/workflows/publish.yml` uses `actions/checkout@v4` and `actions/setup-node@v4` (versions that exist)
-  3. Zero `npx motif@latest` references remain in any shipped file — all updated to `npx motif-design@latest`
-  4. `init.md` Post-Generation section does not reference a file (`CLAUDE-MD-SNIPPET.md`) that is absent from the installer copy mapping
-**Plans:** 1 plan
-
-Plans:
-- [x] 08.1-01-PLAN.md — Fix vertical paths, CI action versions, stale package name references, and init.md snippet reference
+- [x] 16-01-PLAN.md — Build compose-validator.js script (import cycles, naming conflicts, missing props)
+- [x] 16-02-PLAN.md — Add validation gate, atomic commit/rollback, and staleness check to compose workflow
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 --> 2 --> 3 --> 4 --> 5 --> 6 --> 7 --> 8 --> 8.1 --> 8 (resume 08-02)
-Note: Phases 5 and 6 can execute in parallel (independent content).
-Note: Phase 8.1 is an INSERTED gap closure phase; after completion, resume Phase 8 Plan 02.
+Phases execute in numeric order: 13 → 14 → 15 → 16
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Agent Definitions | 3/3 | ✓ Complete | 2026-03-01 |
-| 2. Templates | 2/2 | ✓ Complete | 2026-03-01 |
-| 3. Installer | 3/3 | ✓ Complete | 2026-03-02 |
-| 4. Rebrand and Distribution | 4/4 | ✓ Complete | 2026-03-02 |
-| 5. Verticals | 3/3 | ✓ Complete | 2026-03-02 |
-| 6. Hooks and Scripts | 3/3 | ✓ Complete | 2026-03-02 |
-| 7. Validation | 3/3 | ✓ Complete | 2026-03-03 |
-| 8. CI and Publish | 2/2 | ✓ Complete | 2026-03-04 |
-| 8.1 Pre-Publish Integration Fixes | 1/1 | ✓ Complete | 2026-03-03 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Agent Definitions | v1.0 | 3/3 | Complete | 2026-03-01 |
+| 2. Templates | v1.0 | 2/2 | Complete | 2026-03-01 |
+| 3. Installer | v1.0 | 3/3 | Complete | 2026-03-02 |
+| 4. Rebrand and Distribution | v1.0 | 4/4 | Complete | 2026-03-02 |
+| 5. Verticals | v1.0 | 3/3 | Complete | 2026-03-02 |
+| 6. Hooks and Scripts | v1.0 | 3/3 | Complete | 2026-03-02 |
+| 7. Validation | v1.0 | 3/3 | Complete | 2026-03-03 |
+| 8. CI and Publish | v1.0 | 2/2 | Complete | 2026-03-04 |
+| 8.1 Pre-Publish Fixes | v1.0 | 1/1 | Complete | 2026-03-03 |
+| 9. Foundation | v1.1 | 1/1 | Complete | 2026-03-04 |
+| 10. Vertical Migration | v1.1 | 2/2 | Complete | 2026-03-04 |
+| 11. Pipeline Integration | v1.1 | 3/3 | Complete | 2026-03-04 |
+| 12. Enforcement and Validation | v1.1 | 2/2 | Complete | 2026-03-04 |
+| 13. Scan Infrastructure | v1.2 | 2/2 | Complete | 2026-03-05 |
+| 14. Token and System Integration | v1.2 | 3/3 | Complete | 2026-03-05 |
+| 15. Compose Integration | v1.2 | 2/2 | Complete | 2026-03-06 |
+| 16. Validation and Hardening | v1.2 | 2/2 | Complete | 2026-03-06 |

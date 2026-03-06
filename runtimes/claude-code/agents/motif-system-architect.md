@@ -50,6 +50,7 @@ When building component specs, think in variants and states: variants are the di
 - `.planning/design/research/02-visual-language.md` -- raw visual research for deeper color/typography context
 - `.planning/design/research/03-accessibility.md` -- raw accessibility research for contrast/target requirements
 - `.claude/get-motif/references/verticals/{vertical}.md` -- vertical-specific reference patterns and conventions
+- `.claude/get-motif/references/icon-libraries.md` -- icon library metadata, CDN URLs, and selection algorithm
 
 ### Never Load
 - `research/01-vertical-patterns.md` -- already synthesized in DESIGN-RESEARCH.md
@@ -80,12 +81,19 @@ When building component specs, think in variants and states: variants are the di
 - **State management:** Every interactive component must define: default, hover (pointer feedback), active (press feedback), focus (keyboard navigation -- MUST have visible ring), disabled (prevented interaction), and loading (async feedback with aria-busy).
 - **Accessibility per component:** Role attribution, keyboard interaction model (Enter/Space for buttons, Arrow keys for menus), ARIA attributes, focus management, screen reader announcements.
 
+### Iconography
+- **Icon library selection:** Deterministic algorithm from icon-libraries.md maps vertical + personality seed to library + weight. User overrides in DESIGN-BRIEF.md take priority.
+- **ICON-CATALOG.md generation:** Extract the selected library's column from the vertical's Icon Vocabulary tables. Build full class strings using the library's usage syntax. Organize by semantic category (Navigation, Domain, Status, Actions).
+- **Icon sizing:** Fixed 8px-multiple scale via --icon-sm through --icon-2xl tokens. Icons inherit color via CSS currentColor -- no dedicated icon color tokens.
+- **Library-specific requirements:** Lucide requires JS initialization (`lucide.createIcons()`). Material Symbols requires explicit font-variation-settings CSS for proper optical sizing.
+
 ## Output Format Expectations
 
 - **`tokens.css`** (max 3000 tokens) -- CSS custom properties with reasoning comments, following the format in the workflow's token file template
 - **`COMPONENT-SPECS.md`** (max 5000 tokens) -- XML component specifications with variants, states, and accessibility, following the format in the workflow's component spec template
 - **`DESIGN-SYSTEM.md`** (max 3000 tokens) -- Human-readable system documentation with color palette, typography scale, spacing guidelines, motion principles
 - **`token-showcase.html`** (standalone) -- Self-contained HTML that visually displays all tokens; imports tokens.css and Google Fonts CDN only, no other external dependencies
+- **`ICON-CATALOG.md`** (max 1000 tokens) -- Per-project icon name lookup table generated from vertical vocabulary. Contains library name, CDN URL, weight, usage syntax, and all icon mappings with full class strings.
 - **Output paths:** Orchestrator provides (typically `.planning/design/system/`)
 - **Templates:** Phase 2 will define exact output formats. For now, follow the format specified in the workflow's `<agent_spawn>` block.
 - **Commit prefix:** `design(system):`
@@ -104,6 +112,13 @@ Before saving your output files, verify:
 - [ ] tokens.css is under 3000 tokens, COMPONENT-SPECS.md is under 5000 tokens, DESIGN-SYSTEM.md is under 3000 tokens
 - [ ] Font choices are classified and pairing rationale documented
 - [ ] Type scale follows a consistent mathematical ratio
+- [ ] Icon Library Decision Algorithm executed -- selected library and weight documented in tokens.css comment
+- [ ] DESIGN-SYSTEM.md includes Iconography section with library name, CDN link, usage syntax, size scale, color rules
+- [ ] ICON-CATALOG.md generated with all icons from vertical vocabulary, correct library column, full class strings
+- [ ] Token showcase HTML includes CDN link for selected icon library in <head>
+- [ ] Token showcase HTML includes Iconography section with size scale preview and domain icon samples
+- [ ] IF Lucide selected: showcase includes both CDN script AND lucide.createIcons() initialization
+- [ ] IF Material Symbols selected: showcase includes CSS font-variation-settings for proper rendering
 
 ## Brief Example
 

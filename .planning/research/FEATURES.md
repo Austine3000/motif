@@ -1,239 +1,426 @@
-# Feature Research
+# Feature Landscape: Brownfield Intelligence
 
-**Domain:** AI design engineering system / npm-distributed developer CLI tool
-**Researched:** 2026-03-01
-**Confidence:** MEDIUM-HIGH
+**Domain:** Brownfield project scanning, component decomposition, and convention-adaptive output for AI design engineering system (Motif v1.2)
+**Researched:** 2026-03-04
+**Overall confidence:** MEDIUM (training data only; no web verification available)
 
-## Feature Landscape
+## Context
 
-### Table Stakes (Users Expect These)
+Motif v1.1 generates design systems and composes screens into monolithic HTML files that ignore existing project structure. When a user has a React/Next.js/Vue project with established component patterns, file organization conventions, and existing UI components, Motif drops a single large file into `.planning/design/screens/` with no awareness of what already exists. This creates three problems:
 
-Features users assume exist. Missing these = product feels incomplete or untrustworthy.
+1. **Wasted existing work**: Users have components (`Button.tsx`, `Card.tsx`) that Motif ignores and recreates inline.
+2. **Convention mismatch**: Output uses `kebab-case` files when the project uses `PascalCase`; outputs a single file when the project uses `components/` + `pages/` + `hooks/` patterns.
+3. **Integration friction**: Users must manually decompose monolithic output into proper project structure, defeating the purpose of automation.
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| **One-command install via npx** | shadcn, v0, create-react-app all set the bar: `npx tool@latest` and it works. Any friction here kills adoption immediately. Users will not read troubleshooting docs for a tool they have not tried yet. | MEDIUM | Installer must auto-detect runtime (Claude Code vs others), copy files to correct locations, handle existing config gracefully (backup before overwrite), and provide clear success/failure output. Zero npm dependencies is the right call -- keeps install fast and avoids supply chain concerns. |
-| **Clear help/progress commands** | Every CLI tool has `--help`. AI agent tools specifically need progress tracking because multi-step workflows are opaque. Users need to know "where am I?" at any point. | LOW | `/motif:help` and `/motif:progress` already built. Table stakes that are already satisfied. |
-| **Working end-to-end workflow** | If init -> research -> system -> compose -> review -> fix does not complete successfully, the tool is broken. Users will try the full flow on first use and abandon if any step fails. | HIGH | All 7 workflows are built but unvalidated. The gap is testing, not implementation. Battle testing on a real project is critical before any public release. |
-| **Design token output (CSS custom properties)** | CSS custom properties are the standard for design token distribution in 2026. The W3C DTCG spec reached its first stable version in October 2025, and CSS custom properties are universally supported. Every design system tool outputs them. | MEDIUM | Already designed in generate-system.md. Tokens must include reasoning comments (why this color, why this font) because AI agents will read them. Framework-agnostic CSS custom properties is the right choice -- Tailwind export can come later as a separate command. |
-| **Component specifications** | Users expect generated design systems to include component-level specs, not just tokens. Tokens alone are not enough -- agents need to know how a Button uses the tokens. | MEDIUM | COMPONENT-SPECS.md format (XML specs per component) is already designed. The XML format is a good choice because it is structured enough for AI consumption but readable by humans. |
-| **README with clear pitch, install, and usage** | npm packages without READMEs have near-zero adoption. The README is the product's storefront on npmjs.com. Must answer "what is this, who is it for, how do I start" in under 30 seconds of scanning. | LOW | Not built yet. Should include: one-line pitch, 15-second install, screenshot/GIF of token showcase output, command reference table, architecture diagram (text-based), and "how it works" section. |
-| **MIT License** | Open source npm packages without licenses are legally unusable for many developers and companies. | LOW | Not built. Trivial to add. |
-| **Atomic git commits per operation** | AI coding tools that touch files should commit atomically. Users expect to be able to `git revert` any single operation cleanly. Already a constraint in the spec. | LOW | Already designed into all workflows with `design(...)` prefix. Implementation depends on agents being built correctly. |
-| **Idempotent operations** | Running `/motif:init` twice should not corrupt state. Running `/motif:research` again should cleanly overwrite previous research. Users will re-run commands when results are unsatisfactory. | LOW | Gate checks in workflows handle this. Init has a guard ("already initialized"). Other commands check STATE.md phase. |
-| **package.json with correct bin field** | npm distribution requires a properly configured package.json. The `bin` field maps the CLI command name to the installer script. Without this, `npx motif@latest` does not work. | LOW | Not built. Straightforward: `{ "name": "motif", "bin": { "motif": "bin/install.js" } }`. No dependencies. |
+v1.2 addresses this with a scan-present-decide-execute flow: the system scans the project, presents findings to the user, the user makes decisions, and then agents execute within those constraints.
 
-### Differentiators (Competitive Advantage)
+---
 
-Features that set Motif apart. Not required by users of generic tools, but these ARE Motif's reason to exist.
+## Table Stakes
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| **Vertical/domain intelligence databases** | **This is the core differentiator.** No other tool researches your product vertical's design patterns before generating anything. v0, Emergent, and generic AI tools produce "one-size-fits-all" UI. Motif's fintech vertical knows that monetary values need tabular-nums, that negative amounts should NOT be red (red = error, not spending), and that trust signals matter more than aesthetics. This domain knowledge is what prevents "AI slop." | HIGH | Fintech vertical is built (226 lines, concrete values). Health, SaaS, and e-commerce are planned. Each vertical needs: navigation patterns, color systems with concrete hex values, typography pairings, spacing/density rules, component specs (TransactionRow for fintech, MetricCard for health), interaction patterns, accessibility specifics, and anti-patterns. Building each vertical well requires genuine design research, not just template filling. |
-| **Differentiation seed system** | Two fintech apps built with Motif should NOT look identical. The differentiation seed (personality, temperature, formality, density, era on 1-10 scales) shifts hue ranges, saturation, typography personality, and spacing density. A "rebellious" fintech app gets violet/magenta instead of standard blue-teal. An "institutional" one gets conservative blue. This is unique -- no other tool has a parameterized differentiation system for the same vertical. | MEDIUM | Already designed in detail in generate-system.md (color decision algorithm with seed-adjusted hue ranges). The anti-convergence check (comparing against named competitor colors) is a particularly clever touch. Implementation complexity is in the agent correctly following the algorithm, not in the algorithm itself. |
-| **Fresh context per screen (anti-degradation)** | Screen 5 in a multi-screen compose workflow must be as good as screen 1. Other AI tools degrade as context fills up. Motif spawns a fresh 200K-token agent for each screen, loading only the tokens, component specs, and previous screen summaries. The orchestrator stays thin (30-40% context). This is architecturally novel for a design tool. | HIGH | Context engine is fully designed with profiles per agent type, token budgets per file, and anti-patterns. Implementation depends on agents being correctly built to follow these profiles. Claude Code's subagent system (Task() -> fresh context) is the enabling technology. This pattern is well-documented in Claude Code docs (2026). |
-| **4-lens design review with scoring** | Automated design review that checks: (1) token compliance (are you using the design system?), (2) vertical pattern adherence (does this look like fintech?), (3) accessibility (WCAG AA), (4) visual hierarchy. Scored /100. No other tool reviews AI-generated UI against domain-specific heuristics. v0 and Emergent generate but do not review. | MEDIUM | Review workflow is built. The review -> fix loop is also built. Differentiation is that reviews are domain-aware (a fintech review checks for tabular-nums on monetary values; a health review checks for calming color ratios). |
-| **PostToolUse enforcement hooks** | Hooks that fire after every file edit to catch hardcoded CSS values, banned fonts, accessibility violations, and context budget overruns in real-time. Unlike review (which happens after composition), hooks enforce during composition. This is preventive, not corrective. | MEDIUM | Claude Code's hook system (2026) supports PostToolUse with matcher patterns, JSON stdin input, and exit code control. The hook receives the edited file path, can parse the content, and return structured JSON to block or warn. Four hooks planned: token-check (flag hardcoded colors/spacing), font-check (flag Inter/Roboto unless user-locked), a11y-check (flag div+onClick, missing alt, missing labels), context-monitor (warn at 50% context usage). |
-| **Visual token showcase (HTML)** | A self-contained HTML file that displays all generated tokens visually: color swatches with hex values, typography scale samples, spacing visualization, component previews. Users can open this in a browser and immediately see their design system. This makes the abstract (CSS custom properties) tangible. | LOW | Already specified in generate-system.md. Self-contained (imports tokens.css + Google Fonts, no other deps). This is low complexity but high perceived value -- it is the "wow moment" after system generation. |
-| **Brand color lock-in** | When users provide existing brand colors, Motif NEVER overrides them. The color decision algorithm generates scales (50-950) around the locked value, derives complementary surface/semantic/text colors, and adjusts surfaces (not the brand color) if WCAG contrast fails. Respecting existing brand identity is critical for the target audience (founders who already have a logo/brand). | MEDIUM | Algorithm fully designed. The key insight: if the locked primary color fails contrast, you adjust the surface color, not the primary. This is the correct behavior that generic tools get wrong. |
-| **Figma/screenshot input support** | Users can provide Figma files, screenshots, or reference products, and Motif extracts or references their design language. Four input types: (A) starting fresh, (B) brand constraints, (C) visual references, (D) design file with fidelity modes (pixel-perfect, capture spirit, extract tokens). | MEDIUM | Already designed in design-inputs.md. This bridges the gap between "starting from nothing" and "I already have designs." Most AI design tools assume you are starting from scratch. |
-| **State machine with persistence** | STATE.md tracks phase, screen status, review scores, decisions log, and context budget. Survives `/clear` commands. Enables resuming work across sessions. This is invisible infrastructure but critical for multi-session workflows -- design system generation is not a one-shot operation. | LOW | Fully designed in state-machine.md. Gate checks in every workflow verify correct phase transitions. |
+Features users expect when any AI tool claims brownfield awareness. Missing any of these means the tool feels "greenfield-only" and users revert to manual integration.
 
-### Anti-Features (Commonly Requested, Often Problematic)
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Project structure scanning** | Every AI coding assistant that touches existing code (Cursor, Copilot Workspaces, Bolt, Claude Code itself) reads project structure before acting. Users will immediately ask "do you know what's already in my project?" and expect yes. Without scanning, Motif operates blind. | MEDIUM | Modifies: `/motif:init` workflow, adds new scan step | Scan must detect: framework (React/Next/Vue/Svelte/HTML), directory layout (`src/` vs flat, `components/` location, `pages/` vs `app/` routing), CSS approach (Tailwind, CSS Modules, styled-components, plain CSS), and package manager. The init workflow already asks for stack; scanning CONFIRMS rather than asks. |
+| **Existing component catalog** | Users with 10+ components will not accept Motif recreating a `Button` or `Card` from scratch. GitHub Copilot, Cursor, and v0 all attempt to reuse what exists. Users expect "I already have a Button, use mine." | HIGH | Requires: project scanning, modifies: composer agent context profile, modifies: COMPONENT-SPECS.md format | Must detect existing component files, extract their names and locations, and present to user. Does NOT need to parse component internals — just catalog file paths + export names. Deep prop analysis is v1.3+. |
+| **File output convention matching** | When a project uses `src/components/ui/button.tsx` with barrel exports in `index.ts`, Motif output must follow the same pattern. Tools like Cursor and Claude Code already do this implicitly by reading surrounding files. Users do NOT expect to manually rename/move files after generation. | MEDIUM | Requires: project scanning (file naming patterns), modifies: composer output path logic | Detect: file naming convention (PascalCase vs kebab-case vs camelCase), component directory structure, barrel export patterns, file extension (.tsx vs .jsx vs .vue). Composer then writes to the correct location with the correct naming. |
+| **Scan results presentation (user decides)** | The core v1.2 contract: "scan, present, user decides." No AI tool should silently make structural decisions about an existing project. v0 and Bolt both show what they found and let users approve before generating. Users expect transparency about what was detected. | LOW | Requires: project scanning, produces: PROJECT-SCAN.md artifact | After scanning, write findings to a structured file and present a summary to the user. User confirms or corrects before any generation happens. This is the trust-building step — "I found 23 components in src/components/, your CSS approach is Tailwind, your naming convention is kebab-case. Correct?" |
+| **Composer output to project directories** | Currently all output goes to `.planning/design/screens/`. In a brownfield project, the composed screen must be written to where the project actually expects it — `src/app/dashboard/page.tsx`, not `.planning/design/screens/dashboard.html`. Without this, every compose requires manual file moving. | MEDIUM | Requires: project scanning, scan results confirmation, modifies: compose-screen.md workflow, modifies: composer agent | The composer needs a target directory from the scan results. For Next.js App Router: `src/app/{route}/page.tsx`. For Pages Router: `pages/{route}.tsx`. For plain React: `src/pages/` or `src/views/`. For HTML: project root or `public/`. The orchestrator resolves the path before spawning the composer. |
+| **Import existing design tokens** | If a project already has CSS custom properties, Tailwind config colors, or a theme file, Motif should detect and import them rather than generating from scratch. This is the design-system equivalent of scanning components. Overwriting a team's established color palette is unacceptable. | HIGH | Modifies: `/motif:system` workflow, adds token extraction logic | Detect: existing `tailwind.config.*` (colors, spacing, fonts), CSS files with custom properties, theme files. Extract values. Present to user: "I found your existing tokens. Use these as the base?" If yes, Motif wraps them in its token format rather than generating new ones. If no, proceed with fresh generation. |
 
-Features that seem good but create problems. Deliberately NOT building these.
+---
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| **Runtime UI/visual editor** | "I want to drag-and-drop to adjust my design system" | Motif runs inside AI coding assistants (Claude Code, etc). Building a GUI is a completely different product. It would require a web app, design canvas, state management -- 10x the scope. Motif's audience uses terminals and code editors, not visual design tools. v0 and Figma already own the visual editor space. | Token showcase HTML provides visual preview. Users tweak tokens.css directly (which AI agents can do conversationally). |
-| **Tailwind export in v1** | "I use Tailwind, give me a tailwind.config.js" | Tailwind export creates a second source of truth. Changes to tokens.css would need to sync to tailwind.config.js and vice versa. Supporting both doubles testing surface. CSS custom properties work with Tailwind (you can reference them in config), so the CSS-first approach is not blocking Tailwind users. | Ship CSS custom properties only in v1. Tailwind export as a separate future command (v2). |
-| **Multi-runtime support in v1** | "I use Cursor/OpenCode/Gemini, support me too" | Spreading across runtimes before proving the concept on one runtime means shipping untested adapters. Each runtime has different subagent spawning, hook formats, and config injection. Testing four runtimes quadruples QA. | Ship Claude Code only in v1. The core/runtime architecture already supports adding runtimes later by just creating a `runtimes/{name}/` directory. Zero core changes needed. OpenCode in v1.1, Cursor in v1.2, Gemini in v1.3. |
-| **AI-powered design from scratch (no workflow)** | "Just give me a beautiful dashboard" | Single-prompt design generation is exactly the "AI slop" that Motif exists to prevent. Without research, without domain intelligence, without a design system, the output is generic. The whole point is the multi-step workflow: research -> system -> compose -> review -> fix. | The workflow IS the feature. `/motif:quick` exists for ad-hoc needs but still loads the design system for consistency. |
-| **Component library / npm UI components** | "Ship pre-built React/Vue components" | Motif generates specs and tokens, not runtime code. Shipping a component library means picking a framework (React? Vue? Svelte?), maintaining compatibility, handling bundling, tree-shaking, SSR. This is a separate product (like shadcn, Radix, Chakra). Motif's specs are framework-agnostic by design. | Generate COMPONENT-SPECS.md with XML specs that AI agents use to write framework-specific code. The specs are the reusable artifact, not pre-built components. |
-| **Real-time collaboration** | "My team should see the design system updates live" | Motif operates within a single developer's AI coding session. Real-time collab requires infrastructure (WebSockets, conflict resolution, presence). The audience is solo developers and founders, not design teams. | Design artifacts live in git. Collaboration happens through PRs and shared repos. STATE.md and tokens.css are plain files that merge cleanly. |
-| **Automatic deployment/hosting** | "Deploy my design system documentation" | Hosting is out of scope. The token-showcase.html is a local file. Adding deployment means managing cloud accounts, domains, CI/CD for docs. | token-showcase.html opens locally. Users can deploy it themselves if they want (it is self-contained HTML). |
-| **LLM provider abstraction** | "Let me use GPT-4 or Gemini models instead of Claude" | Motif's workflows use Claude Code-specific features (Task() subagent spawning, PostToolUse hooks, slash commands). Abstracting the LLM provider means abstracting the runtime, which is already handled by the core/runtime adapter architecture. The adapters ARE the LLM abstraction. | Each runtime adapter handles its own LLM. Claude Code uses Claude. OpenCode uses whatever OpenCode supports. The core design intelligence (verticals, workflows, specs) is LLM-agnostic -- only the thin adapter layer is runtime-specific. |
+## Differentiators
+
+Features that make Motif's brownfield intelligence notably better than competitors. These leverage Motif's unique position as a design-system-first tool, not just a code generator.
+
+| Feature | Value Proposition | Complexity | Dependencies | Notes |
+|---------|-------------------|------------|--------------|-------|
+| **Component gap analysis** | Motif knows what components a vertical NEEDS (from COMPONENT-SPECS.md) and can diff that against what EXISTS (from the scan). "You have Button, Card, and Input. You're missing: TransactionRow, BalanceCard, StatusChip (fintech-specific). I'll generate only the missing ones." No other tool maps domain-required components against existing inventory. This is Motif's domain intelligence applied to brownfield awareness. | MEDIUM | Requires: existing component catalog + vertical component specs, produces: GAP-ANALYSIS.md | The gap analysis compares the scan catalog against COMPONENT-SPECS.md and vertical reference components. Three categories: (1) EXISTS — reuse as-is, (2) EXISTS-PARTIAL — exists but needs variant/state additions, (3) MISSING — must be generated. User approves the categorization before compose runs. |
+| **Convention extraction (not just detection)** | Beyond detecting "this project uses Tailwind" — extract the SPECIFIC conventions. "Your buttons use `rounded-lg` not `rounded-md`. Your spacing uses `p-4` and `p-6` never `p-5`. Your cards always have `shadow-sm border border-gray-200`." Then teach the composer to follow these exact patterns. This is convention learning, not just framework detection. | HIGH | Requires: project scanning, pattern analysis of existing component files, modifies: composer instructions | Analyze 3-5 existing components to extract recurring patterns: border-radius choices, spacing preferences, shadow usage, color variable naming. Store as CONVENTIONS.md. Composer loads this alongside tokens.css. This is the hardest feature technically but the highest user-value differentiator. |
+| **Component decomposition planner** | When Motif composes a complex screen, instead of one monolithic file, plan the decomposition: "This dashboard screen decomposes into: DashboardLayout (new), MetricsGrid (new, uses existing Card), TransactionList (new, uses existing Table), and QuickActions (new). I'll create 4 component files + 1 page file." Present the plan, user approves, then execute. | MEDIUM | Requires: project scanning (to know file structure conventions), modifies: compose-screen.md, modifies: composer agent output format | The composer currently writes one file. With decomposition: (1) composer plans the component tree, (2) writes an extraction plan to DECOMPOSITION-PLAN.md, (3) user approves, (4) composer writes individual files. The plan includes file paths following detected conventions. |
+| **Selective token overlay** | When a project has SOME tokens (e.g., colors from Tailwind) but lacks others (e.g., no icon sizes, no motion tokens, no vertical-specific semantic tokens), Motif fills the gaps without overwriting existing values. "I'll add --icon-sm through --icon-2xl and --shadow-sm/md/lg. Your existing color tokens are preserved." | MEDIUM | Requires: token import (table stakes), modifies: generate-system.md token output | Instead of generating a complete tokens.css that conflicts with existing tokens, generate a motif-extensions.css that ONLY contains tokens the project lacks. Import it alongside the existing system. No conflicts, additive only. |
+| **Reuse directive in COMPONENT-SPECS.md** | When a component EXISTS in the project, COMPONENT-SPECS.md should reference it with an import path rather than specifying it from scratch. "Button: USE EXISTING at src/components/ui/button.tsx" tells the composer to import, not recreate. This bridges the gap between Motif's specs and the real codebase. | LOW | Requires: existing component catalog, modifies: COMPONENT-SPECS.md format | Add a `<source>` element to component XML specs: `<source type="existing" path="src/components/ui/button.tsx" />` vs `<source type="generate" />`. The composer reads this and either imports or creates. |
+| **Multi-file commit with atomic rollback** | When the composer outputs 5+ files (page + components + styles), commit them atomically. If validation fails, roll back the entire batch. Current single-file output doesn't need this; multi-file decomposition does. | LOW | Requires: component decomposition, uses: existing git commit patterns | The composer already commits. Change from single commit to staged multi-file commit. Validation hook runs before commit; if it fails, unstage all files. |
+
+---
+
+## Anti-Features
+
+Features that seem like they belong in brownfield intelligence but create problems for Motif specifically. Deliberately NOT building these.
+
+| Anti-Feature | Why It Seems Useful | Why It Is Problematic for Motif | What to Do Instead |
+|--------------|---------------------|--------------------------------|-------------------|
+| **Full AST parsing of existing components** | "Parse every component's props, state, and render tree to understand it completely" | AST parsing requires framework-specific parsers (TypeScript compiler API for TSX, Vue SFC parser for .vue, Svelte compiler for .svelte). Each parser is a significant dependency. More critically, AI agents are unreliable at interpreting parsed ASTs — they work better reading source files directly. The context cost of loading parsed component trees is enormous (easily 5-10K tokens per component) and crowds out the actual composition work. | Catalog components by file path and export name. Let the composer READ the source file at compose time if it needs to understand props. Shallow scan, deep read on demand. |
+| **Automatic code migration/refactoring** | "Automatically refactor existing components to match Motif's design system" | Touching existing code that works is the fastest way to destroy user trust. If a user's Button.tsx works and their team knows it, rewriting it to use Motif tokens breaks their mental model and potentially their tests. Motif is additive — it generates NEW things, not refactors OLD things. | Generate NEW components that complement existing ones. If the user wants to migrate existing components to Motif tokens, that's a manual decision with explicit user direction — never automatic. |
+| **Runtime component discovery** | "Use a dev server to dynamically discover rendered components via browser inspection" | Requires a running dev server, browser automation (Puppeteer/Playwright), and framework-specific rendering. This is an entirely different tool category (Storybook, Chromatic). Motif operates at design-time via file analysis, not runtime inspection. Adding a runtime dependency makes the tool unusable for projects that aren't currently runnable. | Static file scanning is sufficient. Read `package.json`, read directory structure, read component files. No server required. |
+| **Design system migration assistant** | "Detect their current design system (Material UI, Chakra, Ant Design) and migrate to Motif tokens" | Migration implies replacing. Users of Material UI chose it deliberately and have hundreds of component instances. Migrating is a multi-sprint project, not a tool feature. Motif should COEXIST with existing design systems, not replace them. | Detect existing design systems and note them in the scan. If Material UI is present, the composer generates components that work alongside it (shared spacing, complementary colors) rather than conflicting. Co-existence, not replacement. |
+| **Intelligent merge conflict resolution** | "When Motif output conflicts with existing files, automatically resolve the merge" | Automatic merge resolution is wrong as often as it's right. When it's wrong in a design system context, the result is visual inconsistency that's hard to debug ("why is this button 2px off?"). Design decisions require human judgment on conflicts. | Never overwrite existing files without explicit user confirmation. The decomposition planner shows what will be created/modified BEFORE it happens. New files are safe; modified files require approval. |
+| **Cross-project design system sharing** | "Share design tokens across multiple projects in a monorepo" | Monorepo support is a distribution concern, not a brownfield concern. It requires package management, versioning, and multi-project coordination. Motif is a single-project tool. | Generate tokens for ONE project. If the user wants to share tokens across a monorepo, they copy tokens.css or publish it as a package manually. |
+| **Storybook/docs generation for existing components** | "Generate Storybook stories for components found during scanning" | Documentation generation is a separate tool category. It requires understanding component APIs deeply (props, variants, states), which conflicts with the "shallow scan" principle. Tools like Storybook auto-docs, Docgen, and react-docgen already do this better. | Include existing components in the scan catalog with their file paths. Users can use dedicated documentation tools for existing component docs. |
+
+---
 
 ## Feature Dependencies
 
 ```
-[package.json + LICENSE]
+PROJECT SCANNING (during /motif:init or /motif:scan)
     |
-    v
-[Installer (bin/install.js)]
-    |-- requires --> [package.json bin field]
-    |-- requires --> [All core/ files to exist]
-    |-- requires --> [All runtimes/claude-code/ files to exist]
-    |-- copies ----> [commands, agents, hooks, core to target dirs]
+    +---> Scan results presentation (PROJECT-SCAN.md)
+    |         |
+    |         +---> User confirms/corrects findings
+    |                   |
+    |                   +---> Existing component catalog
+    |                   |         |
+    |                   |         +---> Component gap analysis (vs COMPONENT-SPECS.md)
+    |                   |         |         |
+    |                   |         |         +---> Reuse directives in COMPONENT-SPECS.md
+    |                   |         |
+    |                   |         +---> Composer knows what to import vs generate
+    |                   |
+    |                   +---> File output convention matching
+    |                   |         |
+    |                   |         +---> Composer writes to correct paths
+    |                   |         |
+    |                   |         +---> Component decomposition planner
+    |                   |                   |
+    |                   |                   +---> Multi-file commit with atomic rollback
+    |                   |
+    |                   +---> Existing token import
+    |                             |
+    |                             +---> Selective token overlay (fill gaps only)
     |
-    v
-[/motif:init (already built)]
-    |-- requires --> [Installer completed successfully]
-    |-- creates ---> [STATE.md, PROJECT.md, DESIGN-BRIEF.md]
-    |
-    v
-[/motif:research (already built)]
-    |-- requires --> [init completed (STATE = INITIALIZED)]
-    |-- requires --> [Agents: forge-researcher.md]
-    |-- uses ------> [Vertical database (e.g., fintech.md)]
-    |-- creates ---> [DESIGN-RESEARCH.md, research/*.md]
-    |
-    v
-[/motif:system (already built)]
-    |-- requires --> [research completed (STATE = RESEARCHED)]
-    |-- requires --> [Agent: forge-system-architect.md]
-    |-- creates ---> [tokens.css, COMPONENT-SPECS.md, DESIGN-SYSTEM.md, token-showcase.html]
-    |
-    v
-[/motif:compose (already built)]
-    |-- requires --> [system generated (STATE = SYSTEM_GENERATED)]
-    |-- requires --> [Agent: forge-screen-composer.md]
-    |-- uses ------> [Hooks: token-check, font-check, a11y-check (enforcement during compose)]
-    |-- creates ---> [Screen files, screen-SUMMARY.md]
-    |
-    v
-[/motif:review (already built)]
-    |-- requires --> [at least one screen composed]
-    |-- requires --> [Agent: forge-design-reviewer.md]
-    |-- creates ---> [screen-REVIEW.md with score /100]
-    |
-    v
-[/motif:fix (already built)]
-    |-- requires --> [review completed with issues]
-    |-- requires --> [Agent: forge-fix-agent.md]
+    +---> Convention extraction (reads existing component source)
+              |
+              +---> CONVENTIONS.md
+                        |
+                        +---> Composer follows project conventions
 ```
 
-### Dependency Notes
+The critical dependency chain is: **project scanning MUST happen before** any brownfield-aware feature can function. Scanning produces the data that every downstream feature consumes. The scan results MUST be confirmed by the user before agents act on them — this is the trust contract.
 
-- **Agents require the installer to place them**: All 5 agents must be built before the installer can copy them. However, during development they can be tested by placing files manually.
-- **Hooks enhance compose but do not block it**: The compose workflow works without hooks. Hooks add enforcement (catching hardcoded values, banned fonts, a11y issues) but are not a hard dependency. This means hooks can ship in a later phase without blocking the core workflow.
-- **Verticals enhance research but do not block it**: The research workflow works without a vertical reference file -- agents will research the vertical from general knowledge. Vertical databases add depth and specificity (concrete hex values, specific component specs) but are not required for the workflow to function.
-- **Templates are consumed by agents**: STATE-TEMPLATE.md and SUMMARY-TEMPLATE.md define the format for agent outputs. Agents need to know these formats, but the formats are already defined in the reference docs (state-machine.md and compose-screen.md), so templates formalize what is already specified.
-- **Token showcase enhances system generation**: The HTML file is generated alongside tokens.css. It is the visual verification artifact. Not strictly necessary for the workflow but dramatically improves user experience ("see your design system" vs "read CSS custom properties").
-- **README and LICENSE are publishing dependencies**: Required for npm publish, not for functionality. Can be built last.
-- **CI/publish automation depends on everything else**: GitHub Actions for npm publishing only makes sense once the package is complete and tested.
+Secondary chain: **convention extraction depends on scanning AND on having existing components to analyze**. If the project has fewer than 3 components, convention extraction provides too little signal and should be skipped.
 
-## MVP Definition
+---
 
-### Launch With (v1.0-alpha)
+## Scan Detail Specification
 
-Minimum viable product -- what is needed to validate the concept with early adopters.
+### What the scanner detects (Phase 1 — required)
 
-- [ ] **5 Claude Code agent definitions** -- Without agents, no workflow step can spawn subagents. This is the critical gap between "designed" and "functional."
-- [ ] **3 core templates (STATE, SUMMARY, token-showcase)** -- Formalize output formats for agents.
-- [ ] **Installer (bin/install.js)** -- Without this, users cannot install. Must handle Claude Code runtime detection and file placement.
-- [ ] **package.json + LICENSE** -- Without these, npm publish is impossible.
-- [ ] **Fintech vertical (already built)** -- Proves the concept with one vertical.
-- [ ] **README** -- npm storefront. Must be good enough to convince someone to try `npx motif@latest`.
-- [ ] **Full rebrand from Design Forge to Motif** -- Package name, commands, install dirs, all references. Ship with a clean identity.
+| Category | Detection Method | Output |
+|----------|-----------------|--------|
+| **Framework** | Read `package.json` dependencies for react, next, vue, svelte, @angular/core. Check for `vite.config.*`, `next.config.*`, `nuxt.config.*`. | Framework name + version |
+| **Directory layout** | Check for `src/`, `app/`, `pages/`, `components/`, `lib/`, `utils/`, `hooks/`, `styles/`. | Directory tree summary |
+| **Component locations** | Glob for `*.tsx`, `*.jsx`, `*.vue`, `*.svelte` in likely component directories. Filter out test files, stories, configs. | Component file list with paths |
+| **CSS approach** | Check for `tailwind.config.*`, `postcss.config.*`, `*.module.css`, `styled-components` in deps, `@emotion` in deps, `.css` files with custom properties. | CSS strategy name |
+| **Naming conventions** | Sample 5-10 component filenames. Detect pattern: PascalCase (`Button.tsx`), kebab-case (`button.tsx`), index pattern (`button/index.tsx`). | Convention name + examples |
+| **Package manager** | Check for `package-lock.json` (npm), `yarn.lock` (yarn), `pnpm-lock.yaml` (pnpm), `bun.lockb` (bun). | Package manager name |
+| **Existing tokens/theme** | Check for CSS custom properties in `*.css` files, Tailwind config colors/spacing, theme files (`theme.ts`, `theme.js`). | Token source + sample values |
+| **Routing pattern** | Next.js: `app/` (App Router) vs `pages/` (Pages Router). Vue: check for `vue-router`. React: check for `react-router-dom`. | Router type + route directory |
 
-### Add After Validation (v1.0-beta)
+### What the scanner does NOT detect (out of scope)
 
-Features to add once the core workflow is proven end-to-end.
+- Component prop signatures (too deep for shallow scan)
+- Component internal state logic
+- API endpoints or data fetching patterns
+- Test coverage or test framework
+- CI/CD configuration
+- Deployment target
 
-- [ ] **3 additional verticals (health, SaaS, e-commerce)** -- "Any vertical" is the pitch. One vertical does not prove generalizability. Trigger: after battle test confirms the vertical database pattern works.
-- [ ] **4 PostToolUse hooks** -- Enforcement layer. Trigger: after compose workflow is tested and produces good output WITHOUT hooks (hooks should improve quality, not be load-bearing).
-- [ ] **2 utility scripts (contrast-checker, token-counter)** -- Developer convenience. Trigger: after tokens.css generation is validated.
-- [ ] **End-to-end battle test on real project** -- CryptoPay fintech vertical. Must prove: differentiation seed produces distinct outputs, brand colors lock in correctly, fresh context maintains quality across screens.
+---
 
-### Future Consideration (v2+)
+## Scan Output: PROJECT-SCAN.md Format
 
-Features to defer until product-market fit is established.
+```markdown
+# Project Scan Results
 
-- [ ] **OpenCode runtime support** -- v1.1. Core/runtime architecture already supports it. Just add `runtimes/opencode/` directory.
-- [ ] **Cursor/Windsurf runtime support** -- v1.2. Note: no subagent support means degraded quality on multi-screen projects.
-- [ ] **Gemini CLI runtime support** -- v1.3. Wait for Gemini CLI to stabilize.
-- [ ] **Tailwind token export** -- v2. Separate command that generates tailwind.config.js from tokens.css.
-- [ ] **Additional verticals (social, education, marketplace, devtools)** -- v2. Proves broader generalizability.
-- [ ] **CHANGELOG** -- Post-v1 release cycle.
-- [ ] **Figma MCP integration** -- v2. Figma's MCP server (beta 2025, evolving in 2026) could allow Motif to read design tokens directly from Figma files. This is a natural extension of the "design file input" (Type D) but requires MCP server stability.
-- [ ] **W3C DTCG token format export** -- v2. The W3C Design Tokens Community Group spec reached first stable version in October 2025. Exporting tokens in DTCG JSON format alongside CSS custom properties would enable interoperability with tools like Style Dictionary, Penpot, and Tokens Studio.
+**Scanned:** [date]
+**Confidence:** [HIGH if package.json found, MEDIUM if inferred from files, LOW if minimal project]
 
-## Feature Prioritization Matrix
+## Framework
+[Name] [version] — detected from [source]
 
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| Agent definitions (5 agents) | HIGH | MEDIUM | P1 |
-| Installer (bin/install.js) | HIGH | MEDIUM | P1 |
-| package.json + LICENSE | HIGH | LOW | P1 |
-| Rebrand to Motif | HIGH | MEDIUM | P1 |
-| README | HIGH | LOW | P1 |
-| Core templates (3) | MEDIUM | LOW | P1 |
-| End-to-end test (controlled) | HIGH | MEDIUM | P1 |
-| Health vertical | MEDIUM | MEDIUM | P2 |
-| SaaS vertical | MEDIUM | MEDIUM | P2 |
-| E-commerce vertical | MEDIUM | MEDIUM | P2 |
-| PostToolUse hooks (4) | MEDIUM | MEDIUM | P2 |
-| Utility scripts (2) | LOW | LOW | P2 |
-| Battle test (real project) | HIGH | HIGH | P2 |
-| CI/publish automation | MEDIUM | LOW | P2 |
-| OpenCode adapter | LOW | MEDIUM | P3 |
-| Cursor adapter | LOW | MEDIUM | P3 |
-| Tailwind export | LOW | MEDIUM | P3 |
-| DTCG JSON export | LOW | MEDIUM | P3 |
-| Additional verticals (4+) | LOW | HIGH | P3 |
+## Directory Layout
+\`\`\`
+src/
+  app/          ← Next.js App Router pages
+  components/
+    ui/         ← Reusable UI components (14 files)
+    features/   ← Feature-specific components (8 files)
+  lib/          ← Utilities
+  hooks/        ← Custom hooks (3 files)
+  styles/       ← Global styles
+\`\`\`
 
-**Priority key:**
-- P1: Must have for v1.0-alpha launch
-- P2: Should have for v1.0-beta, add before public release
-- P3: Nice to have, future consideration
+## CSS Approach
+[Tailwind CSS v3.4 | CSS Modules | styled-components | plain CSS + custom properties]
 
-## Competitor Feature Analysis
+## Naming Conventions
+- Components: [PascalCase] (e.g., Button.tsx, UserCard.tsx)
+- Directories: [kebab-case] (e.g., components/user-profile/)
+- Barrel exports: [yes/no] (index.ts re-exports)
 
-| Feature | v0 (Vercel) | shadcn/ui CLI | Figma MCP | Emergent | Motif |
-|---------|-------------|---------------|-----------|----------|-------|
-| **Install method** | Web app (no install) | `npx shadcn@latest init` | MCP server config | Web app | `npx motif@latest` |
-| **Domain intelligence** | None -- generic | None -- generic | Reads existing Figma tokens | None -- generic | **Vertical databases with concrete values** |
-| **Design token generation** | Generates with components | Copies pre-built tokens | Reads, does not generate | Generates with UI | **Generates with domain reasoning + differentiation** |
-| **Component output** | Full React + Tailwind code | Copies full component source | Code Connect references | Full application code | **XML specs for AI agents to implement** |
-| **Design review** | None | None | QA scanning (beta) | None | **4-lens domain-aware review scored /100** |
-| **Context management** | N/A (web app) | N/A (one-shot) | N/A (MCP read) | Unknown | **Fresh 200K context per screen, orchestrator stays thin** |
-| **Multi-screen quality** | Degrades | N/A | N/A | Unknown | **Consistent via fresh context isolation** |
-| **Brand color support** | Limited | Theme selection only | Reads existing | Basic | **Lock-in with scale generation + contrast adjustment** |
-| **Differentiation** | None -- same prompt = same output | 5 base color presets | N/A | None | **Parameterized seed (personality, temperature, formality, density, era)** |
-| **Vertical specialization** | None | None | None | None | **Fintech, health, SaaS, e-commerce (and extensible)** |
-| **Target user** | Developers wanting quick UI | Developers building component libraries | Developers with Figma designs | Non-technical founders | **Developers using AI coding tools who want domain-appropriate UI** |
-| **Runtime dependency** | Browser | Node.js project | MCP-compatible editor | Browser | **AI coding assistant (Claude Code v1)** |
+## Existing Components (N found)
+| Component | Path | Category |
+|-----------|------|----------|
+| Button | src/components/ui/button.tsx | UI primitive |
+| Card | src/components/ui/card.tsx | UI primitive |
+| UserAvatar | src/components/ui/user-avatar.tsx | UI primitive |
+| DashboardHeader | src/components/features/dashboard-header.tsx | Feature |
+| ... | ... | ... |
 
-### Key Competitive Insights
+## Existing Design Tokens
+| Source | Type | Sample Values |
+|--------|------|---------------|
+| tailwind.config.ts | Colors | primary: #2563EB, secondary: #7C3AED |
+| tailwind.config.ts | Spacing | Uses default Tailwind scale |
+| globals.css | Custom Properties | --background: #fff, --foreground: #000 |
 
-1. **No tool does domain-specific design intelligence.** This is a genuine white space. v0, Emergent, and generic AI tools generate UI without understanding that fintech needs trust signals, health needs calming palettes, or e-commerce needs conversion patterns. Motif's vertical databases are the primary competitive moat.
+## Routing
+[Next.js App Router] — pages in src/app/
 
-2. **No tool reviews its own output against domain heuristics.** Code review tools (CodeRabbit, Qodo) review code quality. Design tools generate but do not review. Motif's 4-lens review that includes domain pattern adherence is unique.
+## Package Manager
+[pnpm] — detected from pnpm-lock.yaml
+```
 
-3. **Context management is an unsolved problem for multi-screen generation.** v0 handles single screens well. No tool handles "build me 7 screens that are all consistent and all high quality." Motif's fresh-context-per-screen architecture directly addresses this.
+---
 
-4. **The shadcn install pattern is the gold standard for developer CLI tools.** `npx tool@latest init` with auto-detection, sensible defaults, and `--yes` for skipping prompts. Motif's installer should follow this pattern exactly.
+## MVP Recommendation
 
-5. **Figma MCP is a future convergence point, not a current competitor.** Figma's MCP server lets AI agents read design systems from Figma. Motif generates design systems for projects that do not have Figma files. They are complementary -- Motif could eventually read from Figma MCP as an input source (Type D: design file input).
+### Must Ship (Table Stakes) — brownfield is non-functional without these
+
+1. **Project structure scanning** — the foundation everything else depends on. Detect framework, directory layout, CSS approach, naming conventions, routing, existing components, existing tokens. Write to PROJECT-SCAN.md.
+
+2. **Scan results presentation** — present findings to user, get confirmation. This is the trust contract. Without this, users don't trust brownfield features.
+
+3. **File output convention matching** — composer writes files to correct project directories with correct naming. This is the minimum viable "it fits my project."
+
+4. **Composer output to project directories** — composed screens go to `src/app/dashboard/page.tsx`, not `.planning/design/screens/dashboard.html`. This is the single change that makes Motif feel brownfield-aware.
+
+5. **Existing component catalog** — detect and list existing components so the composer knows what to import rather than recreate. The catalog is a file list, not deep analysis.
+
+6. **Import existing design tokens** — detect existing CSS custom properties and Tailwind colors. Present to user: "Use these?" If yes, wrap in Motif format. If no, generate fresh.
+
+### Should Ship (Differentiators) — makes Motif notably better than alternatives
+
+7. **Component gap analysis** — diff existing components against vertical-required components. Show what's missing. Generate only what's needed.
+
+8. **Reuse directive in COMPONENT-SPECS.md** — `<source type="existing" path="..." />` tells the composer to import, not recreate.
+
+9. **Component decomposition planner** — plan multi-file output before writing. User approves the file plan.
+
+10. **Selective token overlay** — generate `motif-extensions.css` for missing tokens only, preserving existing ones.
+
+### Defer to v1.3+
+
+- **Convention extraction** — analyzing existing component patterns to teach the composer. HIGH complexity, needs multiple analysis passes. High value but not blocking for v1.2.
+- **Multi-file commit with atomic rollback** — nice-to-have safety net. Can use standard git patterns initially.
+- **Cross-framework component bridge** — adapting output between React/Vue/Svelte. Currently each framework is a separate concern.
+
+---
+
+## Integration with Existing Pipeline
+
+### How brownfield features modify each pipeline step
+
+```
+/motif:init (MODIFIED)
+  NEW STEP: After interview, run project scanner
+  NEW STEP: Present scan results, get user confirmation
+  NEW OUTPUT: .planning/design/PROJECT-SCAN.md
+  MODIFIED: PROJECT.md now includes "Existing Components" and "Existing Tokens" sections
+  MODIFIED: STATE.md gets new field: "Scan Status: [scanned|unscanned|skipped]"
+
+/motif:research (UNCHANGED)
+  Research is about domain patterns, not project structure.
+  No brownfield modifications needed.
+
+/motif:system (MODIFIED)
+  NEW STEP: Check PROJECT-SCAN.md for existing tokens
+  IF existing tokens found AND user approved reuse:
+    → EXTRACT mode: wrap existing tokens in Motif format
+    → OVERLAY mode: generate only missing tokens into motif-extensions.css
+  IF no existing tokens OR user chose fresh:
+    → Normal generation (unchanged)
+  MODIFIED: COMPONENT-SPECS.md gets <source> directives for existing components
+  NEW OUTPUT: GAP-ANALYSIS.md (what components exist vs what's needed)
+
+/motif:compose (MODIFIED — most changes here)
+  MODIFIED: Orchestrator resolves target file path from scan results + screen name
+  MODIFIED: Composer agent loads PROJECT-SCAN.md (conventions, existing components)
+  MODIFIED: Composer imports existing components instead of recreating
+  MODIFIED: Composer writes to project directory, not .planning/design/screens/
+  NEW STEP: Decomposition plan presented to user before writing (differentiator)
+  MODIFIED: Commit includes all decomposed files atomically
+
+/motif:review (MINOR MODIFICATION)
+  MODIFIED: Reviewer checks import correctness (did composer use existing Button?)
+  MODIFIED: Reviewer checks convention compliance (correct file naming?)
+  No other changes.
+
+/motif:fix (UNCHANGED)
+  Fix agent reads review file and fixes. Brownfield awareness is inherited
+  from the composed output — no additional brownfield logic needed.
+```
+
+### New command: /motif:scan (optional)
+
+For users who want to re-scan after project changes, or who skipped scanning during init:
+
+```
+/motif:scan — Re-scan project structure
+  Reads: project files, package.json, directory structure
+  Writes: .planning/design/PROJECT-SCAN.md (overwrites previous)
+  Presents: updated findings to user
+  Updates: STATE.md scan status
+```
+
+This is optional — scanning during `/motif:init` is the primary path. `/motif:scan` is for re-scanning when the project changes.
+
+---
+
+## Context Engine Updates
+
+### New context profile: Scanner
+
+```xml
+<context_profile name="scanner">
+  <always_load>
+    package.json
+    tsconfig.json (if exists)
+  </always_load>
+  <scan_directories>
+    src/
+    app/
+    pages/
+    components/
+    lib/
+    styles/
+    public/
+  </scan_directories>
+  <scan_files>
+    tailwind.config.*
+    postcss.config.*
+    next.config.*
+    vite.config.*
+    nuxt.config.*
+    *.css (in styles/ or root, first 5 only)
+  </scan_files>
+  <never_load>
+    node_modules/
+    .git/
+    dist/
+    build/
+    .next/
+    .nuxt/
+    coverage/
+  </never_load>
+</context_profile>
+```
+
+### Modified context profile: Composer (brownfield additions)
+
+```xml
+<context_profile name="composer">
+  <always_load>
+    .planning/design/PROJECT.md
+    .planning/design/system/tokens.css
+    .planning/design/system/COMPONENT-SPECS.md
+    .planning/design/system/ICON-CATALOG.md
+    .planning/design/PROJECT-SCAN.md          <!-- NEW: brownfield scan results -->
+  </always_load>
+  <load_if_exists>
+    .planning/design/DESIGN-RESEARCH.md
+    .planning/design/screens/{previous-screen}-SUMMARY.md
+    .planning/design/system/GAP-ANALYSIS.md   <!-- NEW: component gap analysis -->
+  </load_if_exists>
+  <!-- Composer may also read individual existing component files
+       referenced in COMPONENT-SPECS.md <source> directives,
+       but ONLY the ones it needs to import for the current screen -->
+</context_profile>
+```
+
+### New context budget additions
+
+| File | Max Tokens | Purpose |
+|------|-----------|---------|
+| PROJECT-SCAN.md | 1,500 | Scan results: framework, directories, components, tokens, conventions |
+| GAP-ANALYSIS.md | 800 | Component gap analysis: exists/partial/missing |
+| CONVENTIONS.md | 1,000 | Extracted project conventions (v1.3 differentiator) |
+
+**Updated total context budget for brownfield-aware composer**: ~18,300 tokens (from ~15,000), leaving ~181,700 tokens for composition work. This is well within budget.
+
+---
+
+## State Machine Updates
+
+### New state field
+
+```markdown
+## Scan Status
+[unscanned | scanned | skipped]
+```
+
+### Modified phase flow
+
+```
+UNINITIALIZED → INITIALIZED (+ optionally SCANNED) → RESEARCHED → SYSTEM_GENERATED → COMPOSING → ...
+```
+
+Scanning is NOT a separate phase — it's a sub-step of INITIALIZED. The scan happens during `/motif:init` or via `/motif:scan`. The state tracks whether scanning occurred so downstream steps know whether brownfield features are available.
+
+### Gate check modifications
+
+```xml
+<gate_check>
+  <command>/motif:compose</command>
+  <requires_phase>SYSTEM_GENERATED or COMPOSING or ITERATING</requires_phase>
+  <warns_if>Scan Status is "unscanned" AND project has package.json.
+    "Your project appears to have existing code, but hasn't been scanned.
+     Run /motif:scan first for better integration, or continue for greenfield-style output."
+  </warns_if>
+</gate_check>
+```
+
+---
+
+## Competitive Landscape Context
+
+How the broader ecosystem handles brownfield:
+
+### What AI coding assistants currently do (MEDIUM confidence — training data)
+
+| Tool | Scanning | Component Reuse | Convention Matching | Decomposition |
+|------|----------|----------------|--------------------|--------------|
+| **Cursor** | Reads entire codebase into context. No structured scan. | Implicitly reuses via codebase context. No explicit catalog. | Matches conventions via example (sees existing code). | Generates into existing file structure naturally. |
+| **Claude Code** | Reads files on demand. Tree/glob for structure. | Implicit — reads existing files when told to. | Matches conventions when shown examples. | User directs file placement. |
+| **v0 (Vercel)** | No project scanning. Generates standalone components. | No reuse — generates fresh every time. | Generates shadcn/ui convention by default. | Single component output, user integrates. |
+| **Bolt.new** | Reads project structure for full-app generation. | Limited — regenerates most things. | Framework-specific conventions (Next.js, Vite). | Multi-file output built-in for full apps. |
+| **Lovable** | Full project context in browser IDE. | Modifies existing files in place. | Inherits conventions from existing code. | Operates on existing file structure. |
+
+### Where Motif differentiates
+
+None of these tools do **design-system-aware brownfield scanning**. They read code but don't understand design tokens, component specifications, or vertical-domain requirements. Motif's gap analysis ("you have Button and Card but you're missing TransactionRow for fintech") is unique. The closest comparison is Storybook's component catalog, but that requires runtime rendering — Motif does it via static file analysis.
+
+---
+
+## Confidence Assessment
+
+| Area | Confidence | Reason |
+|------|------------|--------|
+| Table stakes features | HIGH | These are observable patterns in every AI coding tool. Training data is consistent across multiple sources and aligns with direct analysis of Motif's current pipeline gaps. |
+| Differentiators | MEDIUM | Component gap analysis and reuse directives are novel features without direct competitors to reference. Confidence comes from analysis of Motif's existing architecture (vertical references, COMPONENT-SPECS.md format) which supports these features naturally. |
+| Anti-features | HIGH | Each anti-feature is justified by Motif's specific architecture constraints (context-engine budgets, subagent pattern, file-based agent communication). These are architecture-driven exclusions, not opinion. |
+| Competitive landscape | LOW | Based on training data only. No web verification available. Tool capabilities may have changed since training cutoff. Specific claims about v0, Bolt, Lovable, and Cursor should be validated. |
+| Pipeline integration points | HIGH | Based on direct analysis of current workflow files (init.md, generate-system.md, compose-screen.md, context-engine.md, state-machine.md). Integration points are precisely identified from existing code. |
+| Context budget impact | HIGH | Calculated from existing context-engine.md budgets. The +3,300 token increase for brownfield files is well within the 200K token window. |
+
+---
 
 ## Sources
 
-### Verified (MEDIUM-HIGH confidence)
-- [Claude Code Hooks Documentation](https://code.claude.com/docs/en/hooks-guide) -- Official docs, verified PostToolUse format, JSON stdin, exit code control, matcher patterns, settings.json placement
-- [Claude Code Subagents Documentation](https://code.claude.com/docs/en/sub-agents) -- Official docs, verified Task() spawning, fresh context per agent, agent file format, tool restrictions, permission modes
-- [shadcn/ui CLI Documentation](https://ui.shadcn.com/docs/cli) -- Official docs, verified init command pattern, flags (--yes, --force, --template), package manager support
-- [W3C DTCG Design Tokens Spec](https://www.designtokens.org/) -- Official site, first stable version October 2025, 10+ tools supporting the standard
-- [Style Dictionary DTCG Support](https://styledictionary.com/info/dtcg/) -- Official docs, v4 first-class DTCG support
-- [Figma MCP Server Blog](https://www.figma.com/blog/design-systems-ai-mcp/) -- Official Figma blog, MCP server for design system context
-- [v0 by Vercel](https://v0.app/) -- Official site, AI UI generation capabilities
-
-### WebSearch-sourced (MEDIUM confidence)
-- [Fintech design patterns 2026](https://www.eleken.co/blog-posts/modern-fintech-design-guide) -- Domain-specific design conventions
-- [AI coding agents comparison 2026](https://www.faros.ai/blog/best-ai-coding-agents-2026) -- Context management trends
-- [Context engineering for coding agents](https://martinfowler.com/articles/exploring-gen-ai/context-engineering-coding-agents.html) -- Martin Fowler on context curation
-- [Node.js CLI best practices](https://github.com/lirantal/nodejs-cli-apps-best-practices) -- GitHub, comprehensive CLI patterns
-- [Vertical AI agents](https://www.ibm.com/think/topics/vertical-ai-agents) -- IBM, domain-specific AI specialization
-
-### Project-internal (HIGH confidence)
-- `core/references/context-engine.md` -- Context profiles, token budgets, anti-patterns
-- `core/references/runtime-adapters.md` -- Install mapping, runtime detection, path resolution
-- `core/workflows/generate-system.md` -- Color/typography/spacing decision algorithms
-- `core/references/verticals/fintech.md` -- Concrete vertical database example (226 lines)
-- `core/workflows/research.md` -- 4-agent parallel research orchestration
-- `runtimes/claude-code/commands/forge/init.md` -- Interactive interview flow, auto-mode, vertical detection
-- `GSD-PROJECT-SPEC.md` -- Full project architecture, what is built vs not built
-
----
-*Feature research for: AI design engineering system (Motif)*
-*Researched: 2026-03-01*
+- Direct codebase analysis: `/motif:init` workflow, `/motif:compose` workflow, `/motif:system` workflow, `context-engine.md`, `state-machine.md`, `design-inputs.md`, `motif-screen-composer.md` agent
+- Existing v1.1 research: `.planning/research/FEATURES.md` (icon integration), `.planning/research/ARCHITECTURE.md`, `.planning/research/SUMMARY.md`
+- Training data (MEDIUM confidence): Cursor, Claude Code, v0, Bolt.new, Lovable brownfield behavior patterns
+- Training data (HIGH confidence): React/Next.js/Vue project structure conventions, Tailwind CSS configuration patterns, CSS custom property detection methods

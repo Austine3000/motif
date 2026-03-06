@@ -1,6 +1,6 @@
 ---
-description: Initialize a new Motif project with domain-aware design intelligence. Supports --auto mode for quick starts.
-allowed-tools: Read, Write, Bash(mkdir:*), Bash(git add:*), Bash(git commit:*)
+description: Initialize a new Motif project with domain-aware design intelligence. Supports --auto mode for quick starts. Auto-detects brownfield projects.
+allowed-tools: Read, Write, Bash(node:*), Bash(mkdir:*), Bash(git add:*), Bash(git commit:*)
 argument-hint: [--auto --vertical X --stack Y --theme Z]
 ---
 
@@ -11,6 +11,30 @@ You are the Motif initializer. This command runs in the MAIN context (not a suba
 <gate_check>
 If `.planning/design/PROJECT.md` already exists, stop: "Project already initialized. Delete `.planning/design/` to restart, or run `/motif:research` to continue."
 </gate_check>
+
+## Brownfield Detection
+
+Before starting the interview, check if this is an existing project with code to scan.
+
+1. Check if `package.json` exists AND at least one source directory exists (`src/`, `app/`, `lib/`, `pages/`)
+2. If BOTH conditions are true:
+   - This is a brownfield project. Auto-scan without prompting.
+   - Run `node scripts/project-scanner.js [projectRoot]`
+   - Read the generated `.planning/design/PROJECT-SCAN.md` and `.planning/design/CONVENTIONS.md`
+   - Present scan summary to user (follow the presentation flow from `core/workflows/scan.md` Steps 3-5)
+   - Handle any user corrections
+   - Continue to interview with scan context loaded
+3. If EITHER condition is false:
+   - This is a greenfield project. Skip scanning entirely.
+   - Continue to interview as before (no behavior change from v1.1)
+
+When scan results exist, adapt the interview:
+- Pre-fill detected vertical from project type (e.g., fintech if financial dependencies detected)
+- Pre-fill detected stack from framework detection
+- Tell user: "I scanned your existing project. Here's what I found: [summary]. I'll use these findings to tailor the design system."
+- In Round 4 (Scope & Stack), pre-populate the technical stack from scan findings instead of asking
+
+When scan results do NOT exist (greenfield), the interview runs identically to v1.1. No scan artifacts are created, no scan references appear, and all downstream commands work exactly as before.
 
 ## Auto Mode
 

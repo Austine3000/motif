@@ -2,46 +2,35 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-01)
+See: .planning/PROJECT.md (updated 2026-03-04)
 
-**Core value:** Domain-intelligent design delivered through fresh context -- a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** All phases complete — milestone v1.0 ready
+**Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
+**Current focus:** v1.2 Brownfield Intelligence — MILESTONE COMPLETE
 
 ## Current Position
 
-Phase: 8 of 8 (CI and Publish) — COMPLETE
-Plan: 2 of 2 in current phase (08-02 complete)
-Status: All phases complete — motif-design@0.1.0 published to npm
-Last activity: 2026-03-04 -- Completed 08-02 (GitHub repo + npm publish + e2e verification)
+Phase: 16 of 16 (Validation and Hardening)
+Plan: 2 of 2 in current phase (COMPLETE)
+Status: Milestone Complete
+Last activity: 2026-03-06 — Completed 16-02 (compose workflow validation gate)
 
-Progress: [██████████] 100%
+Progress: [██████████] 100% (v1.2)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
-- Average duration: 3min
-- Total execution time: 1.03 hours
+- Total plans completed: 40 (v1.0: 24, v1.1: 8, v1.2: 8)
+- Average duration: ~2.4 min
+- Total execution time: ~2 hours
 
-**By Phase:**
+**By Phase (v1.2):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-agent-definitions | 3 | 12min | 4min |
-| 02-templates | 2 | 3min | 1.5min |
-| 03-installer | 3 | 9min | 3min |
-| 04-rebrand-and-distribution | 4 | 7min | 1.75min |
-| 05-verticals | 3 | 6min | 2min |
-| 06-hooks-and-scripts | 3 | 8min | 2.7min |
-| 07-validation | 3 | human-paced | human-paced |
-| 08-ci-and-publish | 2 | 9min | 4.5min |
-| 08.1-pre-publish-integration-fixes | 1 | 2min | 2min |
-
-**Recent Trend:**
-- Last 5 plans: 07-01 (3min), 08-01 (1min), 08.1-01 (2min), 08-02 (8min)
-- Trend: Consistent; 08-02 longer due to human checkpoint gates
-
-*Updated after each plan completion*
+| 13. Scan Infrastructure | 2/2 | 7min | 3.5min |
+| 14. Token and System Integration | 3/3 | 9min | 3.0min |
+| 15. Compose Integration | 2/2 | 3min | 1.5min |
+| 16. Validation and Hardening | 2/2 | 3min | 1.5min |
 
 ## Accumulated Context
 
@@ -50,82 +39,43 @@ Progress: [██████████] 100%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Rebrand to "Motif" must complete before adding new verticals/hooks (avoid double work)
-- Hooks required before battle test (enforcement prevents agents from hardcoding values)
-- Phases 5 and 6 (Verticals, Hooks) can execute in parallel
-- Researcher disallowedTools: Edit (creates new files, never edits); system architect has no web tools (research already done)
-- Shared agent skeleton established: YAML frontmatter -> Role Identity -> Context Loading Profile -> Domain Expertise -> Output Format -> Quality Checklist -> Brief Example
-- Composer gets full tool set (including Edit) for token modifications; reviewer gets Edit disallowed (separation of concerns)
-- Reviewer includes specific WCAG success criteria numbers for precise auditing
-- Both high-tier agents include calibration examples (good/bad patterns)
-- Fix agent uses sonnet (medium tier) per user decision, despite research suggesting haiku could suffice -- revisit in Phase 7
-- Templates use extract-and-formalize pattern: derive from source-of-truth files with sync comments
-- Placeholder convention: {UPPER_SNAKE} for orchestrator values, [description] for agent-written content
-- Token showcase template: self-contained HTML with inline CSS, 232 var(--token) references, fallback warning pattern, zero JavaScript
-- Resolve {MOTIF_ROOT} at install time for zero-ambiguity agent reads (rebranded from FORGE_ROOT in 04-01)
-- Removed .claude/get-design-forge fallback from resolveContent() -- no longer needed after source rebrand
-- Uninstall stub deferred to Plan 02; Scripts/ directory gracefully skipped if empty
-- shouldBackup returns true when no manifest or file not in manifest -- conservative safety for unknown state
-- CLAUDE.md excluded from manifest file deletion during uninstall -- handled exclusively by sentinel stripping to preserve user content
-- E2e test suite uses isolated /tmp directory with .claude/ pre-created to simulate real Claude Code project
-- Hash verification spot-checks 3 random manifest files for test speed balance
-- Copyright holder for LICENSE set to "SailsLab" (adjustable before publish)
-- README ~90 lines for scannability; ASCII diagram over Mermaid for universal rendering
-- Replacement map applied most-specific-first to prevent partial match corruption during sed rebrand
-- All 33 shipped files rebranded: zero forge/Design Forge/FORGE_ROOT references remain in core/, runtimes/, bin/
-- Phase 4 confirmed complete: all four requirements (BRND-01, DIST-01, DIST-02, DIST-03) verified programmatically with zero failures
-- BUILD-SPEC.md status markers updated to BUILT for agents and distribution files (verified on disk)
-- E2e test snippet resolution simplified to {MOTIF_ROOT} only (matching current installer behavior)
-- E-commerce vertical palette A uses #EA580C (HSL 21 deg amber) -- warm, visibly different from fintech's teal
-- E-commerce vertical follows fintech.md structure exactly: 11 H2 sections, 251 lines, XML component specs
-- Syne + Work Sans chosen as primary e-commerce font pairing (both Google Fonts); Clash Display/Gambetta noted as Fontshare alternatives
-- Layered multi-depth shadows (4 levels) for e-commerce per generate-system.md designation
-- SaaS vertical primary-500 #6366F1 (HSL 239) -- indigo within generate-system.md 220-280 range, distinct from fintech teal
-- SaaS font pairings: Space Grotesk + IBM Plex Sans (Pairing A), Manrope + Source Sans 3 (Pairing B) -- all Google Fonts
-- SaaS vertical follows fintech.md structure exactly: 11 H2 sections, 248 lines, XML component specs
-- Health vertical primary-500 #10B981 (HSL 155) -- green-teal within generate-system.md 130-170 range, warm off-white surfaces
-- Health font pairings: Fraunces + Nunito (Pairing A), Outfit + DM Sans (Pairing B) -- all Google Fonts
-- Health vertical follows fintech.md structure exactly: 11 H2 sections, 235 lines, XML component specs
-- Health radii 50% larger than fintech (6/12/16/20px) for friendlier, less clinical feel
-- Phase 5 complete: all three verticals (health, SaaS, e-commerce) authored with structural fidelity to fintech.md
-- StatusLine context monitor uses process.stdout.write() (not console.log) to avoid trailing newline
-- WCAG 2.1 threshold 0.04045 for sRGB linearization in contrast-checker (not legacy 0.03928)
-- Binary file detection in token-counter via null byte check in first 512 bytes
-- box-shadow hook uses line-level skip function instead of regex negative lookahead to avoid backtracking false positives
-- Font-check matches both CSS font-family and JSX fontFamily property syntax since tsx/jsx are target extensions
-- border-radius skip uses parsed numeric comparison rather than string matching to avoid 10px/20px false passes
-- injectHookSettings placed after injectConfig in main flow to ensure .claude/ directory exists
-- removeHookSettings placed before removeConfigSnippet in uninstall to clean settings before directory removal
-- Empty settings.json deleted on uninstall rather than leaving an empty object
-- Validation scripts are fully self-contained (hexToHsl duplicated) per zero-dependency project policy
-- Distinctness requires hue >= 30 degrees AND different display fonts; radius and surface are bonus checks
-- LOCKED font override respected in banned font check -- lines with LOCKED comment are skipped
-- Generated tokens.css uses --space-* prefix (not --spacing-*) -- validate-tokens.js updated to accept both
-- VALD-01 CONFIRMED: Full Motif workflow (init through review) completes without errors on isolated /tmp test project; 26/26 workflow checks pass, 4/4 token quality checks pass
-- Fintech primary-500 confirmed as #1492CE (HSL 199deg, 82%, 44%) -- teal, within expected fintech palette range
-- VALD-02 CONFIRMED: CryptoPay full workflow completes, 26/26 artifacts, 5/5 token quality checks pass
-- VALD-03 CONFIRMED: Differentiation system produces 63-degree hue difference (199deg teal vs 262deg violet) and distinct fonts (Plus Jakarta Sans vs Space Grotesk) -- visibly distinct designs
-- VALD-04 CONFIRMED: Brand color #7C3AED preserved exactly as --color-primary-500 (HSL 262deg, 83%, 58%) -- LOCKED brand constraints respected
-- VALD-05 CONFIRMED: 5/5 screen summaries exist, 435 total lines, all token references consistent -- fresh context isolation maintains quality
-- Phase 7 Validation COMPLETE: all 5 VALD requirements PASS (5/5), zero failures
-- fonts.gstatic.com CDN whitelist needed in validate-workflow.js for Google Fonts token showcase -- legitimate dependency, not a violation
-- Screen name overrides pattern: run-all-validations.sh accepts actual screen names to accommodate real workflow naming
-- npm package name resolved to "motif-design" (unscoped) -- "motif" was taken by justinvdm; user chose motif-design over @sailslab/motif and motif-ai
-- Repository URL set to Austine3000/motif -- personal account, npm package name "motif-design" does not need to match repo name
-- OIDC trusted publishing as primary auth mechanism -- tokenless, more secure; commented-out NODE_AUTH_TOKEN fallback for non-OIDC scenarios
-- environment: npm-publish required in workflow YAML for OIDC token scoping -- must create this environment in GitHub repo settings
-- npm install -g npm@latest added to workflow -- Node 22.x ships npm 10.x which lacks trusted publishing support (requires >= 11.5.1)
+- [v1.2 roadmap]: 4-phase structure derived from dependency chain — scan artifacts must exist before any downstream integration
+- [v1.2 roadmap]: SCAN-03 (gap analysis) assigned to Phase 14 (requires system generator awareness, not just scanning)
+- [13-01]: Used regex over AST parsing for zero-dependency component detection with confidence tags
+- [13-01]: Multi-signal scoring (directory + export + JSX + filename) for component confidence
+- [13-01]: Split output: PROJECT-SCAN.md (~1200 tokens) and CONVENTIONS.md (~800 tokens)
+- [13-02]: Scan workflow runs in MAIN context for user interaction (not subagent)
+- [13-02]: Brownfield detection gated behind package.json AND source directory -- greenfield unchanged
+- [13-02]: No new SCANNED state -- scan is optional pre-step, not a phase transition
+- [14-01]: Separate token-extractor.js script from project-scanner.js for single-responsibility
+- [14-01]: Regex Tailwind config parsing with confidence flags (LOW for dynamic configs)
+- [14-01]: All scan.md token references existence-gated -- greenfield path unchanged
+- [14-02]: Line-based markdown table parsing instead of regex exec loop for reliability
+- [14-02]: 3-tier component matching (exact, alias, contains) with alias table for known equivalents
+- [14-02]: Contains match requires minimum 3 characters to avoid false positives
+- [14-03]: Token strategy presented as 3-option choice (adopt/merge/fresh) with merge as default
+- [14-03]: All brownfield additions existence-gated -- greenfield path has zero behavioral change
+- [14-03]: Existing components get reference-only specs to reduce COMPONENT-SPECS.md size
+- [Phase 15]: TOKEN-INVENTORY.md in composer never_load -- tokens.css is sufficient for composition
+- [Phase 15]: Summary template uses N/A (greenfield) fallback when no brownfield scan data exists
+
+- [15-02]: All decomposition/brownfield additions existence-gated -- greenfield behavior unchanged
+- [15-02]: Subagent loads full scan artifacts (~1500 tokens) rather than pre-extracted slim context
+- [15-02]: 150-line per-component limit enforced via agent instructions, not tooling
+- [16-01]: Used git status --porcelain for naming conflict detection (M vs A/??  distinguishes overwrites)
+- [16-01]: Import cycle detection only tracks inter-generated-file imports, excluding externals
+- [16-01]: Missing prop check is regex-based best-effort, consistent with project-scanner.js
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Session Continuity
 
-Last session: 2026-03-04
-Stopped at: All phases complete — milestone v1.0 ready for archival
-Resume file: .planning/phases/08-ci-and-publish/08-02-SUMMARY.md
+Last session: 2026-03-06
+Stopped at: Completed 16-02-PLAN.md (compose workflow validation gate). Phase 16 complete. v1.2 milestone complete.
+Resume file: None

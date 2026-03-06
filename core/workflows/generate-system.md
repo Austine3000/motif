@@ -38,6 +38,56 @@ Check if vertical reference exists: `{MOTIF_ROOT}/references/verticals/{VERTICAL
 mkdir -p .planning/design/system
 ```
 
+## Step 1b: Brownfield Token Decision
+
+Check if `.planning/design/TOKEN-INVENTORY.md` exists.
+
+**If TOKEN-INVENTORY.md exists:**
+
+Read the Summary section of TOKEN-INVENTORY.md. Present to user:
+
+"I found existing design tokens in your project:
+- Colors: [N] tokens ([X]% of Motif standard)
+- Typography: [N] tokens ([X]% of Motif standard)
+- Spacing: [N] tokens ([X]% of Motif standard)
+- Total coverage: [X]% of what Motif would generate
+
+Choose your token strategy:
+1. **Adopt existing** — Keep all your current tokens as-is. Motif generates only what's missing.
+2. **Merge with Motif** (recommended) — Use your tokens as starting values. Motif fills gaps and adds vertical-specific tokens.
+3. **Start fresh** — Ignore existing tokens entirely. Generate a complete new system.
+
+[Default: 2 (Merge)]"
+
+Record the user's choice. Store it for passing to the subagent.
+
+Append to STATE.md decisions log:
+`[date] Token strategy: [adopt/merge/fresh] — [N] existing tokens, [X]% coverage`
+
+**If TOKEN-INVENTORY.md does NOT exist:**
+Skip this step entirely. Continue to Step 1c.
+
+## Step 1c: Component Gap Analysis
+
+Check if `.planning/design/PROJECT-SCAN.md` exists AND has a component catalog section.
+
+**If PROJECT-SCAN.md exists with components:**
+
+Read STATE.md for vertical name.
+
+Run gap analysis:
+```bash
+node scripts/gap-analyzer.js [projectRoot] --vertical [vertical]
+```
+
+This generates `.planning/design/COMPONENT-GAP.md`.
+
+Read the generated COMPONENT-GAP.md summary and present to user:
+"Your project has [X] of [Y] required components. Motif will generate full specs for the [Z] missing ones and reference specs for the existing ones."
+
+**If PROJECT-SCAN.md does NOT exist or has no component catalog:**
+Skip this step. Continue to Step 2.
+
 ## Step 2: Spawn System Generator Agent
 
 <agent_spawn id="generate-system">
@@ -52,6 +102,18 @@ You are a design system architect. Generate a complete, production-ready design 
 4. `.planning/design/research/02-visual-language.md`
 5. `.planning/design/research/03-accessibility.md`
 {IF vertical ref exists: 6. `{MOTIF_ROOT}/references/verticals/{VERTICAL}.md`}
+7. `{MOTIF_ROOT}/references/icon-libraries.md` -- icon library metadata, selection algorithm, CDN URLs
+
+{IF TOKEN-INVENTORY.md exists:}
+8. `.planning/design/TOKEN-INVENTORY.md` — existing token inventory
+   **Token strategy: [user's choice from Step 1b]**
+   Follow the Brownfield Mode instructions in your agent definition for the chosen strategy.
+
+{IF COMPONENT-GAP.md exists:}
+9. `.planning/design/COMPONENT-GAP.md` — component gap analysis
+   For "existing" components: generate reference-only specs (marked "existing in project").
+   For "missing" components: generate full specs (variants, states, accessibility).
+   For "partial" components: generate full specs with note about existing partial implementation.
 
 ## Output 1: tokens.css (budget: ≤3000 tokens)
 
@@ -146,6 +208,27 @@ IF Starting Fresh (Type A) or no color constraints:
 - Minimal (SaaS/fintech): subtle, low-spread, neutral shadows
 - Layered (e-commerce/dashboards): multi-layer shadows for depth
 - Soft (health/wellness): large spread, low opacity, diffuse
+
+### Icon Library Decision Algorithm
+1. Read vertical from PROJECT.md / STATE.md
+2. Read Differentiation Seed from DESIGN-BRIEF.md (personality, temperature, formality axes)
+3. Load icon library reference: `{MOTIF_ROOT}/references/icon-libraries.md`
+4. IF user_library_override is set in DESIGN-BRIEF.md: use it, skip to step 6
+5. Look up primary library in icon-libraries.md Domain Affinity Matrix for the vertical
+6. Apply personality-based weight selection (from icon-libraries.md Selection Algorithm):
+   - personality >= 7: bold/heavy weights
+   - personality <= 3: light/thin weights
+   - personality 4-6: default weights
+7. Apply extreme personality library switch (from icon-libraries.md Selection Algorithm):
+   - personality >= 8 (no user override): switch to secondary library
+   - personality <= 2 (no user override): switch to secondary library
+8. IF selected library is Material Symbols, apply formality-based style family:
+   - formality <= 4: Rounded
+   - formality >= 7: Sharp
+   - ELSE: Outlined
+9. Record in tokens.css: `/* Icon: [library] [weight] | CDN: [url] */`
+10. Record in DESIGN-SYSTEM.md iconography section: library name, CDN link, usage syntax, default + emphasis weights
+11. Add CDN link to token-showcase.html <head>
 
 ### Token File Format
 ```css
@@ -245,6 +328,14 @@ IF Starting Fresh (Type A) or no color constraints:
   --z-toast: 600;
   --z-tooltip: 700;
 
+  /* ── Icon Sizes ── */
+  /* 8px-multiple scale (16/20/24/32/40px) — fixed, not project-adjustable */
+  --icon-sm: 1rem;     /* 16px — inline text, badges, status indicators */
+  --icon-md: 1.25rem;  /* 20px — navigation items, form labels, list icons */
+  --icon-lg: 1.5rem;   /* 24px — primary UI icons, card headers, buttons */
+  --icon-xl: 2rem;     /* 32px — feature highlights, metric cards */
+  --icon-2xl: 2.5rem;  /* 40px — hero sections, empty state illustrations */
+
   /* ── Vertical-Specific ── */
   /* [Add any tokens specific to this vertical] */
 }
@@ -295,7 +386,7 @@ Format per component:
 
 Human-readable documentation of the system. This is for reference, NOT loaded into composer agents (they use tokens.css + COMPONENT-SPECS.md directly).
 
-Include: color palette with contrast table, typography scale with usage, spacing guidelines, motion principles, icon style recommendation.
+Include: color palette with contrast table, typography scale with usage, spacing guidelines, motion principles, iconography (library name, CDN link, usage syntax, size scale, color rules).
 
 ## Output 4: token-showcase.html
 
@@ -304,11 +395,44 @@ Generate a standalone HTML file that visually displays all tokens:
 - Typography scale samples
 - Spacing visualization
 - Component previews (one per core component)
+- Iconography: CDN link in <head>, size scale preview (one icon at each --icon-* token), domain icon samples (8-10 key icons from vocabulary)
+- IF Lucide selected: include both CDN script AND `lucide.createIcons()` initialization
+- IF Material Symbols selected: include CSS font-variation-settings for proper rendering
 
 This file imports the tokens.css and Google Fonts. Self-contained, no dependencies.
 
 Save to `.planning/design/system/token-showcase.html`
 Open it: `open .planning/design/system/token-showcase.html` (or equivalent)
+
+## Output 5: ICON-CATALOG.md (budget: <=1000 tokens)
+
+Generate a project-specific icon catalog by:
+1. Run the Icon Library Decision Algorithm (above) to determine: library, weight, CDN URL, usage syntax
+2. Read the vertical reference file's `## Icon Vocabulary` section (`{MOTIF_ROOT}/references/verticals/{VERTICAL}.md`)
+3. Extract ONLY the column for the selected library
+4. For each icon, construct the full class/element string using the library's usage syntax
+5. Organize by the same semantic categories as the vocabulary (Navigation, Domain, Status, Actions)
+
+Save to `.planning/design/system/ICON-CATALOG.md`
+
+Format:
+```
+# Icon Catalog
+
+Library: [name]
+CDN: [url]
+Weight: [default] (emphasis: [emphasis])
+Usage: [syntax pattern]
+{IF Lucide: Requires JS: YES}
+
+## [Category]
+| Role | Icon Name | Class |
+|------|-----------|-------|
+| [role] | [name] | [full element/class string] |
+```
+
+Include ALL icons from the vertical vocabulary (typically 20-25 icons).
+Do NOT add icons not in the vocabulary. The vocabulary is the curated, validated set.
 
 Commit all: `design(system): generate design system for [vertical]`
 </agent_spawn>
@@ -320,12 +444,15 @@ After agent completes, verify these files exist:
 - `.planning/design/system/COMPONENT-SPECS.md`
 - `.planning/design/system/DESIGN-SYSTEM.md`
 - `.planning/design/system/token-showcase.html`
+- `.planning/design/system/ICON-CATALOG.md`
 
 ## Step 4: Update State
 
 Update STATE.md:
 - Phase → `SYSTEM_GENERATED`
 - Update context budget table with actual file sizes
+- If TOKEN-INVENTORY.md exists: add to context budget table (`~1,500 tokens | ≤1,500`)
+- If COMPONENT-GAP.md exists: add to context budget table (`~800 tokens | ≤800`)
 
 Commit: state update
 

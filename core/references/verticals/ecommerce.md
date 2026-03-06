@@ -240,6 +240,52 @@ Product browsing needs breathing room for imagery. Cart and checkout need densit
 | shadow-lg | 0 12px 24px -4px rgba(0,0,0,0.10), 0 4px 8px -4px rgba(0,0,0,0.05) | Modals, cart drawer, mega-menu |
 | shadow-xl | 0 20px 40px -8px rgba(0,0,0,0.12), 0 8px 16px -8px rgba(0,0,0,0.06) | Lightbox overlay, elevated popovers |
 
+<!-- Verified against Material Symbols via GitHub google/material-design-icons/symbols/web/ -->
+
+## Icon Vocabulary
+
+Primary library: Material Symbols Rounded (from icon-libraries.md domain affinity matrix)
+
+Note: Material Symbols uses underscores, not hyphens. Double-check every name.
+
+### Navigation
+| Semantic Role | Material Symbols | Phosphor | Lucide | Tabler |
+|---------------|-----------------|----------|--------|--------|
+| home | home | ph-house | house | ti-home |
+| search | search | ph-magnifying-glass | search | ti-search |
+| cart | shopping_cart | ph-shopping-cart | shopping-cart | ti-shopping-cart |
+| profile | person | ph-user | user | ti-user |
+| menu | menu | ph-list | menu | ti-menu-2 |
+
+### Commerce
+| Semantic Role | Material Symbols | Phosphor | Lucide | Tabler |
+|---------------|-----------------|----------|--------|--------|
+| storefront | storefront | ph-storefront | store | ti-building-store |
+| favorite | favorite | ph-heart | heart | ti-heart |
+| star-rating | star | ph-star | star | ti-star |
+| shipping | local_shipping | ph-truck | truck | ti-truck |
+| payments | payments | ph-credit-card | credit-card | ti-credit-card |
+| discount | sell | ph-tag | tag | ti-tag |
+| package | package_2 | ph-package | package | ti-package |
+| receipt | receipt_long | ph-receipt | receipt | ti-receipt |
+
+### Status & Feedback
+| Semantic Role | Material Symbols | Phosphor | Lucide | Tabler |
+|---------------|-----------------|----------|--------|--------|
+| success | check_circle | ph-check-circle | check-circle | ti-circle-check |
+| error | cancel | ph-x-circle | x-circle | ti-circle-x |
+| warning | warning | ph-warning | alert-triangle | ti-alert-triangle |
+| inventory-low | inventory | ph-warehouse | warehouse | ti-building-warehouse |
+
+### Actions
+| Semantic Role | Material Symbols | Phosphor | Lucide | Tabler |
+|---------------|-----------------|----------|--------|--------|
+| add-to-cart | add_shopping_cart | ph-shopping-cart-simple | shopping-cart | ti-shopping-cart-plus |
+| remove | close | ph-x | x | ti-x |
+| share | share | ph-share-network | share-2 | ti-share |
+| filter | filter_list | ph-funnel | filter | ti-filter |
+| sort | sort | ph-arrows-down-up | arrow-up-down | ti-arrows-sort |
+
 ## E-commerce-Specific Additions
 - **Product image gallery:** Thumbnail strip below main image (desktop), swipe carousel with dot indicators (mobile), pinch-to-zoom, fullscreen lightbox with arrow navigation
 - **Size/variant selectors:** Chip group layout, selected chip gets primary border + fill, out-of-stock chips show diagonal strike-through and reduced opacity, size guide link adjacent
