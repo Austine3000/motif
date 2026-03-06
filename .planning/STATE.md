@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 15 of 16 (Compose Integration)
-Plan: 2 of 2 in current phase
-Status: In Progress
-Last activity: 2026-03-06 — Completed 15-01 (context and template integration)
+Plan: 2 of 2 in current phase (COMPLETE)
+Status: Phase Complete
+Last activity: 2026-03-06 — Completed 15-02 (compose workflow decomposition, placement, and reuse)
 
-Progress: [██████░░░░] 60% (v1.2)
+Progress: [███████░░░] 70% (v1.2)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 38 (v1.0: 24, v1.1: 8, v1.2: 6)
+- Total plans completed: 39 (v1.0: 24, v1.1: 8, v1.2: 7)
 - Average duration: ~2.4 min
-- Total execution time: ~1 hour 58 min
+- Total execution time: ~2 hours
 
 **By Phase (v1.2):**
 
@@ -29,7 +29,7 @@ Progress: [██████░░░░] 60% (v1.2)
 |-------|-------|-------|----------|
 | 13. Scan Infrastructure | 2/2 | 7min | 3.5min |
 | 14. Token and System Integration | 3/3 | 9min | 3.0min |
-| 15. Compose Integration | 1/2 | 1min | 1.0min |
+| 15. Compose Integration | 2/2 | 3min | 1.5min |
 | 16. Validation and Hardening | - | - | - |
 
 ## Accumulated Context
@@ -59,6 +59,10 @@ Recent decisions affecting current work:
 - [Phase 15]: TOKEN-INVENTORY.md in composer never_load -- tokens.css is sufficient for composition
 - [Phase 15]: Summary template uses N/A (greenfield) fallback when no brownfield scan data exists
 
+- [15-02]: All decomposition/brownfield additions existence-gated -- greenfield behavior unchanged
+- [15-02]: Subagent loads full scan artifacts (~1500 tokens) rather than pre-extracted slim context
+- [15-02]: 150-line per-component limit enforced via agent instructions, not tooling
+
 ### Pending Todos
 
 None.
@@ -70,5 +74,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 15-01-PLAN.md (context and template integration). Ready for 15-02.
+Stopped at: Completed 15-02-PLAN.md (compose workflow decomposition, placement, and reuse). Phase 15 complete. Ready for Phase 16.
 Resume file: None
