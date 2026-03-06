@@ -5,13 +5,13 @@
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 16 — Validation and Hardening (v1.2 Brownfield Intelligence)
+**Current focus:** v1.2 Brownfield Intelligence — MILESTONE COMPLETE
 
 ## Current Position
 
 Phase: 16 of 16 (Validation and Hardening)
-Plan: 2 of 2 in current phase
-Status: Complete
+Plan: 2 of 2 in current phase (COMPLETE)
+Status: Milestone Complete
 Last activity: 2026-03-06 — Completed 16-02 (compose workflow validation gate)
 
 Progress: [██████████] 100% (v1.2)

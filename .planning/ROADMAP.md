@@ -4,7 +4,7 @@
 
 - v1.0 Core Design System — Phases 1-8 (shipped 2026-03-04)
 - v1.1 Icon Library Integration — Phases 9-12 (shipped 2026-03-04)
-- v1.2 Brownfield Intelligence — Phases 13-16 (in progress)
+- v1.2 Brownfield Intelligence — Phases 13-16 (shipped 2026-03-06)
 
 ## Phases
 
@@ -50,7 +50,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 - [x] Phase 13: Scan Infrastructure - Users can scan an existing project and review confirmed findings — completed 2026-03-05
 - [x] Phase 14: Token and System Integration - Users can have their existing design tokens detected, choose a merge strategy, and see what components are missing — completed 2026-03-05
 - [x] Phase 15: Compose Integration - Users can receive decomposed, project-aware screen output written to their actual directories — completed 2026-03-06
-- [ ] Phase 16: Validation and Hardening - Users can trust that decomposed output is validated, atomically committed, and rollback-safe
+- [x] Phase 16: Validation and Hardening - Users can trust that decomposed output is validated, atomically committed, and rollback-safe — completed 2026-03-06
 
 ## Phase Details
 
@@ -112,8 +112,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 16-01-PLAN.md — Build compose-validator.js script (import cycles, naming conflicts, missing props)
-- [ ] 16-02-PLAN.md — Add validation gate, atomic commit/rollback, and staleness check to compose workflow
+- [x] 16-01-PLAN.md — Build compose-validator.js script (import cycles, naming conflicts, missing props)
+- [x] 16-02-PLAN.md — Add validation gate, atomic commit/rollback, and staleness check to compose workflow
 
 ## Progress
 
@@ -138,4 +138,4 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 13. Scan Infrastructure | v1.2 | 2/2 | Complete | 2026-03-05 |
 | 14. Token and System Integration | v1.2 | 3/3 | Complete | 2026-03-05 |
 | 15. Compose Integration | v1.2 | 2/2 | Complete | 2026-03-06 |
-| 16. Validation and Hardening | v1.2 | 0/2 | Not started | - |
+| 16. Validation and Hardening | v1.2 | 2/2 | Complete | 2026-03-06 |
