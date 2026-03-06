@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 15 — Compose Integration (v1.2 Brownfield Intelligence)
+**Current focus:** Phase 16 — Validation and Hardening (v1.2 Brownfield Intelligence)
 
 ## Current Position
 
-Phase: 15 of 16 (Compose Integration)
-Plan: 2 of 2 in current phase (COMPLETE)
-Status: Phase Complete
-Last activity: 2026-03-06 — Completed 15-02 (compose workflow decomposition, placement, and reuse)
+Phase: 16 of 16 (Validation and Hardening)
+Plan: 1 of 2 in current phase
+Status: In Progress
+Last activity: 2026-03-06 — Completed 16-01 (compose-validator.js)
 
-Progress: [███████░░░] 75% (v1.2)
+Progress: [████████░░] 88% (v1.2)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 39 (v1.0: 24, v1.1: 8, v1.2: 7)
+- Total plans completed: 40 (v1.0: 24, v1.1: 8, v1.2: 8)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -30,7 +30,7 @@ Progress: [███████░░░] 75% (v1.2)
 | 13. Scan Infrastructure | 2/2 | 7min | 3.5min |
 | 14. Token and System Integration | 3/3 | 9min | 3.0min |
 | 15. Compose Integration | 2/2 | 3min | 1.5min |
-| 16. Validation and Hardening | - | - | - |
+| 16. Validation and Hardening | 1/2 | 2min | 2.0min |
 
 ## Accumulated Context
 
@@ -62,6 +62,9 @@ Recent decisions affecting current work:
 - [15-02]: All decomposition/brownfield additions existence-gated -- greenfield behavior unchanged
 - [15-02]: Subagent loads full scan artifacts (~1500 tokens) rather than pre-extracted slim context
 - [15-02]: 150-line per-component limit enforced via agent instructions, not tooling
+- [16-01]: Used git status --porcelain for naming conflict detection (M vs A/??  distinguishes overwrites)
+- [16-01]: Import cycle detection only tracks inter-generated-file imports, excluding externals
+- [16-01]: Missing prop check is regex-based best-effort, consistent with project-scanner.js
 
 ### Pending Todos
 
@@ -74,5 +77,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 15-02-PLAN.md (compose workflow decomposition, placement, and reuse). Phase 15 complete. Ready for Phase 16.
+Stopped at: Completed 16-01-PLAN.md (compose-validator.js). Ready for 16-02.
 Resume file: None
