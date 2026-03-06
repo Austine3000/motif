@@ -9,24 +9,24 @@ Requirements for Brownfield Intelligence milestone. Each maps to roadmap phases.
 
 ### Scanning
 
-- [ ] **SCAN-01**: User can run a project scan that detects framework, directory layout, CSS approach, and naming conventions
-- [ ] **SCAN-02**: User can see a catalog of existing components found in the project (file path, export name)
-- [ ] **SCAN-03**: User can see a gap analysis comparing existing components against vertical-required components
-- [ ] **SCAN-04**: User can review and confirm/correct scan findings before any generation happens
-- [ ] **SCAN-05**: User can see extracted conventions from existing components (recurring patterns like border-radius, spacing, shadow usage)
+- [x] **SCAN-01**: User can run a project scan that detects framework, directory layout, CSS approach, and naming conventions
+- [x] **SCAN-02**: User can see a catalog of existing components found in the project (file path, export name)
+- [x] **SCAN-03**: User can see a gap analysis comparing existing components against vertical-required components
+- [x] **SCAN-04**: User can review and confirm/correct scan findings before any generation happens
+- [x] **SCAN-05**: User can see extracted conventions from existing components (recurring patterns like border-radius, spacing, shadow usage)
 
 ### Tokens
 
-- [ ] **TOKN-01**: User can have existing CSS custom properties or Tailwind config tokens detected and presented
-- [ ] **TOKN-02**: User can choose token strategy: adopt existing, merge with Motif, or start fresh
-- [ ] **TOKN-03**: User can receive a selective token overlay that fills gaps without overwriting existing tokens
+- [x] **TOKN-01**: User can have existing CSS custom properties or Tailwind config tokens detected and presented
+- [x] **TOKN-02**: User can choose token strategy: adopt existing, merge with Motif, or start fresh
+- [x] **TOKN-03**: User can receive a selective token overlay that fills gaps without overwriting existing tokens
 
 ### Composition
 
-- [ ] **COMP-01**: User can receive decomposed screen output with one component per file
-- [ ] **COMP-02**: User can have composed files written to the project's actual directories (not just `.planning/`)
-- [ ] **COMP-03**: User can have existing project components imported and reused instead of recreated
-- [ ] **COMP-04**: User can have all decomposed files committed atomically with rollback on validation failure
+- [x] **COMP-01**: User can receive decomposed screen output with one component per file
+- [x] **COMP-02**: User can have composed files written to the project's actual directories (not just `.planning/`)
+- [x] **COMP-03**: User can have existing project components imported and reused instead of recreated
+- [x] **COMP-04**: User can have all decomposed files committed atomically with rollback on validation failure
 
 ## Future Requirements
 
@@ -59,18 +59,18 @@ Convention extraction is included in v1.2 (SCAN-05). Deeper convention learning 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCAN-01 | Phase 13 | Pending |
-| SCAN-02 | Phase 13 | Pending |
-| SCAN-03 | Phase 14 | Pending |
-| SCAN-04 | Phase 13 | Pending |
-| SCAN-05 | Phase 13 | Pending |
-| TOKN-01 | Phase 14 | Pending |
-| TOKN-02 | Phase 14 | Pending |
-| TOKN-03 | Phase 14 | Pending |
-| COMP-01 | Phase 15 | Pending |
-| COMP-02 | Phase 15 | Pending |
-| COMP-03 | Phase 15 | Pending |
-| COMP-04 | Phase 16 | Pending |
+| SCAN-01 | Phase 13 | Satisfied |
+| SCAN-02 | Phase 13 | Satisfied |
+| SCAN-03 | Phase 14 | Satisfied |
+| SCAN-04 | Phase 13 | Satisfied |
+| SCAN-05 | Phase 13 | Satisfied |
+| TOKN-01 | Phase 14 | Satisfied |
+| TOKN-02 | Phase 14 | Satisfied |
+| TOKN-03 | Phase 14 | Satisfied |
+| COMP-01 | Phase 15 | Satisfied |
+| COMP-02 | Phase 15 | Satisfied |
+| COMP-03 | Phase 15 | Satisfied |
+| COMP-04 | Phase 16 | Satisfied |
 
 **Coverage:**
 - v1.2 requirements: 12 total
@@ -79,4 +79,4 @@ Convention extraction is included in v1.2 (SCAN-05). Deeper convention learning 
 
 ---
 *Requirements defined: 2026-03-04*
-*Last updated: 2026-03-04 after roadmap creation*
+*Last updated: 2026-03-06 after v1.2 milestone audit (all requirements satisfied)*
