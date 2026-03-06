@@ -52,6 +52,20 @@ If BROWNFIELD: also check for CONVENTIONS.md and COMPONENT-GAP.md.
 
 **STACK:** `{STACK}`
 
+## Step 2b: Scan Freshness Check
+
+If BROWNFIELD is true (PROJECT-SCAN.md exists):
+1. Read `.planning/design/PROJECT-SCAN.md` and find the `**Scanned:** YYYY-MM-DD` line
+2. Compare the scan date to today's date
+3. If the scan date is NOT today:
+   - Warn the user: "Scan data is from {scan_date}. Your project may have changed since then."
+   - Ask: "Continue with existing scan data, or re-scan first? (continue/rescan)"
+   - If user says rescan: tell them to run `/motif:scan` first, then return to compose
+   - If user says continue: proceed normally
+4. If the scan date IS today: proceed without warning
+
+If BROWNFIELD is false: skip this step entirely.
+
 ## Step 3: Spawn Composer Agent
 
 Spawn ONE fresh agent with Task():
@@ -222,6 +236,7 @@ Before committing, verify:
 - [ ] IF brownfield: existing components imported, not recreated
 - [ ] IF brownfield: file paths match project conventions (naming, directories)
 - [ ] IF brownfield: import paths use project's style (@/ alias, relative, barrel)
+- [ ] All created files staged but NOT committed until validation passes
 
 ### E. Create Summary
 Save to `.planning/design/screens/{SCREEN_NAME}-SUMMARY.md`:
@@ -252,10 +267,41 @@ Save to `.planning/design/screens/{SCREEN_NAME}-SUMMARY.md`:
 
 ## Files Imported (not created)
 [List all existing project files that were imported -- or "N/A (greenfield)" if no scan data]
+
+## Validation
+- Status: PASSED/FAILED/WARN
+- Import cycles: none / [list cycles]
+- Naming conflicts: none / [list conflicts]
+- Prop warnings: none / [list warnings]
 ```
 
-### F. Commit
-Commit all files: `design(compose): implement {SCREEN_NAME} screen`
+### F. Validate and Commit
+
+**F1. Stage all created files** (do NOT commit yet):
+```bash
+git add [every file you created — list them all explicitly]
+```
+
+**F2. Run post-decomposition validation:**
+```bash
+node scripts/compose-validator.js --screen {SCREEN_NAME} --files [file1] [file2] ...
+```
+Pass every file you created as --files arguments.
+
+Read the JSON output from stdout.
+
+**F3. Act on results:**
+
+IF status is "pass" or "warn":
+- Commit atomically: `git commit -m "design(compose): implement {SCREEN_NAME} screen"`
+- If there were warnings, note them in SUMMARY.md under ## Validation
+
+IF status is "fail":
+- Roll back staging: `git reset HEAD [all files you staged in F1]`
+- Do NOT delete the files — leave them on disk for user inspection
+- Do NOT attempt to fix the errors yourself
+- In SUMMARY.md, record the validation failure (see Step E)
+- The orchestrator will report the failure to the user
 </agent_spawn>
 
 ## Step 4: Collect Result
