@@ -49,7 +49,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 
 - [x] Phase 13: Scan Infrastructure - Users can scan an existing project and review confirmed findings — completed 2026-03-05
 - [x] Phase 14: Token and System Integration - Users can have their existing design tokens detected, choose a merge strategy, and see what components are missing — completed 2026-03-05
-- [ ] Phase 15: Compose Integration - Users can receive decomposed, project-aware screen output written to their actual directories
+- [x] Phase 15: Compose Integration - Users can receive decomposed, project-aware screen output written to their actual directories — completed 2026-03-06
 - [ ] Phase 16: Validation and Hardening - Users can trust that decomposed output is validated, atomically committed, and rollback-safe
 
 ## Phase Details
@@ -98,8 +98,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 15-01-PLAN.md — Update context engine, summary template, and state machine for decomposed composition
-- [ ] 15-02-PLAN.md — Add decomposition, project-directory placement, and component reuse to compose workflow
+- [x] 15-01-PLAN.md — Update context engine, summary template, and state machine for decomposed composition
+- [x] 15-02-PLAN.md — Add decomposition, project-directory placement, and component reuse to compose workflow
 
 ### Phase 16: Validation and Hardening
 **Goal**: Users can trust that all decomposed output passes validation checks and is committed atomically with automatic rollback on failure
@@ -137,5 +137,5 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 12. Enforcement and Validation | v1.1 | 2/2 | Complete | 2026-03-04 |
 | 13. Scan Infrastructure | v1.2 | 2/2 | Complete | 2026-03-05 |
 | 14. Token and System Integration | v1.2 | 3/3 | Complete | 2026-03-05 |
-| 15. Compose Integration | v1.2 | 0/2 | Not started | - |
+| 15. Compose Integration | v1.2 | 2/2 | Complete | 2026-03-06 |
 | 16. Validation and Hardening | v1.2 | 0/TBD | Not started | - |
