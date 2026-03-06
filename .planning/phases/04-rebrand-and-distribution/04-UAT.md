@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 04-rebrand-and-distribution
 source: [04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md]
 started: 2026-03-02T09:00:00Z
@@ -61,7 +61,19 @@ skipped: 0
   reason: "User reported: forge reference in runtime-adapters.md (forge-*.md agent refs in adapter table), DESIGN FORGE in generate-system.md (token comment example), BUILD-SPEC.md (docs/ — not shipped but stale), e2e-installer.js (test/ — stale forge-researcher.md expectation and FORGE_ROOT variable names)"
   severity: major
   test: 3
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Two shipped files had isolated single-line survivors in table rows and code examples that were missed during bulk replacement. Non-shipped files (docs/, test/) were out of rebrand scope but contain stale refs and one broken test assertion."
+  artifacts:
+    - path: "core/references/runtime-adapters.md"
+      issue: "Line 23: forge-*.md agent refs in adapter table — factually wrong (actual files are motif-*.md)"
+    - path: "core/workflows/generate-system.md"
+      issue: "Line 153: DESIGN FORGE in CSS comment example — AI will write old branding into generated tokens.css"
+    - path: "docs/BUILD-SPEC.md"
+      issue: "14+ forge references throughout — not shipped but stale"
+    - path: "test/e2e-installer.js"
+      issue: "Line 112: forge-researcher.md expectation will FAIL (actual file is motif-researcher.md). Lines 136-147: stale variable names."
+  missing:
+    - "Replace forge-*.md with motif-*.md in runtime-adapters.md adapter table"
+    - "Replace DESIGN FORGE with MOTIF in generate-system.md token comment"
+    - "Rebrand docs/BUILD-SPEC.md or mark as deprecated"
+    - "Fix test/e2e-installer.js agent filename expectation and stale variable names"
   debug_session: ""

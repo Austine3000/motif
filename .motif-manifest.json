@@ -1,0 +1,171 @@
+{
+  "version": "0.1.0",
+  "runtime": "claude-code",
+  "installedAt": "2026-03-03T23:09:41.258Z",
+  "files": {
+    ".claude/get-motif/references/context-engine.md": {
+      "hash": "4e55f9428d535a4dbc43538280bf63a4b4403e5557e24bebf30a2ec60abeb58e",
+      "source": "core/references/context-engine.md"
+    },
+    ".claude/get-motif/references/design-inputs.md": {
+      "hash": "68ff3652790d25fb095e12ad43392ef2afe65c8edc06fc9c97e70e72901fd471",
+      "source": "core/references/design-inputs.md"
+    },
+    ".claude/get-motif/references/runtime-adapters.md": {
+      "hash": "1d4beca31247567c7aa9d4543b87be81d802562e8cab66c24774b775cfeb5b4e",
+      "source": "core/references/runtime-adapters.md"
+    },
+    ".claude/get-motif/references/state-machine.md": {
+      "hash": "afd97fb039d516cc4c9b859909643e8bdbdb712812945e254b27e0e5545031d6",
+      "source": "core/references/state-machine.md"
+    },
+    ".claude/get-motif/references/verticals/ecommerce.md": {
+      "hash": "f0276be3e71bc77c226539810fdbc0072e99dbdb571358b6fa93c5eaadcc662f",
+      "source": "core/references/verticals/ecommerce.md"
+    },
+    ".claude/get-motif/references/verticals/fintech.md": {
+      "hash": "59466c4498889998d1bc5cce20d122928f1cbfa7d96cdc121d76bdb58a13413f",
+      "source": "core/references/verticals/fintech.md"
+    },
+    ".claude/get-motif/references/verticals/health.md": {
+      "hash": "b8e3ccedd6ff13a4d493450040deb62ebe099eb76bc129883631e5af3ecc03b9",
+      "source": "core/references/verticals/health.md"
+    },
+    ".claude/get-motif/references/verticals/saas.md": {
+      "hash": "0d9724e128e97288dfcef853aa1ea1d7e0643aef424997e6eee9285e3cc353ef",
+      "source": "core/references/verticals/saas.md"
+    },
+    ".claude/get-motif/workflows/compose-screen.md": {
+      "hash": "821dfd680ad15e15327344daf17b76900f438510d2cc6b29d18d5cb65c0c9e54",
+      "source": "core/workflows/compose-screen.md"
+    },
+    ".claude/get-motif/workflows/evolve.md": {
+      "hash": "bd557b2e1a9b77c98886c3608ac676b9189f9e5421292899847bf85d4747c145",
+      "source": "core/workflows/evolve.md"
+    },
+    ".claude/get-motif/workflows/fix.md": {
+      "hash": "3cf2ace5fda0a14057a738cc205159e52f768f95b1559ae1d3b7424e6d57c0c7",
+      "source": "core/workflows/fix.md"
+    },
+    ".claude/get-motif/workflows/generate-system.md": {
+      "hash": "7b617b63543bc843533fbe91ba2b300499cae63159cf30ee05687d9833061c58",
+      "source": "core/workflows/generate-system.md"
+    },
+    ".claude/get-motif/workflows/quick.md": {
+      "hash": "71e2c0709f41fe60f4005cbbacc2ec78580f6dd875312d2c4abbfc03307a1237",
+      "source": "core/workflows/quick.md"
+    },
+    ".claude/get-motif/workflows/research.md": {
+      "hash": "cb314f70dd8aa3122ed9bbcda9bcb0b2cfa906d18583f56bd49ea0b0ec0a1e8a",
+      "source": "core/workflows/research.md"
+    },
+    ".claude/get-motif/workflows/review.md": {
+      "hash": "dc014ea64a5cf8b38dedcba0a117451a54522e337e755cd833b2ce5fdb7f7db0",
+      "source": "core/workflows/review.md"
+    },
+    ".claude/get-motif/templates/STATE-TEMPLATE.md": {
+      "hash": "6cf478958bbe61ed0c4a91e2028a8c94f4645e7d5e78d88248a0c5aba2093fa9",
+      "source": "core/templates/STATE-TEMPLATE.md"
+    },
+    ".claude/get-motif/templates/SUMMARY-TEMPLATE.md": {
+      "hash": "e6d01de8001fecc50149a7656833dcc8590ce45d79438cfbd4c6729ea6845526",
+      "source": "core/templates/SUMMARY-TEMPLATE.md"
+    },
+    ".claude/get-motif/templates/VERTICAL-TEMPLATE.md": {
+      "hash": "fa1d90b048d8772241241c0ca234e24bbfd03ec0095622ab4fc1d9f57b7ccaf3",
+      "source": "core/templates/VERTICAL-TEMPLATE.md"
+    },
+    ".claude/get-motif/templates/token-showcase-template.html": {
+      "hash": "d8117c92809b19f46f015d7150e1b9ee467ec6ca95b01c80051cb7c58b7efe6a",
+      "source": "core/templates/token-showcase-template.html"
+    },
+    ".claude/get-motif/agents/motif-design-reviewer.md": {
+      "hash": "a648c59377079cd9f0495c96b4642989fccd59c7d0f4b3fc2950851d20a16f8f",
+      "source": "runtimes/claude-code/agents/motif-design-reviewer.md"
+    },
+    ".claude/get-motif/agents/motif-fix-agent.md": {
+      "hash": "4c73e17219d616bbb5956fde714217f9637735f70fe3e8c3afaa8faed58f900a",
+      "source": "runtimes/claude-code/agents/motif-fix-agent.md"
+    },
+    ".claude/get-motif/agents/motif-researcher.md": {
+      "hash": "f27a126dce628e2fb186c3b4e4bcf70cbd9afae05cb02bab104987d588f3b7c3",
+      "source": "runtimes/claude-code/agents/motif-researcher.md"
+    },
+    ".claude/get-motif/agents/motif-screen-composer.md": {
+      "hash": "8fea3a85b12889945912e57a5e6f34de4916ffe3f52760b282ae5df19c5695ee",
+      "source": "runtimes/claude-code/agents/motif-screen-composer.md"
+    },
+    ".claude/get-motif/agents/motif-system-architect.md": {
+      "hash": "a3b023d5bd334d44148938f3d50f4816d9bd248cd3eca6cd02daa0b20d21956b",
+      "source": "runtimes/claude-code/agents/motif-system-architect.md"
+    },
+    ".claude/commands/motif/compose.md": {
+      "hash": "c2409a2d3092008dab92c339859c9f95c88dcfb498f7072f7ce7f18f54d11ceb",
+      "source": "runtimes/claude-code/commands/motif/compose.md"
+    },
+    ".claude/commands/motif/evolve.md": {
+      "hash": "c1304ed4880d0659c9c59107393baf2347529b614e75e4fcbadbbde4a57885a0",
+      "source": "runtimes/claude-code/commands/motif/evolve.md"
+    },
+    ".claude/commands/motif/fix.md": {
+      "hash": "295592e6fc07df36b62b42888bf3799693cbcba2c2f11b86599c13eba7858e76",
+      "source": "runtimes/claude-code/commands/motif/fix.md"
+    },
+    ".claude/commands/motif/help.md": {
+      "hash": "494ff0c628d21c6c789c1f5c33ca733b8599c99c918c176e559eb6b0e84ad021",
+      "source": "runtimes/claude-code/commands/motif/help.md"
+    },
+    ".claude/commands/motif/init.md": {
+      "hash": "319ff87443be479a5793d537d45001ba5e22e8324a6939d7b8c87dba8375b018",
+      "source": "runtimes/claude-code/commands/motif/init.md"
+    },
+    ".claude/commands/motif/progress.md": {
+      "hash": "44ae92e9827d6f1038721d01095d57f39cadda06dfdc9a8ea5333844feaf043c",
+      "source": "runtimes/claude-code/commands/motif/progress.md"
+    },
+    ".claude/commands/motif/quick.md": {
+      "hash": "b1ce1b9a1a7b929d172dd3e59e085f77968f2da472278e9945fcf51ca3b258e9",
+      "source": "runtimes/claude-code/commands/motif/quick.md"
+    },
+    ".claude/commands/motif/research.md": {
+      "hash": "0fce344812be9f032253b15b9f713629dfa8e8bd777519d8b2ce1c5bf02bba41",
+      "source": "runtimes/claude-code/commands/motif/research.md"
+    },
+    ".claude/commands/motif/review.md": {
+      "hash": "176041b86d15f697a41bcf71d79d3fdf735f8087bbf2de6a82a4fdfc06db0422",
+      "source": "runtimes/claude-code/commands/motif/review.md"
+    },
+    ".claude/commands/motif/system.md": {
+      "hash": "05e372054e1f962dc536faad94a08d92f6af41f0c7f276d0216e831b67b72e16",
+      "source": "runtimes/claude-code/commands/motif/system.md"
+    },
+    ".claude/get-motif/hooks/motif-aria-check.js": {
+      "hash": "b5847abf92761ebd9173d79265a01a34f52cf2e60a6529a9b18b1b54846dac21",
+      "source": "runtimes/claude-code/hooks/motif-aria-check.js"
+    },
+    ".claude/get-motif/hooks/motif-context-monitor.js": {
+      "hash": "2b4894b063c1091d05f8e3f77959100297b8f2e19ecc56ca2d629abceb04fdae",
+      "source": "runtimes/claude-code/hooks/motif-context-monitor.js"
+    },
+    ".claude/get-motif/hooks/motif-font-check.js": {
+      "hash": "4de008e1339e76269b191254f92b11803f5fa1a1077dfed27321d54fc5efa225",
+      "source": "runtimes/claude-code/hooks/motif-font-check.js"
+    },
+    ".claude/get-motif/hooks/motif-token-check.js": {
+      "hash": "5ecf9afc1b1451af965788a30b8feaaea69f5053e2a4fa0922a6beff2bbe1ab1",
+      "source": "runtimes/claude-code/hooks/motif-token-check.js"
+    },
+    ".claude/get-motif/scripts/contrast-checker.js": {
+      "hash": "a57044166f20c1ccb3999a1ae5d9d2943f41b8b7a6a5dddd6e3e0beb38753615",
+      "source": "scripts/contrast-checker.js"
+    },
+    ".claude/get-motif/scripts/token-counter.js": {
+      "hash": "325f155b6e5147411e7f487ec804a6b53ec1ec3172603b9428159e18dd304722",
+      "source": "scripts/token-counter.js"
+    },
+    "CLAUDE.md": {
+      "hash": "949730130bed11eb140aa5d54ce157fdb439634cba3152caa892593fbe5a4134",
+      "source": "runtimes/claude-code/CLAUDE-MD-SNIPPET.md"
+    }
+  }
+}
