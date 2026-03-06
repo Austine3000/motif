@@ -39,6 +39,8 @@ Every planning/design file has a maximum token budget. If a file exceeds its bud
 
 **Total context budget for a fully-loaded subagent**: ~15,000 tokens of context files, leaving ~185,000 tokens for the actual work.
 
+**Note:** The fully-loaded brownfield composer budget (with PROJECT-SCAN.md, CONVENTIONS.md, and COMPONENT-GAP.md) is ~15,000 tokens, well within budget. These artifacts are loaded conditionally via `load_if_exists` and add zero overhead in greenfield projects.
+
 ## Context Loading Profiles
 
 Different commands need different slices of context. These profiles define exactly what each subagent type loads.
@@ -99,6 +101,9 @@ Different commands need different slices of context. These profiles define exact
   <load_if_exists>
     .planning/design/DESIGN-RESEARCH.md
     .planning/design/screens/{previous-screen}-SUMMARY.md (for consistency)
+    .planning/design/PROJECT-SCAN.md
+    .planning/design/CONVENTIONS.md
+    .planning/design/COMPONENT-GAP.md
   </load_if_exists>
   <never_load>
     DESIGN-BRIEF.md (decisions already encoded in tokens + research)
@@ -106,6 +111,7 @@ Different commands need different slices of context. These profiles define exact
     Other screen source code (only summaries)
     DESIGN-SYSTEM.md (tokens.css + COMPONENT-SPECS.md are sufficient)
     icon-libraries.md (already distilled into ICON-CATALOG.md)
+    TOKEN-INVENTORY.md (composer doesn't need token inventory -- tokens.css has the final tokens)
   </never_load>
 </context_profile>
 ```
