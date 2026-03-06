@@ -37,12 +37,18 @@ REQUIRED_FILES:
 
 OPTIONAL_FILES (load if they exist):
   - .planning/design/screens/*-SUMMARY.md (only the most recent 2-3)
+  - .planning/design/PROJECT-SCAN.md        (brownfield: directory structure, framework)
+  - .planning/design/CONVENTIONS.md         (brownfield: code conventions)
+  - .planning/design/COMPONENT-GAP.md       (brownfield: existing component reuse map)
 
 Note: If ICON-CATALOG.md does not exist, warn the user:
 "No icon catalog found -- icon names may be inconsistent. Re-run /motif:system to generate."
 ```
 
 Check `.planning/design/PROJECT.md` quickly for the technical stack (React/Next.js/Vue/HTML).
+
+Check if `.planning/design/PROJECT-SCAN.md` exists → set BROWNFIELD=true
+If BROWNFIELD: also check for CONVENTIONS.md and COMPONENT-GAP.md.
 
 **STACK:** `{STACK}`
 
@@ -66,6 +72,10 @@ Read each of these files before writing ANY code:
 4. `.planning/design/DESIGN-RESEARCH.md` — domain patterns. The "Design Decisions (LOCKED)" section is mandatory.
 5. `.planning/design/system/ICON-CATALOG.md` -- icon name lookup. Use ONLY these icon names.
 {IF previous summaries exist: 6. `.planning/design/screens/{prev}-SUMMARY.md` — for cross-screen consistency}
+{IF .planning/design/PROJECT-SCAN.md exists (brownfield project):}
+7. `.planning/design/PROJECT-SCAN.md` — project directory structure, framework, existing components
+8. `.planning/design/CONVENTIONS.md` — file naming, export style, import paths, CSS approach
+9. `.planning/design/COMPONENT-GAP.md` — which design system components exist in the project vs need generating
 
 Also read the project's CLAUDE.md if it exists for project-specific conventions.
 
@@ -96,6 +106,91 @@ Before writing code, write a brief analysis to `.planning/design/screens/{SCREEN
    - NEVER invent icon names. If a needed icon isn't in the catalog, use the closest semantic match and note it in SUMMARY.md.
    - NEVER use bracket placeholders like `[icon]` or `[MerchantIcon]`.
 
+### B2. Decomposition Rules
+
+You MUST decompose every screen into individual component files. No monolithic single-file output.
+
+#### File Decomposition
+1. Identify all components in your screen design
+2. Create one file per component:
+   - Page/route component (top level)
+   - Section components (major visual areas)
+   - New UI primitives (only if not already existing per COMPONENT-GAP.md)
+3. Each file must:
+   - Have its own imports
+   - Export exactly one component
+   - Be under 150 lines (decompose further if needed)
+
+#### Import Hierarchy (STRICT -- no circular imports)
+Page -> Sections -> Primitives
+- A page imports sections and primitives
+- A section imports primitives only
+- A primitive imports nothing from this screen (only external deps and tokens)
+
+#### File Placement
+
+{IF PROJECT-SCAN.md and CONVENTIONS.md exist (brownfield):}
+
+Read CONVENTIONS.md for:
+- Naming convention (PascalCase/kebab-case)
+- Export style (named/default)
+- Import paths (aliases like @/, relative paths)
+- CSS approach (Tailwind/CSS Modules/styled-components)
+
+Read PROJECT-SCAN.md for:
+- Component directories (where existing components live)
+- Route/page directories (where pages live)
+- Framework-specific patterns (App Router vs Pages Router, etc.)
+
+Place files:
+- Page component -> framework route directory (e.g., src/app/dashboard/page.tsx)
+- New reusable components -> project's component directory (e.g., src/components/ui/StatCard.tsx)
+- Screen-specific sections -> co-located with page (e.g., src/app/dashboard/_components/DashboardHeader.tsx) OR in a features directory, depending on project convention
+
+NEVER modify existing project files. Only create new files and import existing ones.
+NEVER write to node_modules, .next, dist, build, or any build output directory.
+Before writing any file, check if a file already exists at that path. If it does, use a different name (e.g., DashboardCard.tsx instead of Card.tsx).
+
+{IF no PROJECT-SCAN.md (greenfield):}
+
+Place all files in: `.planning/design/screens/{SCREEN_NAME}/`
+Create a barrel export (index.ts or index.js) for the directory.
+Use sensible defaults: TypeScript (.tsx), named exports, single quotes, semicolons, inline styles with CSS custom properties from tokens.css.
+
+### B3. Existing Component Reuse
+
+{IF .planning/design/COMPONENT-GAP.md exists:}
+
+Before generating ANY component, check COMPONENT-GAP.md:
+
+1. **"Existing" table:** Component exists in the project.
+   -> Import it. Do NOT recreate it.
+   -> Use the file path from the table.
+   -> Apply project import conventions from CONVENTIONS.md (path aliases, barrel files, etc.).
+
+2. **"Partial Match" table:** Similar component exists.
+   -> Import it. Do NOT recreate it.
+   -> Add a comment: // Note: using existing [FoundName] as [RequiredName]
+   -> If it needs props it doesn't have, pass them anyway -- the user will enhance later.
+
+3. **Not in COMPONENT-GAP.md:** Component does not exist.
+   -> Generate it as a new file following COMPONENT-SPECS.md.
+   -> Place per File Placement rules above.
+
+Example:
+```typescript
+// COMPONENT-GAP.md says Button exists at src/components/ui/Button.tsx
+// CONVENTIONS.md says project uses @/ alias
+import { Button } from '@/components/ui/Button';
+
+// COMPONENT-GAP.md says no StatCard exists
+// Generate new: src/components/dashboard/StatCard.tsx
+import { StatCard } from '@/components/dashboard/StatCard';
+```
+
+{IF COMPONENT-GAP.md does not exist:}
+Generate all components as new files. No reuse checks needed.
+
 ### C. Anti-Slop Check
 Before writing each component, verify:
 - ❌ Am I using Inter? → STOP. Use --font-body.
@@ -105,6 +200,9 @@ Before writing each component, verify:
 - ❌ Am I using an icon name not in ICON-CATALOG.md? -> STOP. Look up the semantic role in the catalog. Use the exact Class string.
 - ❌ Am I hardcoding an icon size in px? -> STOP. Use var(--icon-sm) through var(--icon-2xl).
 - ❌ Am I using a bracket placeholder like [icon: ...]? -> STOP. Replace with the actual icon element from the catalog.
+- ❌ Am I writing everything into one file? -> STOP. Decompose into one component per file.
+- ❌ Am I recreating a component that exists in COMPONENT-GAP.md? -> STOP. Import it instead.
+- ❌ Am I using a different import path style than CONVENTIONS.md specifies? -> STOP. Match the project's convention.
 - ✅ Every visual value references a CSS custom property from tokens.css.
 
 ### D. Self-Review Checklist
@@ -119,6 +217,11 @@ Before committing, verify:
 - [ ] All icon sizes use --icon-* tokens (no hardcoded font-size for icons)
 - [ ] Icon CDN link present in <head> (or inherited from framework)
 - [ ] IF Lucide: createIcons() called after DOM load
+- [ ] Each component in its own file (no monolithic output)
+- [ ] Import hierarchy: page -> sections -> primitives (no circular imports)
+- [ ] IF brownfield: existing components imported, not recreated
+- [ ] IF brownfield: file paths match project conventions (naming, directories)
+- [ ] IF brownfield: import paths use project's style (@/ alias, relative, barrel)
 
 ### E. Create Summary
 Save to `.planning/design/screens/{SCREEN_NAME}-SUMMARY.md`:
@@ -126,7 +229,11 @@ Save to `.planning/design/screens/{SCREEN_NAME}-SUMMARY.md`:
 # Screen: {SCREEN_NAME}
 
 ## Components Used
-[List all design system components]
+### Existing (imported from project)
+[List components imported from the user's project with file paths -- or "N/A (greenfield)" if no scan data]
+
+### New (generated by Motif)
+[List all newly generated components with their file paths]
 
 ## Key Tokens Referenced
 [List the primary tokens this screen depends on]
@@ -135,13 +242,16 @@ Save to `.planning/design/screens/{SCREEN_NAME}-SUMMARY.md`:
 [Which LOCKED decisions were implemented]
 
 ## States
-- Default ✓/✗
-- Loading ✓/✗
-- Empty ✓/✗
-- Error ✓/✗
+- Default Y/N
+- Loading Y/N
+- Empty Y/N
+- Error Y/N
 
 ## Files Created
-[List all files created/modified]
+[List ALL files created with full paths]
+
+## Files Imported (not created)
+[List all existing project files that were imported -- or "N/A (greenfield)" if no scan data]
 ```
 
 ### F. Commit
