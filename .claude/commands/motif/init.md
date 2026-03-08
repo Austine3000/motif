@@ -1,6 +1,6 @@
 ---
 description: Initialize a new Motif project with domain-aware design intelligence. Supports --auto mode for quick starts.
-allowed-tools: Read, Write, Bash(mkdir:*), Bash(git add:*), Bash(git commit:*)
+allowed-tools: Read, Write, Bash(mkdir:*), Bash(git add:*), Bash(git commit:*), AskUserQuestion
 argument-hint: [--auto --vertical X --stack Y --theme Z]
 ---
 
@@ -28,42 +28,34 @@ Read `.claude/get-motif/references/design-inputs.md` before starting the intervi
 
 ### Interview Structure
 
-Ask questions in **4 rounds**, 2-3 questions per round. Adapt based on answers.
+Use `AskUserQuestion` for all structured choices. Use freeform inline questions only for open-ended responses where the user needs to type freely.
+
+Display stage banner:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ MOTIF ► INITIALIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
 
 **Round 1 — What & Who:**
-- What are you building? (one sentence)
-- Who uses it? (describe the person, not demographics)
-- What device do they reach for? (phone/laptop/both equally)
 
-**Round 2 — Design Inputs:**
-- Do you have existing design assets?
-  - a) Starting fresh — no colors, fonts, or designs yet
-  - b) I have brand colors and/or fonts to use
-  - c) I have screenshots or products I want to reference
-  - d) I have a Figma file or complete design to implement
-  - e) Some combination
+Ask inline (freeform, NOT AskUserQuestion):
 
-If (b): Ask for specific hex values, font names. These become LOCKED constraints.
-If (c): Ask user to share screenshots or name the products. Ask: "What specifically do you love about it — the colors? The spacing? The overall mood?" Save image paths to `.planning/design/references/`.
-If (d): Ask for Figma URL or ask user to share screenshots of key screens. Ask fidelity: "Should I implement this pixel-perfect, capture the spirit and extend it, or just extract the color/font system?"
-If (e): Combine the above flows.
+"What are you building? Describe it in one sentence."
 
-**Round 3 — Feel & Differentiation:**
-- Name 1-2 products whose UI you admire (if not already covered in Round 2)
-- What should feel DIFFERENT about yours vs those?
+Wait for response. Then ask inline:
 
-Then present the differentiation seed (adapted from design-inputs.md):
-"Most [vertical] products feel [center of gravity]. Where does yours sit?"
-- Personality: Corporate ←→ Bold/rebellious
-- Temperature: Cool/precise ←→ Warm/human
-- Formality: Professional/serious ←→ Casual/approachable
+"Who uses this? Describe the person — their context, not demographics."
 
-If the user doesn't want to rate all axes, infer from their descriptions. Always capture at least personality, temperature, and formality.
+Wait for response. Then use AskUserQuestion:
 
-**Round 4 — Scope & Stack:**
-- Technical stack? (React/Next.js/Vue/HTML — or whatever you prefer)
-- What screens do you need for v1? (list them)
-- Any screen that's especially complex or critical?
+- header: "Device Priority"
+- question: "What device do your users reach for first?"
+- options:
+  - "Mobile first" — Phone is the primary device
+  - "Desktop first" — Laptop/desktop is the primary device
+  - "Both equally" — Responsive parity needed
 
 ### Vertical Detection
 
@@ -78,6 +70,99 @@ After Round 1, internally classify the vertical:
 - **marketplace**: two-sided platforms, gig economy, real estate, jobs
 
 Don't ask the user what their vertical is. TELL them what you detected and why. Be opinionated.
+
+**Round 2 — Design Inputs:**
+
+Use AskUserQuestion:
+
+- header: "Design Assets"
+- question: "Do you have existing design assets to work from?"
+- options:
+  - "Starting fresh" — No colors, fonts, or designs yet
+  - "Brand colors/fonts" — I have specific hex values or font names to use
+  - "Visual references" — I have screenshots or products I want to reference
+  - "Figma/design file" — I have a complete design to implement
+  - "Combination" — Mix of the above
+
+**If "Brand colors/fonts":** Ask inline for specific hex values and font names. These become LOCKED constraints.
+
+**If "Visual references":** Ask inline: "Share screenshots or name the products. What specifically do you love — the colors? The spacing? The overall mood?" Save image paths to `.planning/design/references/`.
+
+**If "Figma/design file":** Ask inline for Figma URL or screenshots of key screens. Then use AskUserQuestion:
+
+- header: "Fidelity"
+- question: "How closely should I follow the design file?"
+- options:
+  - "Pixel-perfect" — Implement exactly as designed
+  - "Capture the spirit" — Match the feel, extend where needed
+  - "Extract tokens only" — Pull the color/font system, design freely
+
+**If "Combination":** Combine the above flows as needed.
+
+**Round 3 — Feel & Differentiation:**
+
+Ask inline: "Name 1-2 products whose UI you admire." (Skip if already covered in Round 2.)
+
+Wait for response. Ask inline: "What should feel DIFFERENT about yours vs those?"
+
+Then present the differentiation seed using AskUserQuestion for each axis:
+
+"Most [vertical] products feel [center of gravity]. Where does yours sit?"
+
+- header: "Personality"
+- question: "Where does your product sit?"
+- options:
+  - "Corporate" — Institutional, trustworthy, conservative
+  - "Balanced" — Professional but approachable
+  - "Bold" — Rebellious, distinctive, opinionated
+
+- header: "Temperature"
+- question: "What's the emotional tone?"
+- options:
+  - "Cool & precise" — Data-driven, clinical, efficient
+  - "Neutral" — Clean and clear
+  - "Warm & human" — Friendly, empathetic, personal
+
+- header: "Formality"
+- question: "How formal should it feel?"
+- options:
+  - "Professional" — Serious, formal, enterprise-grade
+  - "Middle ground" — Polished but relaxed
+  - "Casual" — Approachable, playful, conversational
+
+If the user doesn't want to answer all axes, infer from their descriptions. Always capture at least personality, temperature, and formality.
+
+**Round 4 — Scope & Stack:**
+
+Use AskUserQuestion:
+
+- header: "Technical Stack"
+- question: "What framework are you building with?"
+- options:
+  - "React" — Create React App or Vite
+  - "Next.js" — React with SSR/SSG
+  - "Vue" — Vue 3 with Vite
+  - "HTML" — Vanilla HTML/CSS/JS
+  - "Other" — Let me specify
+
+**If "Other":** Ask inline for their stack.
+
+Ask inline: "What screens do you need for v1? List them."
+
+Wait for response. Ask inline: "Any screen that's especially complex or critical?"
+
+### Decision Gate
+
+When all rounds are complete, use AskUserQuestion:
+
+- header: "Ready?"
+- question: "I have enough to create your project files. Ready to proceed?"
+- options:
+  - "Create project files" — Let's move forward
+  - "Keep exploring" — I want to share more or adjust answers
+
+If "Keep exploring" — ask what they want to add or adjust, then loop back.
+Loop until "Create project files" selected.
 
 ## Generate Files
 
