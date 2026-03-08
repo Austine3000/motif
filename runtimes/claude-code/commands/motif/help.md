@@ -17,8 +17,9 @@ description: Show all Motif commands
 | `/motif:evolve` | Update design system based on learnings |
 | `/motif:quick [desc]` | Ad-hoc task with design system consistency |
 
-## Navigation
-| `/motif:progress` | Current status + next steps |
+## Navigation & Maintenance
+| `/motif:progress` | Current status + next steps + version check |
+| `/motif:update` | Check for and apply Motif updates |
 | `/motif:help` | This reference |
 
 ## Typical flow

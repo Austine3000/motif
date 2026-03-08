@@ -362,8 +362,9 @@ function writeManifest(mapping, copyResult, flags) {
 
   const cwd = process.cwd();
   const pkgDir = path.dirname(__dirname);
+  const pkgJson = JSON.parse(fs.readFileSync(path.join(pkgDir, 'package.json'), 'utf8'));
   const manifest = {
-    version: '0.1.0',
+    version: pkgJson.version,
     runtime: 'claude-code',
     installedAt: new Date().toISOString(),
     files: {},
@@ -700,6 +701,10 @@ if (flags.uninstall) {
 const runtime = detectRuntime(flags);
 const mapping = resolveMapping(runtime);
 
+// Read current package version
+const pkgDir = path.dirname(__dirname);
+const currentVersion = JSON.parse(fs.readFileSync(path.join(pkgDir, 'package.json'), 'utf8')).version;
+
 // Load existing manifest for upgrade tracking (re-install detection)
 const manifestPath = path.join(process.cwd(), '.motif-manifest.json');
 let existingManifest = null;
@@ -710,6 +715,22 @@ if (fs.existsSync(manifestPath)) {
     // Corrupted manifest -- treat as fresh install (will back up all existing files)
     existingManifest = null;
   }
+}
+
+// Detect install type: fresh install vs upgrade vs re-install
+if (existingManifest) {
+  const prevVersion = existingManifest.version;
+  if (prevVersion !== currentVersion) {
+    console.log('');
+    console.log(styleText('cyan', `Upgrading Motif: ${prevVersion} → ${currentVersion}`));
+    console.log('Modified files will be backed up to .motif-backup/');
+  } else {
+    console.log('');
+    console.log(styleText('cyan', `Re-installing Motif v${currentVersion}`));
+  }
+} else {
+  console.log('');
+  console.log(styleText('cyan', `Installing Motif v${currentVersion}`));
 }
 
 const copyResult = copyFiles(mapping, existingManifest, flags);
