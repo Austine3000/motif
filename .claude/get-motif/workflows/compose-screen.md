@@ -79,6 +79,20 @@ If BROWNFIELD is true (PROJECT-SCAN.md exists):
 
 If BROWNFIELD is false: skip this step entirely.
 
+## Step 2c: Platform Overlay Resolution
+
+Read STATE.md for the `platform` field (from frontmatter or ## Platform section).
+
+If platform is set and is NOT `web-static`:
+1. Read `.claude/get-motif/references/framework-registry.json`
+2. Look up `{platform}.composition.overlay` to get the overlay filename (e.g., "composer-nextjs.md")
+3. Set OVERLAY_PATH to `.claude/get-motif/references/{overlay-filename}`
+4. Verify the overlay file exists. If not, WARN: "Platform overlay {overlay-filename} not found. Composing without platform-specific instructions."
+5. Set HAS_OVERLAY = true
+
+If platform is `web-static` or not set:
+- Set HAS_OVERLAY = false (no overlay needed; compose as before with HTML output)
+
 ## Step 3: Spawn Composer Agent
 
 Spawn ONE fresh agent with Task():
@@ -98,7 +112,9 @@ Read each of these files before writing ANY code:
 3. `.planning/design/system/COMPONENT-SPECS.md` — component specifications. Follow exactly.
 4. `.planning/design/DESIGN-RESEARCH.md` — domain patterns. The "Design Decisions (LOCKED)" section is mandatory.
 5. `.planning/design/system/ICON-CATALOG.md` -- icon name lookup. Use ONLY these icon names.
-{IF previous summaries exist: 6. `.planning/design/screens/{prev}-SUMMARY.md` — for cross-screen consistency}
+{IF HAS_OVERLAY is true:}
+6. `{OVERLAY_PATH}` -- CRITICAL: Platform-specific composition rules. These OVERRIDE the default HTML composition behavior. Follow ALL rules in this document for file placement, import patterns, styling approach, and component format. This takes precedence over any conflicting instructions in the base composition rules.
+{IF previous summaries exist: 7. `.planning/design/screens/{prev}-SUMMARY.md` — for cross-screen consistency}
 {IF .planning/design/PROJECT-SCAN.md exists (brownfield project):}
 7. `.planning/design/PROJECT-SCAN.md` — project directory structure, framework, existing components
 8. `.planning/design/CONVENTIONS.md` — file naming, export style, import paths, CSS approach
@@ -132,6 +148,7 @@ Before writing code, write a brief analysis to `.planning/design/screens/{SCREEN
    - `currentColor` for color (set via parent element's `color` property)
    - NEVER invent icon names. If a needed icon isn't in the catalog, use the closest semantic match and note it in SUMMARY.md.
    - NEVER use bracket placeholders like `[icon]` or `[MerchantIcon]`.
+10. **Platform compliance:** IF a platform overlay was provided, ALL output must follow its rules. File format, placement, imports, and styling approach are dictated by the overlay. The overlay rules OVERRIDE conflicting base rules (e.g., if overlay says "use Tailwind classes", do NOT use inline CSS custom properties even though the base rules mention them).
 
 ### B2. Decomposition Rules
 
@@ -180,9 +197,15 @@ Before writing any file, check if a file already exists at that path. If it does
 
 {IF no PROJECT-SCAN.md (greenfield):}
 
+{IF HAS_OVERLAY is true (platform-specific project):}
+Place files according to the platform overlay's File Output Rules.
+The scaffolded project directory is the current working directory (or its parent if .planning/ is the cwd).
+Use the overlay's conventions for page vs component placement.
+{ELSE:}
 Place all files in: `.planning/design/screens/{SCREEN_NAME}/`
 Create a barrel export (index.ts or index.js) for the directory.
 Use sensible defaults: TypeScript (.tsx), named exports, single quotes, semicolons, inline styles with CSS custom properties from tokens.css.
+{ENDIF}
 
 ### B3. Existing Component Reuse
 
@@ -231,6 +254,8 @@ Before writing each component, verify:
 - ❌ Am I recreating a component that exists in COMPONENT-GAP.md? -> STOP. Import it instead.
 - ❌ Am I using a different import path style than CONVENTIONS.md specifies? -> STOP. Match the project's convention.
 - ✅ Every visual value references a CSS custom property from tokens.css.
+{IF HAS_OVERLAY is true:}
+- All anti-slop additions from the platform overlay also apply. Read them.
 
 ### D. Self-Review Checklist
 Before committing, verify:
@@ -249,6 +274,11 @@ Before committing, verify:
 - [ ] IF brownfield: existing components imported, not recreated
 - [ ] IF brownfield: file paths match project conventions (naming, directories)
 - [ ] IF brownfield: import paths use project's style (@/ alias, relative, barrel)
+{IF HAS_OVERLAY is true:}
+- [ ] All files placed per platform overlay File Output Rules
+- [ ] All styling uses platform overlay approach (Tailwind classes, not inline CSS)
+- [ ] All imports follow platform overlay Import Rules
+- [ ] "use client" applied correctly per platform overlay rules (if applicable)
 - [ ] All created files staged but NOT committed until validation passes
 
 ### E. Create Summary
