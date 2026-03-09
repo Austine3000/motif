@@ -4,7 +4,7 @@ allowed-tools: Read, Grep, Glob, Bash(git add:*), Bash(git commit:*), Bash(mkdir
 ---
 
 <path_resolution>
-{MOTIF_ROOT} resolves to the directory where Motif core files are installed.
+.claude/get-motif resolves to the directory where Motif core files are installed.
 Claude Code: .claude/get-motif
 OpenCode: .opencode/get-motif
 Gemini: .gemini/get-motif
@@ -17,9 +17,20 @@ The installer sets this path. If unsure, check the project's config injection fi
 You are the Motif system generator orchestrator. You spawn a fresh agent to generate the design system.
 
 <gate_check>
-Read `.planning/design/STATE.md`.
-If Phase is not `RESEARCHED`, stop: "Run /motif:research first."
-If `.planning/design/DESIGN-RESEARCH.md` does not exist, stop: "Run /motif:research first."
+**Step 0 -- Load state:**
+Run `node .claude/get-motif/scripts/motif-state.js read` and parse JSON output.
+- If `{"error": "missing"}` or `{"error": "corrupt"}`: run `node .claude/get-motif/scripts/motif-state.js recover`. If recovery succeeds, notify user: "State recovered from artifacts -- phase: {phase}, {N}/{M} screens". If recovery fails, warn: "No Motif state found. Proceeding without state context."
+- Otherwise: state is loaded.
+
+**Step 1 -- Validate phase:**
+If Phase is not `RESEARCHED`:
+  WARN: "Current phase is {phase}. This command typically runs during RESEARCHED. Proceeding anyway."
+  (Do NOT block. Proceed with the command.)
+
+**Step 2 -- Check prerequisites:**
+If `.planning/design/DESIGN-RESEARCH.md` does not exist:
+  WARN: "Missing DESIGN-RESEARCH.md. Running this command without it may produce inconsistent results. Consider running /motif:research first."
+  (Do NOT block. Proceed with the command.)
 </gate_check>
 
 ## Step 1: Read Context (Paths Only)
@@ -32,11 +43,61 @@ Check these exist:
 
 Read STATE.md for: vertical name, stack.
 
-Check if vertical reference exists: `{MOTIF_ROOT}/references/verticals/{VERTICAL}.md`
+Check if vertical reference exists: `.claude/get-motif/references/verticals/{VERTICAL}.md`
 
 ```bash
 mkdir -p .planning/design/system
 ```
+
+## Step 1b: Brownfield Token Decision
+
+Check if `.planning/design/TOKEN-INVENTORY.md` exists.
+
+**If TOKEN-INVENTORY.md exists:**
+
+Read the Summary section of TOKEN-INVENTORY.md. Present to user:
+
+"I found existing design tokens in your project:
+- Colors: [N] tokens ([X]% of Motif standard)
+- Typography: [N] tokens ([X]% of Motif standard)
+- Spacing: [N] tokens ([X]% of Motif standard)
+- Total coverage: [X]% of what Motif would generate
+
+Choose your token strategy:
+1. **Adopt existing** — Keep all your current tokens as-is. Motif generates only what's missing.
+2. **Merge with Motif** (recommended) — Use your tokens as starting values. Motif fills gaps and adds vertical-specific tokens.
+3. **Start fresh** — Ignore existing tokens entirely. Generate a complete new system.
+
+[Default: 2 (Merge)]"
+
+Record the user's choice. Store it for passing to the subagent.
+
+Append to STATE.md decisions log:
+`[date] Token strategy: [adopt/merge/fresh] — [N] existing tokens, [X]% coverage`
+
+**If TOKEN-INVENTORY.md does NOT exist:**
+Skip this step entirely. Continue to Step 1c.
+
+## Step 1c: Component Gap Analysis
+
+Check if `.planning/design/PROJECT-SCAN.md` exists AND has a component catalog section.
+
+**If PROJECT-SCAN.md exists with components:**
+
+Read STATE.md for vertical name.
+
+Run gap analysis:
+```bash
+node scripts/gap-analyzer.js [projectRoot] --vertical [vertical]
+```
+
+This generates `.planning/design/COMPONENT-GAP.md`.
+
+Read the generated COMPONENT-GAP.md summary and present to user:
+"Your project has [X] of [Y] required components. Motif will generate full specs for the [Z] missing ones and reference specs for the existing ones."
+
+**If PROJECT-SCAN.md does NOT exist or has no component catalog:**
+Skip this step. Continue to Step 2.
 
 ## Step 2: Spawn System Generator Agent
 
@@ -51,8 +112,19 @@ You are a design system architect. Generate a complete, production-ready design 
 3. `.planning/design/DESIGN-RESEARCH.md` — CRITICAL: follow all LOCKED decisions
 4. `.planning/design/research/02-visual-language.md`
 5. `.planning/design/research/03-accessibility.md`
-{IF vertical ref exists: 6. `{MOTIF_ROOT}/references/verticals/{VERTICAL}.md`}
-7. `{MOTIF_ROOT}/references/icon-libraries.md` -- icon library metadata, selection algorithm, CDN URLs
+{IF vertical ref exists: 6. `.claude/get-motif/references/verticals/{VERTICAL}.md`}
+7. `.claude/get-motif/references/icon-libraries.md` -- icon library metadata, selection algorithm, CDN URLs
+
+{IF TOKEN-INVENTORY.md exists:}
+8. `.planning/design/TOKEN-INVENTORY.md` — existing token inventory
+   **Token strategy: [user's choice from Step 1b]**
+   Follow the Brownfield Mode instructions in your agent definition for the chosen strategy.
+
+{IF COMPONENT-GAP.md exists:}
+9. `.planning/design/COMPONENT-GAP.md` — component gap analysis
+   For "existing" components: generate reference-only specs (marked "existing in project").
+   For "missing" components: generate full specs (variants, states, accessibility).
+   For "partial" components: generate full specs with note about existing partial implementation.
 
 ## Output 1: tokens.css (budget: ≤3000 tokens)
 
@@ -151,7 +223,7 @@ IF Starting Fresh (Type A) or no color constraints:
 ### Icon Library Decision Algorithm
 1. Read vertical from PROJECT.md / STATE.md
 2. Read Differentiation Seed from DESIGN-BRIEF.md (personality, temperature, formality axes)
-3. Load icon library reference: `{MOTIF_ROOT}/references/icon-libraries.md`
+3. Load icon library reference: `.claude/get-motif/references/icon-libraries.md`
 4. IF user_library_override is set in DESIGN-BRIEF.md: use it, skip to step 6
 5. Look up primary library in icon-libraries.md Domain Affinity Matrix for the vertical
 6. Apply personality-based weight selection (from icon-libraries.md Selection Algorithm):
@@ -347,7 +419,7 @@ Open it: `open .planning/design/system/token-showcase.html` (or equivalent)
 
 Generate a project-specific icon catalog by:
 1. Run the Icon Library Decision Algorithm (above) to determine: library, weight, CDN URL, usage syntax
-2. Read the vertical reference file's `## Icon Vocabulary` section (`{MOTIF_ROOT}/references/verticals/{VERTICAL}.md`)
+2. Read the vertical reference file's `## Icon Vocabulary` section (`.claude/get-motif/references/verticals/{VERTICAL}.md`)
 3. Extract ONLY the column for the selected library
 4. For each icon, construct the full class/element string using the library's usage syntax
 5. Organize by the same semantic categories as the vocabulary (Navigation, Domain, Status, Actions)
@@ -390,6 +462,8 @@ After agent completes, verify these files exist:
 Update STATE.md:
 - Phase → `SYSTEM_GENERATED`
 - Update context budget table with actual file sizes
+- If TOKEN-INVENTORY.md exists: add to context budget table (`~1,500 tokens | ≤1,500`)
+- If COMPONENT-GAP.md exists: add to context budget table (`~800 tokens | ≤800`)
 
 Commit: state update
 
@@ -398,3 +472,9 @@ Commit: state update
 "Design system generated. Open `token-showcase.html` to preview your tokens visually."
 
 "Run `/motif:compose {first_screen}` to start building screens."
+
+## Final Step: Update State
+
+Run `node .claude/get-motif/scripts/motif-state.js update phase SYSTEM_GENERATED`.
+Run `node .claude/get-motif/scripts/motif-state.js update last_command /motif:system` and `update last_outcome success`.
+Run `node .claude/get-motif/scripts/motif-state.js update updated {ISO_DATE}`.

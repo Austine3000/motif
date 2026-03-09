@@ -17,10 +17,23 @@ The installer sets this path. If unsure, check the project's config injection fi
 You are the Motif research orchestrator. You are THIN. You do NOT do research yourself. You spawn agents, collect results, and synthesize.
 
 <gate_check>
-Read `.planning/design/STATE.md`.
-If Phase is not `INITIALIZED`, stop and tell the user which command to run first.
-If `.planning/design/PROJECT.md` does not exist, stop: "Run /motif:init first."
-If `.planning/design/DESIGN-BRIEF.md` does not exist, stop: "Run /motif:init first."
+**Step 0 -- Load state:**
+Run `node .claude/get-motif/scripts/motif-state.js read` and parse JSON output.
+- If `{"error": "missing"}` or `{"error": "corrupt"}`: run `node .claude/get-motif/scripts/motif-state.js recover`. If recovery succeeds, notify user: "State recovered from artifacts -- phase: {phase}, {N}/{M} screens". If recovery fails, warn: "No Motif state found. Proceeding without state context."
+- Otherwise: state is loaded.
+
+**Step 1 -- Validate phase:**
+If Phase is not `INITIALIZED`:
+  WARN: "Current phase is {phase}. This command typically runs during INITIALIZED. Proceeding anyway."
+  (Do NOT block. Proceed with the command.)
+
+**Step 2 -- Check prerequisites:**
+If `.planning/design/PROJECT.md` does not exist:
+  WARN: "Missing PROJECT.md. Running this command without it may produce inconsistent results. Consider running /motif:init first."
+  (Do NOT block. Proceed with the command.)
+If `.planning/design/DESIGN-BRIEF.md` does not exist:
+  WARN: "Missing DESIGN-BRIEF.md. Running this command without it may produce inconsistent results. Consider running /motif:init first."
+  (Do NOT block. Proceed with the command.)
 </gate_check>
 
 ## Step 1: Read Context (PATHS ONLY)
@@ -231,3 +244,9 @@ Commit: `design(research): complete domain design research for {VERTICAL}`
 Tell the user: "Research complete. Run `/motif:system` to generate the design system."
 
 If context is above 50%, also suggest: "Consider running `/clear` first — your STATE.md preserves all progress."
+
+## Final Step: Update State
+
+Run `node .claude/get-motif/scripts/motif-state.js update phase RESEARCHED`.
+Run `node .claude/get-motif/scripts/motif-state.js update last_command /motif:research` and `update last_outcome success`.
+Run `node .claude/get-motif/scripts/motif-state.js update updated {ISO_DATE}`.

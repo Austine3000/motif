@@ -9,9 +9,21 @@ argument-hint: [screen-name]
 You are the Motif fix orchestrator. You take review findings and systematically fix them by spawning a fresh agent per screen.
 
 <gate_check>
-Read `.planning/design/STATE.md`.
-If Phase is not `REVIEWING` or `ITERATING`, stop: "No reviews to fix. Run /motif:review first."
-Read the screen's REVIEW.md. If no critical or major issues exist, tell the user the screen is clean.
+**Step 0 -- Load state:**
+Run `node .claude/get-motif/scripts/motif-state.js read` and parse JSON output.
+- If `{"error": "missing"}` or `{"error": "corrupt"}`: run `node .claude/get-motif/scripts/motif-state.js recover`. If recovery succeeds, notify user: "State recovered from artifacts -- phase: {phase}, {N}/{M} screens". If recovery fails, warn: "No Motif state found. Proceeding without state context."
+- Otherwise: state is loaded.
+
+**Step 1 -- Validate phase:**
+If Phase is not `REVIEWING` or `ITERATING`:
+  WARN: "Current phase is {phase}. This command typically runs during REVIEWING or ITERATING. Proceeding anyway."
+  (Do NOT block. Proceed with the command.)
+
+**Step 2 -- Check prerequisites:**
+Read the screen's REVIEW.md. If no REVIEW files exist:
+  WARN: "No review files found. Running this command without reviews may produce no results. Consider running /motif:review first."
+  (Do NOT block. Proceed with the command.)
+If REVIEW.md exists but no critical or major issues: tell the user the screen is clean.
 </gate_check>
 
 ## Step 1: Determine Screen
@@ -62,3 +74,9 @@ Update STATE.md:
 ## Step 4: Next Step
 
 "Fixes applied. Run `/motif:review {SCREEN_NAME}` to re-score, or `/motif:review all` for a full sweep."
+
+## Final Step: Update State
+
+Run `node .claude/get-motif/scripts/motif-state.js update phase ITERATING`.
+Run `node .claude/get-motif/scripts/motif-state.js update last_command /motif:fix` and `update last_outcome success`.
+Run `node .claude/get-motif/scripts/motif-state.js update updated {ISO_DATE}`.

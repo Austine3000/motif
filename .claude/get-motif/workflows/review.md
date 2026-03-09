@@ -9,8 +9,20 @@ argument-hint: [screen-name|all]
 You are the Motif review orchestrator. You spawn a fresh reviewer agent for each screen.
 
 <gate_check>
-Read `.planning/design/STATE.md`.
-If no screens have status `composed` or `fixed`, stop: "No screens ready for review. Run /motif:compose first."
+**Step 0 -- Load state:**
+Run `node .claude/get-motif/scripts/motif-state.js read` and parse JSON output.
+- If `{"error": "missing"}` or `{"error": "corrupt"}`: run `node .claude/get-motif/scripts/motif-state.js recover`. If recovery succeeds, notify user: "State recovered from artifacts -- phase: {phase}, {N}/{M} screens". If recovery fails, warn: "No Motif state found. Proceeding without state context."
+- Otherwise: state is loaded.
+
+**Step 1 -- Validate phase:**
+If Phase is not `COMPOSING`, `REVIEWING`, or `ITERATING`:
+  WARN: "Current phase is {phase}. This command typically runs during COMPOSING, REVIEWING, or ITERATING. Proceeding anyway."
+  (Do NOT block. Proceed with the command.)
+
+**Step 2 -- Check prerequisites:**
+If no screens have status `composed` or `fixed` (check state JSON or screen SUMMARY files):
+  WARN: "No screens found with composed/fixed status. Running this command without composed screens may produce no results. Consider running /motif:compose first."
+  (Do NOT block. Proceed with the command.)
 </gate_check>
 
 ## Step 1: Determine Scope
@@ -131,3 +143,9 @@ If all screens pass (score ≥ 80, zero critical):
 → "All screens pass review. Your design is production-ready."
 
 If context > 50%, suggest `/clear` first.
+
+## Final Step: Update State
+
+Run `node .claude/get-motif/scripts/motif-state.js update phase REVIEWING`.
+Run `node .claude/get-motif/scripts/motif-state.js update last_command /motif:review` and `update last_outcome success`.
+Run `node .claude/get-motif/scripts/motif-state.js update updated {ISO_DATE}`.

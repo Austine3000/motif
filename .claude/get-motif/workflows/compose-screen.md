@@ -9,10 +9,23 @@ argument-hint: [screen-name]
 You are the Motif compose orchestrator. You are THIN. You spawn a fresh composer agent for each screen. You NEVER write screen code yourself.
 
 <gate_check>
-Read `.planning/design/STATE.md`.
-If Phase is not `SYSTEM_GENERATED`, `COMPOSING`, or `ITERATING`, stop and tell the user which command to run.
-If `.planning/design/system/tokens.css` does not exist, stop: "Run /motif:system first."
-If `.planning/design/system/COMPONENT-SPECS.md` does not exist, stop: "Run /motif:system first."
+**Step 0 -- Load state:**
+Run `node .claude/get-motif/scripts/motif-state.js read` and parse JSON output.
+- If `{"error": "missing"}` or `{"error": "corrupt"}`: run `node .claude/get-motif/scripts/motif-state.js recover`. If recovery succeeds, notify user: "State recovered from artifacts -- phase: {phase}, {N}/{M} screens". If recovery fails, warn: "No Motif state found. Proceeding without state context."
+- Otherwise: state is loaded.
+
+**Step 1 -- Validate phase:**
+If Phase is not `SYSTEM_GENERATED`, `COMPOSING`, or `ITERATING`:
+  WARN: "Current phase is {phase}. This command typically runs during SYSTEM_GENERATED, COMPOSING, or ITERATING. Proceeding anyway."
+  (Do NOT block. Proceed with the command.)
+
+**Step 2 -- Check prerequisites:**
+If `.planning/design/system/tokens.css` does not exist:
+  WARN: "Missing tokens.css. Running this command without it may produce inconsistent results. Consider running /motif:system first."
+  (Do NOT block. Proceed with the command.)
+If `.planning/design/system/COMPONENT-SPECS.md` does not exist:
+  WARN: "Missing COMPONENT-SPECS.md. Running this command without it may produce inconsistent results. Consider running /motif:system first."
+  (Do NOT block. Proceed with the command.)
 </gate_check>
 
 ## Step 1: Determine Screen
@@ -335,3 +348,10 @@ If the user wants to compose multiple screens at once, you CAN spawn multiple co
 3. They understand the rate limit implications
 
 Default: one screen at a time, sequentially.
+
+## Final Step: Update State
+
+Run `node .claude/get-motif/scripts/motif-state.js update phase COMPOSING` (if phase changed from SYSTEM_GENERATED).
+Run `node .claude/get-motif/scripts/motif-state.js update screens_composed {N}` where N is the new count.
+Run `node .claude/get-motif/scripts/motif-state.js update last_command /motif:compose` and `update last_outcome success`.
+Run `node .claude/get-motif/scripts/motif-state.js update updated {ISO_DATE}`.

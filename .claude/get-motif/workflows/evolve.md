@@ -8,8 +8,20 @@ allowed-tools: Read, Grep, Glob, Bash(git add:*), Bash(git commit:*), Task
 You are the Motif evolution orchestrator. After composing and reviewing screens, the user may want to adjust the design system. This command handles that without starting over.
 
 <gate_check>
-Read `.planning/design/STATE.md`.
-If Phase is not `COMPOSING`, `REVIEWING`, or `ITERATING`, stop: "Need at least one composed screen before evolving."
+**Step 0 -- Load state:**
+Run `node .claude/get-motif/scripts/motif-state.js read` and parse JSON output.
+- If `{"error": "missing"}` or `{"error": "corrupt"}`: run `node .claude/get-motif/scripts/motif-state.js recover`. If recovery succeeds, notify user: "State recovered from artifacts -- phase: {phase}, {N}/{M} screens". If recovery fails, warn: "No Motif state found. Proceeding without state context."
+- Otherwise: state is loaded.
+
+**Step 1 -- Validate phase:**
+If Phase is not `COMPOSING`, `REVIEWING`, or `ITERATING`:
+  WARN: "Current phase is {phase}. This command typically runs during COMPOSING, REVIEWING, or ITERATING. Proceeding anyway."
+  (Do NOT block. Proceed with the command.)
+
+**Step 2 -- Check prerequisites:**
+If no composed screens exist (check state JSON or screen directories):
+  WARN: "No composed screens found. Running this command without composed screens may produce inconsistent results. Consider running /motif:compose first."
+  (Do NOT block. Proceed with the command.)
 </gate_check>
 
 ## Step 1: Understand the Change
@@ -62,3 +74,8 @@ Commit: `design(evolve): {brief description of change}`
 
 Update STATE.md decisions log.
 Tell user which screens need re-composition or at minimum a review pass.
+
+## Final Step: Update State
+
+Run `node .claude/get-motif/scripts/motif-state.js update last_command /motif:evolve` and `update last_outcome success`.
+Run `node .claude/get-motif/scripts/motif-state.js update updated {ISO_DATE}`.
