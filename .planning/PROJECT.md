@@ -12,14 +12,16 @@ Domain-intelligent design delivered through fresh context — a fintech app must
 
 ## Current State
 
-**Shipped:** v1.1 (2026-03-04)
-**Published:** motif-design@0.1.0 on npm
+**Shipped:** v1.3 (2026-03-09)
+**Published:** motif-design@0.2.3 on npm
 
-Two milestones delivered:
+Four milestones delivered:
 - **v1.0 Core Design System** — Full pipeline (research → system → compose → review → fix), 4 verticals, installer, hooks, CI/CD, npm publishing
 - **v1.1 Icon Library Integration** — 4 curated icon libraries, per-vertical vocabularies, ICON-CATALOG.md generation, composer anti-slop enforcement, reviewer icon checks, aria-check icon detection
+- **v1.2 Brownfield Intelligence** — Project scanning, token extraction, brownfield compose/review integration
+- **v1.3 Global Reach** — Context resilience (SessionStart hooks, 3-layer defense), 4 new verticals (8 total), global CLI (init/status/update/doctor/list), package source sync
 
-**Stats:** 12 phases, 32 plans executed across 2 milestones
+**Stats:** 21 phases, 52 plans executed across 4 milestones
 
 ## Requirements
 
@@ -43,29 +45,37 @@ Two milestones delivered:
 - ✓ Composer icon anti-slop enforcement — v1.1
 - ✓ Reviewer icon catalog compliance + vertical appropriateness checks — v1.1
 - ✓ aria-check hook icon element detection — v1.1
+- ✓ Brownfield project scanning and token extraction — v1.2
+- ✓ Brownfield compose/review integration — v1.2
+- ✓ Context resilience (SessionStart hooks, 3-layer defense, state recovery) — v1.3
+- ✓ 8 verticals (fintech, health, SaaS, e-commerce, social, education, marketplace, devtools) — v1.3
+- ✓ Global CLI (motif init/status/update/doctor/list) — v1.3
+- ✓ Package source sync with E2E verification — v1.3
 
 ### Active
 
-**Current Milestone: v1.3 Global Reach**
+**Current Milestone: v1.4 Cross-Platform App Builder**
 
-**Goal:** Make Motif installable once and usable everywhere — global CLI, global agent files, resilient state management across context clears, and complete vertical coverage.
+**Goal:** Transform Motif from a design system generator into a full design-to-running-app pipeline — smart framework scaffolding, platform-aware component composition, and auto-run that takes users from zero to seeing their app running.
 
 **Target features:**
-- Global install (`npm install -g motif-design`) with `motif` CLI command (install/update/status)
-- Global agent files in `~/.claude/` — zero per-project setup for tooling
-- Global hooks (token-check, font-check, a11y-check, context-monitor)
-- Per-project install still supported alongside global
-- Context resilience — state machine survives `/clear` between workflow steps
-- 4 new verticals: Social, Education, Marketplace, DevTools
+- Smart scaffolding: `motif init` asks what you're building, recommends a framework (Next.js, Vite/React, Expo/React Native, static HTML), creates the actual project with dependencies installed
+- Platform-aware composition: screens output real framework components (JSX for React/Next.js, React Native Views/StyleSheet for mobile) instead of raw HTML/CSS
+- Cross-platform design consistency: shared design tokens adapted per platform (CSS custom properties for web, StyleSheet constants for React Native), consistent visual language across platforms
+- Auto-run: after composition, Motif runs the project's start command (`npm run dev`, `npx expo start`) and opens it in browser/simulator
+- Web platforms: Next.js, Vite/React, static HTML landing pages
+- Mobile platforms: React Native with Expo
 
 ### Out of Scope
 
-- OpenCode/Cursor/Gemini CLI runtime support — v1.4+, same core/runtime arch
-- Tailwind token export — future command, CSS custom properties only
-- Advanced icon features (dark mode weight, duotone colors, variable fonts, icon search) — v1.4+
+- OpenCode/Cursor/Gemini CLI runtime support — v1.5+, same core/runtime arch
+- Desktop apps (Electron/Tauri) — v1.5+
+- Tailwind token export — future, CSS custom properties primary
+- Advanced icon features (dark mode weight, duotone colors, variable fonts, icon search) — future
 - CHANGELOG.md — defer to post-v1 release cycle
 - Custom icon creation/generation — use established libraries only
-- Icon font bundling — CDN-first, user handles build integration
+- Backend/API scaffolding — Motif is frontend/UI only
+- State management setup (Redux, Zustand, etc.) — user choice, not Motif's domain
 
 ## Context
 
@@ -84,7 +94,7 @@ Two milestones delivered:
 
 - **No dependencies**: Pure Node.js for installer, hooks, scripts. Zero npm dependencies.
 - **Markdown-first**: All design intelligence, commands, workflows, agents are .md files.
-- **Framework-agnostic tokens**: CSS custom properties only. No Tailwind, no CSS-in-JS.
+- **Platform-adaptive tokens**: CSS custom properties for web, StyleSheet constants for React Native. Same design values, platform-native delivery.
 - **Context discipline**: Follow context-engine.md strictly. Orchestrators pass paths, not contents.
 - **Git atomic commits**: Every agent commits with `design(...)` prefix.
 - **Coexist with GSD**: Uses `.planning/design/`, never touches `.planning/phases/`.
@@ -108,5 +118,7 @@ Two milestones delivered:
 | CSS class + CDN delivery | Inline SVG is anti-pattern for agents; CDN is zero-config | ✓ Good |
 | Icon size as system invariant | Fixed 8px-multiple scale, not project-adjustable | ✓ Good |
 
+| v1.4 cross-platform scope | Web (Next.js, Vite/React, static HTML) + Mobile (React Native/Expo). Desktop deferred. | — Pending |
+
 ---
-*Last updated: 2026-03-09 after v1.3 milestone start*
+*Last updated: 2026-03-09 after v1.4 milestone start*
