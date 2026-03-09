@@ -3,7 +3,7 @@
   "version": "0.2.2",
   "description": "Domain-intelligent design system for AI coding assistants",
   "bin": {
-    "motif": "bin/install.js"
+    "motif": "bin/cli.js"
   },
   "files": [
     "bin/",
@@ -28,8 +28,5 @@
     "cli",
     "design-tokens",
     "motif"
-  ],
-  "dependencies": {
-    "motif-design": "^0.1.0"
-  }
+  ]
 }
