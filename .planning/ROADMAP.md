@@ -122,11 +122,11 @@ Plans:
   2. User can run `motif update` and have project files synced from a newer global package version, with downgrade protection that refuses to overwrite newer files without --force
   3. User can run `motif doctor` and receive a diagnostic report checking file integrity (all expected files present), hook configuration (CLAUDE.md entries correct), and version consistency (global vs project)
   4. User can run `motif list` and see all available verticals (all 8) with short descriptions, so they know their options before running init
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 20-01: TBD
-- [ ] 20-02: TBD
+- [ ] 20-01-PLAN.md — Vertical sync, shared manifest utility, status and list commands
+- [ ] 20-02-PLAN.md — Update and doctor commands, CLI router registration, e2e tests
 
 ## Progress
 
@@ -156,4 +156,4 @@ Phases execute in numeric order: 17 → 18 → 19 → 20
 | 17. Context Resilience | v1.3 | 3/3 | Complete | 2026-03-09 |
 | 18. New Verticals | v1.3 | 3/3 | Complete | 2026-03-09 |
 | 19. Global CLI Core | v1.3 | 2/2 | Complete | 2026-03-09 |
-| 20. CLI Commands and Vertical Discovery | v1.3 | 0/TBD | Not started | - |
+| 20. CLI Commands and Vertical Discovery | v1.3 | 0/2 | Not started | - |
