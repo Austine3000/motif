@@ -114,6 +114,37 @@ After Round 1, internally classify the vertical:
 
 Don't ask the user what their vertical is. TELL them what you detected and why. Be opinionated.
 
+### Framework Recommendation
+
+After vertical detection, internally assess the best platform fit using keyword matching on the user's Round 1 answer ("What are you building?"). Apply these rules:
+
+| Keywords in description | Recommended platform | Reasoning |
+|---|---|---|
+| dashboard, admin panel, CRM, analytics, portfolio, blog, e-commerce store, marketplace, saas | `web-nextjs` | SSR benefits, SEO, App Router for complex routing |
+| landing page, portfolio site, brochure site, one-page | `web-static` | Simplest, fastest for static content |
+| single page app, SPA, tool, internal tool, calculator, widget | `web-vite` | Client-side rendering, fast dev iteration |
+| mobile app, iOS, Android, cross-platform mobile, native app | `mobile-expo` | React Native for native mobile experience |
+| ambiguous or unclear | `web-nextjs` | Most versatile default |
+
+**Presentation:** At the START of Round 4, BEFORE showing the platform options, present the recommendation:
+
+> "Based on what you're building, I'd recommend **{label}** ({reasoning from table}). Want to go with that, or prefer something else?"
+
+Then show the platform options (a/b/c/d) so the user can accept or override.
+
+- If the user accepts the recommendation, skip the platform question -- the answer is already determined.
+- If the user says they want something else, show the full platform options and use their explicit choice.
+
+**Brownfield override:** If brownfield detection already identified a platform (e.g., Next.js detected in package.json), that detection takes priority over keyword matching. The brownfield-detected platform is pre-filled and the recommendation step is skipped (as documented in the Brownfield Detection section above).
+
+### Round 4 Post-Platform Note
+
+After platform selection is finalized (whether by recommendation acceptance, override, or brownfield detection), if the platform is `web-nextjs`, `web-vite`, or `mobile-expo`, tell the user:
+
+> "After design system generation, I'll scaffold your project with the right tooling."
+
+This primes the user for the downstream scaffolding workflow.
+
 ## Generate Files
 
 After interview (or auto-mode parsing), create:
