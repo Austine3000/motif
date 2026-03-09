@@ -93,6 +93,10 @@ Single source of truth for icon library metadata, domain affinity, and the selec
 | Health | Material Symbols (Rounded) | Phosphor Icons | regular (wght:400) | filled (FILL:1) | Broadest medical icon coverage; Rounded style is warm, not clinical |
 | SaaS | Lucide | Phosphor Icons | default (2px stroke) | default (2px stroke) | Feather-derived SaaS standard; single style means no weight variation |
 | E-commerce | Material Symbols (Rounded) | Tabler Icons | regular (wght:400) | filled (FILL:1) | Action-oriented icons with fill for CTAs; Tabler for niche categories |
+| Social | Phosphor Icons | Lucide | regular | duotone | Rich social/communication icons; duotone adds personality and visual hierarchy |
+| Education | Material Symbols (Rounded) | Phosphor Icons | regular (wght:400) | filled (FILL:1) | Broadest education icon coverage; Rounded style feels approachable, not institutional |
+| Marketplace | Material Symbols (Rounded) | Tabler Icons | regular (wght:400) | filled (FILL:1) | Action-oriented commerce icons with fill for CTAs; same rationale as E-commerce |
+| DevTools | Lucide | Phosphor Icons | default (2px stroke) | default (2px stroke) | Feather-derived developer standard; terminal-native aesthetic matches code editors |
 
 **Key rules:**
 - One library per project -- no mixing libraries in the same output
@@ -106,7 +110,7 @@ Single source of truth for icon library metadata, domain affinity, and the selec
 Deterministic lookup: vertical + brand personality seed produces library + weight with zero ambiguity. Mirrors how Color and Typography Decision Algorithms work in `generate-system.md`.
 
 **Inputs:**
-- `vertical` (string): fintech | health | saas | ecommerce
+- `vertical` (string): fintech | health | saas | ecommerce | social | education | marketplace | devtools
 - `personality` (integer, 1-10): from Differentiation Seed in DESIGN-BRIEF.md (see `core/references/design-inputs.md`)
 - `formality` (integer, 1-10): from Differentiation Seed in DESIGN-BRIEF.md
 - `user_library_override` (string, optional): explicit library choice from DESIGN-BRIEF.md
