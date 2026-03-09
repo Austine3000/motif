@@ -59,7 +59,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 **Milestone Goal:** Make Motif installable once and usable everywhere — resilient state that survives context clears, global CLI for zero-friction setup, and complete vertical coverage across 8 domains.
 
 - [x] Phase 17: Context Resilience — Every Motif workflow survives /clear and context compaction without losing state (completed 2026-03-09)
-- [ ] Phase 18: New Verticals — Users can generate domain-intelligent designs for Social, Education, Marketplace, and DevTools projects
+- [x] Phase 18: New Verticals — Users can generate domain-intelligent designs for Social, Education, Marketplace, and DevTools projects (completed 2026-03-09)
 - [ ] Phase 19: Global CLI Core — Users can install Motif globally and scaffold it into any project with a single command
 - [ ] Phase 20: CLI Commands and Vertical Discovery — Users can inspect, diagnose, update, and browse their Motif installation from the command line
 
@@ -94,9 +94,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 18-01-PLAN.md — Social and Education vertical reference files
-- [ ] 18-02-PLAN.md — Marketplace and DevTools vertical reference files
-- [ ] 18-03-PLAN.md — Integration point updates (icon-libraries.md, gap-analyzer.js, init.md)
+- [x] 18-01-PLAN.md — Social and Education vertical reference files
+- [x] 18-02-PLAN.md — Marketplace and DevTools vertical reference files
+- [x] 18-03-PLAN.md — Integration point updates (icon-libraries.md, gap-analyzer.js, init.md)
 
 ### Phase 19: Global CLI Core
 **Goal**: Users can install Motif once globally and scaffold it into any project without needing npx or per-project npm install
@@ -154,6 +154,6 @@ Phases execute in numeric order: 17 → 18 → 19 → 20
 | 15. Compose Integration | v1.2 | 2/2 | Complete | 2026-03-06 |
 | 16. Validation and Hardening | v1.2 | 2/2 | Complete | 2026-03-06 |
 | 17. Context Resilience | v1.3 | 3/3 | Complete | 2026-03-09 |
-| 18. New Verticals | v1.3 | 0/3 | Not started | - |
+| 18. New Verticals | v1.3 | 3/3 | Complete | 2026-03-09 |
 | 19. Global CLI Core | v1.3 | 0/TBD | Not started | - |
 | 20. CLI Commands and Vertical Discovery | v1.3 | 0/TBD | Not started | - |
