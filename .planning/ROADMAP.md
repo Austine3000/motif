@@ -62,7 +62,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 - [x] Phase 18: New Verticals — Users can generate domain-intelligent designs for Social, Education, Marketplace, and DevTools projects (completed 2026-03-09)
 - [x] Phase 19: Global CLI Core — Users can install Motif globally and scaffold it into any project with a single command (completed 2026-03-09)
 - [x] Phase 20: CLI Commands and Vertical Discovery — Users can inspect, diagnose, update, and browse their Motif installation from the command line (completed 2026-03-09)
-- [ ] Phase 21: Package Source Sync — New npm installs get the complete v1.3 feature set (gap closure)
+- [x] Phase 21: Package Source Sync — New npm installs get the complete v1.3 feature set (gap closure) (completed 2026-03-09)
 
 ## Phase Details
 
@@ -145,8 +145,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 21-01-PLAN.md — Sync Phase 17/18 artifacts to package source and fix init.js hook registration
-- [ ] 21-02-PLAN.md — E2E fresh install verification tests
+- [x] 21-01-PLAN.md — Sync Phase 17/18 artifacts to package source and fix init.js hook registration
+- [x] 21-02-PLAN.md — E2E fresh install verification tests
 
 ## Progress
 
@@ -178,4 +178,4 @@ Phases execute in numeric order: 17 → 18 → 19 → 20 → 21
 | 18. New Verticals | v1.3 | 3/3 | Complete | 2026-03-09 |
 | 19. Global CLI Core | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 20. CLI Commands and Vertical Discovery | v1.3 | 2/2 | Complete | 2026-03-09 |
-| 21. Package Source Sync | v1.3 | 0/2 | Not started | - |
+| 21. Package Source Sync | v1.3 | 2/2 | Complete | 2026-03-09 |
