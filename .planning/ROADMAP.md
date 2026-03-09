@@ -107,11 +107,11 @@ Plans:
   2. User can run `motif init` from any project directory and have Motif scaffolded into that project (commands, workflows, agents, hooks, CLAUDE.md injection) without needing npx or a local install
   3. User can still use `npx motif-design@latest` as before — the global install does not break the existing npx path
   4. The installer detects project root correctly (walks up to find .git/ or package.json) and refuses to install from non-project directories with a clear error
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 19-01: TBD
-- [ ] 19-02: TBD
+- [ ] 19-01-PLAN.md — CLI router, init command extraction, project root detection
+- [ ] 19-02-PLAN.md — E2E test updates and package publishing verification
 
 ### Phase 20: CLI Commands and Vertical Discovery
 **Goal**: Users can inspect, diagnose, update, and browse their Motif installation entirely from the command line
@@ -155,5 +155,5 @@ Phases execute in numeric order: 17 → 18 → 19 → 20
 | 16. Validation and Hardening | v1.2 | 2/2 | Complete | 2026-03-06 |
 | 17. Context Resilience | v1.3 | 3/3 | Complete | 2026-03-09 |
 | 18. New Verticals | v1.3 | 3/3 | Complete | 2026-03-09 |
-| 19. Global CLI Core | v1.3 | 0/TBD | Not started | - |
+| 19. Global CLI Core | v1.3 | 0/2 | Not started | - |
 | 20. CLI Commands and Vertical Discovery | v1.3 | 0/TBD | Not started | - |
