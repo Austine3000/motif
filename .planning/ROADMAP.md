@@ -62,6 +62,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 - [x] Phase 18: New Verticals — Users can generate domain-intelligent designs for Social, Education, Marketplace, and DevTools projects (completed 2026-03-09)
 - [x] Phase 19: Global CLI Core — Users can install Motif globally and scaffold it into any project with a single command (completed 2026-03-09)
 - [x] Phase 20: CLI Commands and Vertical Discovery — Users can inspect, diagnose, update, and browse their Motif installation from the command line (completed 2026-03-09)
+- [ ] Phase 21: Package Source Sync — New npm installs get the complete v1.3 feature set (gap closure)
 
 ## Phase Details
 
@@ -128,11 +129,31 @@ Plans:
 - [x] 20-01-PLAN.md — Vertical sync, shared manifest utility, status and list commands
 - [x] 20-02-PLAN.md — Update and doctor commands, CLI router registration, e2e tests
 
+### Phase 21: Package Source Sync
+**Goal**: New npm installs get the complete v1.3 feature set — context resilience, all 8 vertical icons, and full hook registration
+**Depends on**: Phase 20
+**Requirements**: CTXR-01, CTXR-03, CTXR-04, GCLI-02, GCLI-03, VERT-05
+**Gap Closure:** Closes all gaps from v1.3-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. Package source contains motif-state.js in scripts/ so new installs get artifact recovery
+  2. Package source contains motif-session-start.js in runtimes/claude-code/hooks/ so new installs get SessionStart hook
+  3. Package source motif-context-monitor.js matches the 125-line version with rich Motif state display
+  4. CLAUDE-MD-SNIPPET.md includes the State Awareness section so new installs get first-layer defense
+  5. core/references/icon-libraries.md includes all 8 vertical icon entries
+  6. init.js injectHookSettings() registers SessionStart hooks in settings.json
+  7. E2E test simulates fresh install and verifies motif status, doctor, and context resilience artifacts are present
+**Plans:** 2 plans
+
+Plans:
+- [ ] 21-01-PLAN.md — Sync Phase 17/18 artifacts to package source and fix init.js hook registration
+- [ ] 21-02-PLAN.md — E2E fresh install verification tests
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 17 → 18 → 19 → 20
+Phases execute in numeric order: 17 → 18 → 19 → 20 → 21
 (Note: Phases 17 and 18 have no mutual dependency and can be parallelized)
+(Note: Phase 21 is gap closure from milestone audit)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -157,3 +178,4 @@ Phases execute in numeric order: 17 → 18 → 19 → 20
 | 18. New Verticals | v1.3 | 3/3 | Complete | 2026-03-09 |
 | 19. Global CLI Core | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 20. CLI Commands and Vertical Discovery | v1.3 | 2/2 | Complete | 2026-03-09 |
+| 21. Package Source Sync | v1.3 | 0/2 | Not started | - |
