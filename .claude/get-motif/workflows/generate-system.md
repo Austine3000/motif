@@ -456,6 +456,28 @@ After agent completes, verify these files exist:
 - `.planning/design/system/DESIGN-SYSTEM.md`
 - `.planning/design/system/token-showcase.html`
 - `.planning/design/system/ICON-CATALOG.md`
+- `.planning/design/system/tokens.ts` (if platform is web-nextjs or web-vite)
+- `.planning/design/system/tokens.native.ts` (if platform is mobile-expo)
+
+## Step 3b: Generate Platform Token Files
+
+After verifying tokens.css exists, run the token transformer to produce platform-specific token files:
+
+```bash
+node .claude/get-motif/scripts/token-transformer.js .planning/design/system/tokens.css
+```
+
+The script reads the platform from STATE.md automatically. It generates:
+- For web platforms (web-nextjs, web-vite): `.planning/design/system/tokens.ts`
+- For mobile platforms (mobile-expo): `.planning/design/system/tokens.native.ts`
+- If platform is not set: generates both formats as fallback
+
+Verify the generated files exist:
+- If platform is web-nextjs, web-vite: check `.planning/design/system/tokens.ts` exists
+- If platform is mobile-expo: check `.planning/design/system/tokens.native.ts` exists
+- If platform is web-static: no TypeScript tokens needed (CSS-only platform)
+
+If the transformer fails (exit code 1), warn the user but do NOT block: "Token transformer failed. Platform-specific token files were not generated. You can run it manually: `node .claude/get-motif/scripts/token-transformer.js .planning/design/system/tokens.css`"
 
 ## Step 4: Update State
 
@@ -464,6 +486,8 @@ Update STATE.md:
 - Update context budget table with actual file sizes
 - If TOKEN-INVENTORY.md exists: add to context budget table (`~1,500 tokens | ≤1,500`)
 - If COMPONENT-GAP.md exists: add to context budget table (`~800 tokens | ≤800`)
+- If tokens.ts exists: add to context budget table (`~1,000 tokens | <=1,500`)
+- If tokens.native.ts exists: add to context budget table (`~1,000 tokens | <=1,500`)
 
 Commit: state update
 
