@@ -71,7 +71,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 **Milestone Goal:** Transform Motif from a design system generator into a full design-to-running-app pipeline — smart framework scaffolding, platform-aware component composition, and auto-run that takes users from zero to seeing their app running.
 
 - [x] Phase 22: Platform Foundation (2/2 plans) — completed 2026-03-09
-- [ ] Phase 23: Next.js Scaffolding and Web Composition — Complete Next.js vertical slice: scaffold, compose real JSX components with Tailwind/shadcn, validate the platform adapter pattern
+- [x] Phase 23: Next.js Scaffolding and Web Composition (3/3 plans) — completed 2026-03-10
 - [ ] Phase 24: Vite, Static, and Brownfield — Vite/React scaffolding, static HTML preservation, and brownfield framework detection for web projects
 - [ ] Phase 25: Auto-Run — Dev server launch, ready detection, browser opening, and process cleanup after composition
 - [ ] Phase 26: Expo and React Native — Mobile scaffolding, React Native component output, and cross-platform design consistency
@@ -106,9 +106,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 23-01-PLAN.md — Framework recommendation logic in init, registry shadcn config
-- [ ] 23-02-PLAN.md — Tailwind config generator script (tokens.css to globals.css bridge)
-- [ ] 23-03-PLAN.md — Composer platform overlay (composer-nextjs.md), orchestrator injection
+- [x] 23-01-PLAN.md — Framework recommendation logic in init, registry shadcn config
+- [x] 23-02-PLAN.md — Tailwind config generator script (tokens.css to globals.css bridge)
+- [x] 23-03-PLAN.md — Composer platform overlay (composer-nextjs.md), orchestrator injection
 
 ### Phase 24: Vite, Static, and Brownfield
 **Goal**: Users building lightweight web apps or landing pages get the same scaffolding and composition quality as Next.js, and users with existing framework projects skip scaffolding entirely
