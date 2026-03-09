@@ -5,8 +5,22 @@
     "scaffold": {
       "command": "npx",
       "args": ["create-next-app@latest", "{name}", "--ts", "--tailwind", "--app", "--eslint", "--src-dir", "--use-npm", "--yes", "--disable-git"],
-      "postInstall": []
+      "postInstall": [
+        "npx shadcn@latest init -y -b neutral",
+        "npx shadcn@latest add button card input badge -y"
+      ]
     },
+    "shadcn": {
+      "initCommand": "npx shadcn@latest init -y -b neutral",
+      "coreComponents": ["button", "card", "input", "badge"],
+      "addCommand": "npx shadcn@latest add {component} -y"
+    },
+    "scaffoldSequence": [
+      "create-next-app (scaffold.command + scaffold.args)",
+      "shadcn init (shadcn.initCommand)",
+      "shadcn add core components (shadcn.coreComponents)",
+      "generate globals.css with token bridge (tailwind-config-generator.js)"
+    ],
     "devServer": {
       "command": "npx",
       "args": ["next", "dev", "--turbopack"],
