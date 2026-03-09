@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 20 in progress — CLI Commands and Vertical Discovery
+**Current focus:** Phase 20 complete — CLI Commands and Vertical Discovery
 
 ## Current Position
 
 Phase: 20 of 20 (CLI Commands and Vertical Discovery)
-Plan: 1 of 2 in current phase (Plan 01 complete)
-Status: In progress
-Last activity: 2026-03-09 — Plan 20-01 complete (vertical sync + status/list commands)
+Plan: 2 of 2 in current phase (All plans complete)
+Status: Complete
+Last activity: 2026-03-09 — Plan 20-02 complete (update/doctor commands, CLI router, e2e tests)
 
-Progress: [=========================================...] ~98% (49/~50 plans estimated)
+Progress: [=============================================] 100% (50/50 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 49 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 9)
+- Total plans completed: 50 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 10)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -38,6 +38,7 @@ Progress: [=========================================...] ~98% (49/~50 plans esti
 | Phase 19 P01 | 4min | 2 tasks | 5 files |
 | Phase 19 P02 | 2min | 2 tasks | 1 files |
 | Phase 20 P01 | 3min | 3 tasks | 7 files |
+| Phase 20 P02 | 3min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,9 @@ Recent decisions affecting current work:
 - [20-01]: Extracted hashFile and compareVersions into shared manifest.js for cross-command reuse
 - [20-01]: Status command shells out to motif-state.js for design state (centralized state logic)
 - [20-01]: List command reads from package source, works without installation
+- [20-02]: Update delegates to init --force for file sync rather than duplicating install logic
+- [20-02]: Doctor exits 0 on warnings-only, exit 1 only on actual failures
+- [20-02]: Doctor checks 3 categories: file integrity, hook configuration, version consistency
 
 ### Pending Todos
 
@@ -83,5 +87,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-09
-Stopped at: Completed 20-01-PLAN.md -- vertical sync + status/list commands done, ready for Plan 02
+Stopped at: Completed 20-02-PLAN.md -- Phase 20 complete, all CLI commands implemented and tested
 Resume file: None
