@@ -458,6 +458,7 @@ After agent completes, verify these files exist:
 - `.planning/design/system/ICON-CATALOG.md`
 - `.planning/design/system/tokens.ts` (if platform is web-nextjs or web-vite)
 - `.planning/design/system/tokens.native.ts` (if platform is mobile-expo)
+- `.planning/design/system/globals.css` (if platform is web-nextjs or web-vite)
 
 ## Step 3b: Generate Platform Token Files
 
@@ -479,6 +480,22 @@ Verify the generated files exist:
 
 If the transformer fails (exit code 1), warn the user but do NOT block: "Token transformer failed. Platform-specific token files were not generated. You can run it manually: `node .claude/get-motif/scripts/token-transformer.js .planning/design/system/tokens.css`"
 
+## Step 3c: Generate Tailwind Token Bridge (globals.css)
+
+After verifying tokens.css exists, for web platforms that use Tailwind (web-nextjs, web-vite), generate the globals.css token bridge:
+
+Read STATE.md for platform. If platform is `web-nextjs` or `web-vite`:
+
+```bash
+node .claude/get-motif/scripts/tailwind-config-generator.js .planning/design/system/tokens.css --output .planning/design/system/globals.css
+```
+
+Verify `.planning/design/system/globals.css` exists after running.
+
+If the generator fails (exit code 1), warn the user but do NOT block: "Tailwind config generator failed. globals.css was not generated. You can run it manually: `node .claude/get-motif/scripts/tailwind-config-generator.js .planning/design/system/tokens.css --output .planning/design/system/globals.css`"
+
+If platform is `web-static` or `mobile-expo`: skip this step (no Tailwind on those platforms).
+
 ## Step 4: Update State
 
 Update STATE.md:
@@ -488,6 +505,7 @@ Update STATE.md:
 - If COMPONENT-GAP.md exists: add to context budget table (`~800 tokens | ≤800`)
 - If tokens.ts exists: add to context budget table (`~1,000 tokens | <=1,500`)
 - If tokens.native.ts exists: add to context budget table (`~1,000 tokens | <=1,500`)
+- If globals.css exists: add to context budget table (`~2,000 tokens | <=2,500`)
 
 Commit: state update
 
