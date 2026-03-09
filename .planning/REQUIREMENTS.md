@@ -138,10 +138,10 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAT-01 | Phase 22 | Pending |
-| PLAT-02 | Phase 22 | Pending |
-| PLAT-03 | Phase 22 | Pending |
-| PLAT-04 | Phase 22 | Pending |
+| PLAT-01 | Phase 22 | Satisfied |
+| PLAT-02 | Phase 22 | Satisfied |
+| PLAT-03 | Phase 22 | Satisfied |
+| PLAT-04 | Phase 22 | Satisfied |
 | PLAT-05 | Phase 23 | Pending |
 | SCAF-01 | Phase 23 | Pending |
 | SCAF-02 | Phase 23 | Pending |

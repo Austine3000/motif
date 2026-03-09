@@ -70,7 +70,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 
 **Milestone Goal:** Transform Motif from a design system generator into a full design-to-running-app pipeline — smart framework scaffolding, platform-aware component composition, and auto-run that takes users from zero to seeing their app running.
 
-- [ ] Phase 22: Platform Foundation — Platform detection, token transformation, and framework registry that all downstream phases depend on
+- [x] Phase 22: Platform Foundation (2/2 plans) — completed 2026-03-09
 - [ ] Phase 23: Next.js Scaffolding and Web Composition — Complete Next.js vertical slice: scaffold, compose real JSX components with Tailwind/shadcn, validate the platform adapter pattern
 - [ ] Phase 24: Vite, Static, and Brownfield — Vite/React scaffolding, static HTML preservation, and brownfield framework detection for web projects
 - [ ] Phase 25: Auto-Run — Dev server launch, ready detection, browser opening, and process cleanup after composition
@@ -90,8 +90,8 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 **Plans**: 2 plans
 
 Plans:
-- [ ] 22-01: Platform field in STATE.md, init flow updates, framework registry reference
-- [ ] 22-02: Token transformer script, design system pipeline integration
+- [x] 22-01: Platform field in STATE.md, init flow updates, framework registry reference
+- [x] 22-02: Token transformer script, design system pipeline integration
 
 ### Phase 23: Next.js Scaffolding and Web Composition
 **Goal**: Users can go from `/motif:init` to a real Next.js project with composed screens that are actual JSX components using Tailwind utility classes and shadcn/ui primitives
@@ -187,7 +187,7 @@ Phases execute in numeric order: 22 → 23 → 24 → 25 → 26
 | 19. Global CLI Core | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 20. CLI Commands and Vertical Discovery | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 21. Package Source Sync | v1.3 | 2/2 | Complete | 2026-03-09 |
-| 22. Platform Foundation | v1.4 | 0/TBD | Not started | - |
+| 22. Platform Foundation | v1.4 | 2/2 | Complete | 2026-03-09 |
 | 23. Next.js Scaffolding and Web Composition | v1.4 | 0/TBD | Not started | - |
 | 24. Vite, Static, and Brownfield | v1.4 | 0/TBD | Not started | - |
 | 25. Auto-Run | v1.4 | 0/TBD | Not started | - |
