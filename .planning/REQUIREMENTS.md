@@ -138,35 +138,35 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAT-01 | — | Pending |
-| PLAT-02 | — | Pending |
-| PLAT-03 | — | Pending |
-| PLAT-04 | — | Pending |
-| SCAF-01 | — | Pending |
-| SCAF-02 | — | Pending |
-| SCAF-03 | — | Pending |
-| SCAF-04 | — | Pending |
-| SCAF-05 | — | Pending |
-| SCAF-06 | — | Pending |
-| COMP-01 | — | Pending |
-| COMP-02 | — | Pending |
-| COMP-03 | — | Pending |
-| COMP-04 | — | Pending |
-| COMP-05 | — | Pending |
-| COMP-06 | — | Pending |
-| ARUN-01 | — | Pending |
-| ARUN-02 | — | Pending |
-| ARUN-03 | — | Pending |
-| ARUN-04 | — | Pending |
-| PLAT-05 | — | Pending |
-| SCAF-07 | — | Pending |
-| COMP-07 | — | Pending |
+| PLAT-01 | Phase 22 | Pending |
+| PLAT-02 | Phase 22 | Pending |
+| PLAT-03 | Phase 22 | Pending |
+| PLAT-04 | Phase 22 | Pending |
+| PLAT-05 | Phase 23 | Pending |
+| SCAF-01 | Phase 23 | Pending |
+| SCAF-02 | Phase 23 | Pending |
+| SCAF-03 | Phase 24 | Pending |
+| SCAF-04 | Phase 26 | Pending |
+| SCAF-05 | Phase 24 | Pending |
+| SCAF-06 | Phase 24 | Pending |
+| SCAF-07 | Phase 23 | Pending |
+| COMP-01 | Phase 23 | Pending |
+| COMP-02 | Phase 24 | Pending |
+| COMP-03 | Phase 26 | Pending |
+| COMP-04 | Phase 24 | Pending |
+| COMP-05 | Phase 23 | Pending |
+| COMP-06 | Phase 26 | Pending |
+| COMP-07 | Phase 23 | Pending |
+| ARUN-01 | Phase 25 | Pending |
+| ARUN-02 | Phase 25 | Pending |
+| ARUN-03 | Phase 25 | Pending |
+| ARUN-04 | Phase 25 | Pending |
 
 **Coverage:**
 - v1.4 requirements: 23 total
-- Mapped to phases: 0 (awaiting roadmap)
-- Unmapped: 23
+- Mapped to phases: 23/23
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-04*
-*Last updated: 2026-03-09 after v1.4 requirements defined*
+*Last updated: 2026-03-09 after v1.4 roadmap created*

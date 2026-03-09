@@ -5,7 +5,8 @@
 - v1.0 Core Design System — Phases 1-8 (shipped 2026-03-04)
 - v1.1 Icon Library Integration — Phases 9-12 (shipped 2026-03-04)
 - v1.2 Brownfield Intelligence — Phases 13-16 (shipped 2026-03-06)
-- v1.3 Global Reach — Phases 17-20 (in progress)
+- v1.3 Global Reach — Phases 17-21 (shipped 2026-03-09)
+- v1.4 Cross-Platform App Builder — Phases 22-26 (in progress)
 
 ## Phases
 
@@ -54,106 +55,113 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 
 </details>
 
-### v1.3 Global Reach (In Progress)
+<details>
+<summary>v1.3 Global Reach (Phases 17-21) — SHIPPED 2026-03-09</summary>
 
-**Milestone Goal:** Make Motif installable once and usable everywhere — resilient state that survives context clears, global CLI for zero-friction setup, and complete vertical coverage across 8 domains.
+- [x] Phase 17: Context Resilience (3/3 plans) — completed 2026-03-09
+- [x] Phase 18: New Verticals (3/3 plans) — completed 2026-03-09
+- [x] Phase 19: Global CLI Core (2/2 plans) — completed 2026-03-09
+- [x] Phase 20: CLI Commands and Vertical Discovery (2/2 plans) — completed 2026-03-09
+- [x] Phase 21: Package Source Sync (2/2 plans) — completed 2026-03-09
 
-- [x] Phase 17: Context Resilience — Every Motif workflow survives /clear and context compaction without losing state (completed 2026-03-09)
-- [x] Phase 18: New Verticals — Users can generate domain-intelligent designs for Social, Education, Marketplace, and DevTools projects (completed 2026-03-09)
-- [x] Phase 19: Global CLI Core — Users can install Motif globally and scaffold it into any project with a single command (completed 2026-03-09)
-- [x] Phase 20: CLI Commands and Vertical Discovery — Users can inspect, diagnose, update, and browse their Motif installation from the command line (completed 2026-03-09)
-- [x] Phase 21: Package Source Sync — New npm installs get the complete v1.3 feature set (gap closure) (completed 2026-03-09)
+</details>
+
+### v1.4 Cross-Platform App Builder (In Progress)
+
+**Milestone Goal:** Transform Motif from a design system generator into a full design-to-running-app pipeline — smart framework scaffolding, platform-aware component composition, and auto-run that takes users from zero to seeing their app running.
+
+- [ ] Phase 22: Platform Foundation — Platform detection, token transformation, and framework registry that all downstream phases depend on
+- [ ] Phase 23: Next.js Scaffolding and Web Composition — Complete Next.js vertical slice: scaffold, compose real JSX components with Tailwind/shadcn, validate the platform adapter pattern
+- [ ] Phase 24: Vite, Static, and Brownfield — Vite/React scaffolding, static HTML preservation, and brownfield framework detection for web projects
+- [ ] Phase 25: Auto-Run — Dev server launch, ready detection, browser opening, and process cleanup after composition
+- [ ] Phase 26: Expo and React Native — Mobile scaffolding, React Native component output, and cross-platform design consistency
 
 ## Phase Details
 
-### Phase 17: Context Resilience
-**Goal**: Every Motif workflow survives /clear and context compaction without losing progress or requiring manual re-orientation
-**Depends on**: Phase 16 (v1.2 complete)
-**Requirements**: CTXR-01, CTXR-02, CTXR-03, CTXR-04
+### Phase 22: Platform Foundation
+**Goal**: Users select a target platform during init, and Motif's design system pipeline automatically produces platform-appropriate token files alongside the canonical tokens.css
+**Depends on**: Phase 21 (v1.3 complete)
+**Requirements**: PLAT-01, PLAT-02, PLAT-03, PLAT-04
 **Success Criteria** (what must be TRUE):
-  1. User can run `/clear` mid-workflow, invoke the next `/motif:*` command, and have the agent automatically know the current phase, vertical, and screen count without being told
-  2. User can open STATE.md and see machine-parseable YAML frontmatter with phase, vertical, and stack fields that any script or hook can read reliably
-  3. User can delete or corrupt STATE.md, run a `/motif:*` command, and have the system infer minimum progress from existing artifacts (tokens.css, COMPONENT-SPECS.md, screen files) rather than failing
-  4. User sees a status line on every agent turn showing the current Motif phase and screen count (e.g., "Motif: COMPOSING | 3/5 screens")
-**Plans:** 3 plans
+  1. User can run `/motif:init`, select a platform (web-nextjs, web-vite, web-static, mobile-expo), and see that choice persisted in STATE.md across `/clear`
+  2. After design system generation, user finds platform-specific token files (tokens.ts for React web, tokens.native.ts for React Native) alongside tokens.css, with values matching exactly
+  3. User can inspect the framework registry and see complete mappings for each platform: scaffolding commands, file conventions, component patterns, and dev server commands
+  4. Token files are deterministically generated from tokens.css by a script — never LLM-generated, never drifting from the source of truth
+**Plans**: TBD
 
 Plans:
-- [x] 17-01-PLAN.md — State infrastructure (motif-state.js utility, YAML template, state-machine docs)
-- [x] 17-02-PLAN.md — SessionStart hook and CLAUDE.md state rule (three-layer defense)
-- [x] 17-03-PLAN.md — Status line upgrade and workflow gate check updates
+- [ ] 22-01: Platform field in STATE.md, init flow updates, framework registry reference
+- [ ] 22-02: Token transformer script, design system pipeline integration
 
-### Phase 18: New Verticals
-**Goal**: Users can generate domain-intelligent designs for Social, Education, Marketplace, and DevTools projects with the same quality and completeness as existing verticals
-**Depends on**: Phase 16 (v1.2 complete — no dependency on Phase 17; can be parallelized)
-**Requirements**: VERT-01, VERT-02, VERT-03, VERT-04, VERT-05, VERT-06
+### Phase 23: Next.js Scaffolding and Web Composition
+**Goal**: Users can go from `/motif:init` to a real Next.js project with composed screens that are actual JSX components using Tailwind utility classes and shadcn/ui primitives
+**Depends on**: Phase 22
+**Requirements**: SCAF-01, SCAF-02, SCAF-07, PLAT-05, COMP-01, COMP-05, COMP-07
 **Success Criteria** (what must be TRUE):
-  1. User can select "social" as their vertical during `/motif:init` and receive a complete design system with Social-specific palettes, typography, components, spacing, and interaction patterns
-  2. User can select "education", "marketplace", or "devtools" as their vertical and receive the same completeness — each vertical has full design intelligence including palettes, typography, components, spacing, interaction patterns, and accessibility guidance
-  3. User can see icon vocabulary entries for each new vertical mapped across all 4 icon libraries (Lucide, Phosphor, Material Symbols, Tabler) in the generated ICON-CATALOG.md
-  4. User can receive domain-specific empty states, error states, and loading state patterns appropriate to each vertical (e.g., "no messages yet" for Social, "no courses enrolled" for Education)
-  5. Each new vertical file validates against the same template structure as existing verticals (consistent section headings, token naming, palette tables, component specs)
-**Plans:** 3 plans
+  1. User runs `/motif:init`, answers what they are building, and receives a framework recommendation (Next.js for SSR apps, Vite for SPAs, Expo for mobile) with the ability to override
+  2. User scaffolds a Next.js project that is immediately runnable (`npm run dev` works) with App Router structure, TypeScript, Tailwind CSS, and shadcn/ui installed and configured with Motif's design tokens
+  3. User runs `/motif:compose` and gets real Next.js page components (proper imports, next/font, next/image, "use client" where needed, App Router file conventions) instead of raw HTML files
+  4. Composed components use Tailwind utility classes (bg-primary, text-lg) and shadcn/ui primitives (Button, Card, Input) rather than inline styles or raw HTML elements
+  5. A tailwind.config.ts file extends Tailwind's theme with all Motif design tokens (colors, spacing, typography, radii, shadows) as semantic classes
+**Plans**: TBD
 
 Plans:
-- [x] 18-01-PLAN.md — Social and Education vertical reference files
-- [x] 18-02-PLAN.md — Marketplace and DevTools vertical reference files
-- [x] 18-03-PLAN.md — Integration point updates (icon-libraries.md, gap-analyzer.js, init.md)
+- [ ] 23-01: Framework recommendation logic in init, Next.js scaffolding via create-next-app
+- [ ] 23-02: shadcn/ui installation, Tailwind config generation with Motif tokens (PLAT-05)
+- [ ] 23-03: Composer platform overlay (composer-nextjs.md), JSX component output, COMP-05 orchestrator injection
 
-### Phase 19: Global CLI Core
-**Goal**: Users can install Motif once globally and scaffold it into any project without needing npx or per-project npm install
-**Depends on**: Phase 17, Phase 18
-**Requirements**: GCLI-01, GCLI-02, GCLI-06
+### Phase 24: Vite, Static, and Brownfield
+**Goal**: Users building lightweight web apps or landing pages get the same scaffolding and composition quality as Next.js, and users with existing framework projects skip scaffolding entirely
+**Depends on**: Phase 23 (reuses web-react composition infrastructure)
+**Requirements**: SCAF-03, SCAF-05, SCAF-06, COMP-02, COMP-04
 **Success Criteria** (what must be TRUE):
-  1. User can run `npm install -g motif-design` and have a `motif` command available system-wide
-  2. User can run `motif init` from any project directory and have Motif scaffolded into that project (commands, workflows, agents, hooks, CLAUDE.md injection) without needing npx or a local install
-  3. User can still use `npx motif-design@latest` as before — the global install does not break the existing npx path
-  4. The installer detects project root correctly (walks up to find .git/ or package.json) and refuses to install from non-project directories with a clear error
-**Plans:** 2 plans
+  1. User scaffolds a Vite/React project that is immediately runnable (`npm run dev` works) with React Router, TypeScript, and Tailwind CSS configured
+  2. User runs `/motif:compose` on a Vite project and gets React components with proper imports and React Router conventions (not Next.js App Router conventions)
+  3. User scaffolds a static HTML landing page project and gets a minimal structure with design tokens linked, openable directly in a browser
+  4. User runs `/motif:init` in a directory with an existing Next.js/Vite/Expo project and Motif detects the framework, skips scaffolding, and adopts the existing platform automatically
+**Plans**: TBD
 
 Plans:
-- [x] 19-01-PLAN.md — CLI router, init command extraction, project root detection
-- [x] 19-02-PLAN.md — E2E test updates and package publishing verification
+- [ ] 24-01: Vite scaffolding, composer-vite.md overlay, Vite-specific JSX output
+- [ ] 24-02: Static HTML scaffolding, brownfield detection logic (SCAF-06)
 
-### Phase 20: CLI Commands and Vertical Discovery
-**Goal**: Users can inspect, diagnose, update, and browse their Motif installation entirely from the command line
-**Depends on**: Phase 19
-**Requirements**: GCLI-03, GCLI-04, GCLI-05, VERT-07
+### Phase 25: Auto-Run
+**Goal**: After composition, users see their app running in the browser with a single command — Motif handles dev server launch, ready detection, and cleanup
+**Depends on**: Phase 23 (needs a scaffolded, composable project to run)
+**Requirements**: ARUN-01, ARUN-02, ARUN-03, ARUN-04
 **Success Criteria** (what must be TRUE):
-  1. User can run `motif status` and see the installed version, current workflow phase, and number of screens composed for the current project
-  2. User can run `motif update` and have project files synced from a newer global package version, with downgrade protection that refuses to overwrite newer files without --force
-  3. User can run `motif doctor` and receive a diagnostic report checking file integrity (all expected files present), hook configuration (CLAUDE.md entries correct), and version consistency (global vs project)
-  4. User can run `motif list` and see all available verticals (all 8) with short descriptions, so they know their options before running init
-**Plans:** 2 plans
+  1. User is offered the option to auto-run after `/motif:compose` completes, and the dev server starts as a background process without blocking the terminal
+  2. Browser opens automatically only after the dev server is ready (detected via stdout parsing for framework-specific ready messages like "Ready on http://localhost:3000")
+  3. User can see tracked dev server PIDs, and zombie processes are cleaned up on exit, SIGINT, and SIGTERM — no orphaned servers locking ports
+  4. Browser/simulator opening works on macOS (open), Linux (xdg-open), and Windows (cmd start) with zero npm dependencies
+**Plans**: TBD
 
 Plans:
-- [x] 20-01-PLAN.md — Vertical sync, shared manifest utility, status and list commands
-- [x] 20-02-PLAN.md — Update and doctor commands, CLI router registration, e2e tests
+- [ ] 25-01: Auto-run script (dev server launch, stdout ready detection, browser opening)
+- [ ] 25-02: PID tracking, cleanup handlers, port conflict resolution
 
-### Phase 21: Package Source Sync
-**Goal**: New npm installs get the complete v1.3 feature set — context resilience, all 8 vertical icons, and full hook registration
-**Depends on**: Phase 20
-**Requirements**: CTXR-01, CTXR-03, CTXR-04, GCLI-02, GCLI-03, VERT-05
-**Gap Closure:** Closes all gaps from v1.3-MILESTONE-AUDIT.md
+### Phase 26: Expo and React Native
+**Goal**: Users building mobile apps get the same zero-to-running experience as web — Expo scaffolding, React Native component output, and consistent design language across platforms
+**Depends on**: Phase 22 (token transformer), Phase 24 (brownfield detection pattern)
+**Requirements**: SCAF-04, COMP-03, COMP-06
 **Success Criteria** (what must be TRUE):
-  1. Package source contains motif-state.js in scripts/ so new installs get artifact recovery
-  2. Package source contains motif-session-start.js in runtimes/claude-code/hooks/ so new installs get SessionStart hook
-  3. Package source motif-context-monitor.js matches the 125-line version with rich Motif state display
-  4. CLAUDE-MD-SNIPPET.md includes the State Awareness section so new installs get first-layer defense
-  5. core/references/icon-libraries.md includes all 8 vertical icon entries
-  6. init.js injectHookSettings() registers SessionStart hooks in settings.json
-  7. E2E test simulates fresh install and verifies motif status, doctor, and context resilience artifacts are present
-**Plans:** 2 plans
+  1. User scaffolds an Expo/React Native project that is immediately runnable (`npx expo start --web` works) with TypeScript and Expo SDK configured
+  2. User runs `/motif:compose` on an Expo project and gets React Native components using View, Text, ScrollView, StyleSheet.create — no CSS, no div/span, no className
+  3. Composed mobile screens produce visually consistent results with their web counterparts — same color palette, same typography scale, same spacing rhythm, same component patterns adapted to native primitives
+  4. Unsupported CSS properties (grid, box-shadow, pseudo-elements, position:fixed) are handled explicitly with inline TODO comments — never silently dropped
+**Plans**: TBD
 
 Plans:
-- [x] 21-01-PLAN.md — Sync Phase 17/18 artifacts to package source and fix init.js hook registration
-- [x] 21-02-PLAN.md — E2E fresh install verification tests
+- [ ] 26-01: Expo scaffolding via create-expo-app, tokens.native.ts verification
+- [ ] 26-02: Composer-rn.md overlay, React Native component output, CSS-to-RN property matrix
+- [ ] 26-03: Cross-platform consistency validation, COMP-06 verification
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 17 → 18 → 19 → 20 → 21
-(Note: Phases 17 and 18 have no mutual dependency and can be parallelized)
-(Note: Phase 21 is gap closure from milestone audit)
+Phases execute in numeric order: 22 → 23 → 24 → 25 → 26
+(Note: Phase 24 and Phase 25 have no mutual dependency and could be parallelized after Phase 23)
+(Note: Phase 26 depends on Phase 22 directly but benefits from Phase 24's brownfield pattern)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -179,3 +187,8 @@ Phases execute in numeric order: 17 → 18 → 19 → 20 → 21
 | 19. Global CLI Core | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 20. CLI Commands and Vertical Discovery | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 21. Package Source Sync | v1.3 | 2/2 | Complete | 2026-03-09 |
+| 22. Platform Foundation | v1.4 | 0/TBD | Not started | - |
+| 23. Next.js Scaffolding and Web Composition | v1.4 | 0/TBD | Not started | - |
+| 24. Vite, Static, and Brownfield | v1.4 | 0/TBD | Not started | - |
+| 25. Auto-Run | v1.4 | 0/TBD | Not started | - |
+| 26. Expo and React Native | v1.4 | 0/TBD | Not started | - |
