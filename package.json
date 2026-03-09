@@ -1,6 +1,6 @@
 {
   "name": "motif-design",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Domain-intelligent design system for AI coding assistants",
   "bin": {
     "motif": "bin/cli.js"
