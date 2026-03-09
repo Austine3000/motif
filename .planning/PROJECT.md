@@ -46,22 +46,23 @@ Two milestones delivered:
 
 ### Active
 
-**Current Milestone: v1.2 Brownfield Intelligence**
+**Current Milestone: v1.3 Global Reach**
 
-**Goal:** Make Motif's entire pipeline project-aware — scan existing codebases, present findings to the user for decisions, and output properly decomposed components that integrate with existing project conventions.
+**Goal:** Make Motif installable once and usable everywhere — global CLI, global agent files, resilient state management across context clears, and complete vertical coverage.
 
 **Target features:**
-- Project scanning (folder conventions, existing components, existing tokens/styles)
-- User-driven design decisions (adopt existing tokens, merge, or start fresh)
-- Component decomposition (one component per file, always)
-- Brownfield-aware composition (reuse existing components, follow project conventions)
+- Global install (`npm install -g motif-design`) with `motif` CLI command (install/update/status)
+- Global agent files in `~/.claude/` — zero per-project setup for tooling
+- Global hooks (token-check, font-check, a11y-check, context-monitor)
+- Per-project install still supported alongside global
+- Context resilience — state machine survives `/clear` between workflow steps
+- 4 new verticals: Social, Education, Marketplace, DevTools
 
 ### Out of Scope
 
-- OpenCode/Cursor/Gemini CLI runtime support — v1.2+, same core/runtime arch
+- OpenCode/Cursor/Gemini CLI runtime support — v1.4+, same core/runtime arch
 - Tailwind token export — future command, CSS custom properties only
-- Additional verticals (Social, Education, Marketplace, DevTools) — v2
-- Advanced icon features (dark mode weight, duotone colors, variable fonts, icon search) — v1.2+
+- Advanced icon features (dark mode weight, duotone colors, variable fonts, icon search) — v1.4+
 - CHANGELOG.md — defer to post-v1 release cycle
 - Custom icon creation/generation — use established libraries only
 - Icon font bundling — CDN-first, user handles build integration
@@ -108,4 +109,4 @@ Two milestones delivered:
 | Icon size as system invariant | Fixed 8px-multiple scale, not project-adjustable | ✓ Good |
 
 ---
-*Last updated: 2026-03-04 after v1.2 milestone start*
+*Last updated: 2026-03-09 after v1.3 milestone start*
