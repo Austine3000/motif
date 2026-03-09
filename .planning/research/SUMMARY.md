@@ -1,162 +1,169 @@
 # Project Research Summary
 
-**Project:** Motif v1.3 -- Global Install, Context Resilience, New Verticals
-**Domain:** CLI tooling for AI-assisted design engineering (npm package distribution, LLM state persistence, domain-specific design intelligence)
+**Project:** Motif v1.4 -- Cross-Platform App Builder
+**Domain:** AI-powered design-to-code with framework-aware output, project scaffolding, and auto-run
 **Researched:** 2026-03-09
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Motif v1.3 delivers three capabilities that address distinct adoption blockers: global CLI install (`npm install -g motif-design`), context-resilient state recovery after `/clear` and compaction, and four new vertical design references (Social, Education, Marketplace, DevTools). The research confirms that the existing zero-dependency, markdown-first architecture handles all three without fundamental changes. Global install works today mechanically -- npm's `bin` field already symlinks correctly -- and requires only project-root detection, a `--version` flag, and removal of the self-referencing dependency bug in `package.json`. New verticals are pure data files that slot into the existing template-driven loading system with zero code changes.
+Motif v1.4 transforms the tool from a design system generator that outputs HTML/CSS into a cross-platform app builder that scaffolds real framework projects (Next.js, Vite+React, Expo/React Native), outputs framework-native components, and auto-runs the result. The core architectural insight is that Motif's design intelligence -- vertical references, research workflows, COMPONENT-SPECS.md -- is entirely platform-agnostic. Only the final output layer (token delivery format and component code format) needs to change. This means the upgrade is a FORMAT change at the edges, not a fundamental restructuring.
 
-The hardest problem is context resilience. The state machine relies on an AI agent voluntarily reading STATE.md, which breaks after `/clear` because the agent starts fresh with no memory that STATE.md exists. The recommended approach avoids the broken SessionStart compact/clear hooks (confirmed bug, stdout silently dropped, issue #15174) and instead layers three reliable mechanisms: a CLAUDE.md recovery directive (always re-read after context loss), STATE.md as the durable state file, and an enhanced statusLine hook that displays current phase on every turn. Artifact-based state inference provides defense-in-depth when STATE.md is missing, but must be conservative -- inferring minimum phase, not maximum -- to avoid phantom progress from partial or copied files.
+The recommended approach is a "Platform Adapter" pattern: tokens.css remains the canonical source of truth for all design decisions. A deterministic transformer script (not LLM-generated) produces platform-specific token files (tokens.ts for React, tokens.native.ts for React Native). Composer agent prompts receive platform-specific overlays (composer-react.md, composer-rn.md) that teach the agent correct output patterns without forking the agent definition. Scaffolding delegates to official CLI tools (create-next-app, create-expo-app, create-vite) via child_process.spawn, keeping Motif at zero npm dependencies. This "canonical + derived" pattern is the single most important architectural decision -- it prevents token drift, keeps the design architect focused on design, and makes adding new platforms a matter of writing one overlay file.
 
-The primary risks are: (1) global install from subdirectories silently installing to the wrong location (no project-root detection exists today), (2) concurrent JSON file writes corrupting manifests (the same class of bug that hit Claude Code's own `.claude.json`), and (3) version downgrade when a stale global install overwrites newer per-project files. All three have straightforward mitigations. The new verticals carry the least risk -- they are additive data files -- but must be validated against the existing template structure to prevent drift that would cause inconsistent design system generation.
+The primary risks are: (1) CSS-to-React-Native translation silently dropping unsupported properties (grid, box-shadow, pseudo-elements, position:fixed), producing components that render but look broken; (2) zombie dev server processes after crashes or aborts, locking ports; and (3) cross-platform path/spawn issues breaking Windows and Linux users. Mitigation for each is well-understood: a property compatibility matrix with inline TODO comments for untranslatable CSS, PID file management with cleanup handlers for dev servers, and path.posix for generated source code with shell:true for Windows spawning.
 
 ## Key Findings
 
 ### Recommended Stack
 
-No new dependencies. The zero-dependency constraint is maintained across all three capabilities. The entire stack remains Node.js built-ins: `node:fs`, `node:path`, `node:util` (parseArgs, styleText), and `node:crypto` (createHash). The `--version` flag is the only addition to the CLI surface.
+Motif itself adds zero new npm dependencies. All new capabilities use Node.js built-ins (child_process.spawn, node:fs, node:path) and CLI tool spawning. Three new scripts are needed: `scripts/scaffold.js` (~120 lines, framework project scaffolding), `scripts/tokens-to-rn.js` (~60 lines, CSS-to-TypeScript token transpilation), and `scripts/auto-run.js` (~80 lines, dev server launch + browser opening).
 
-**Core technologies (unchanged):**
-- **Node.js >=22.0.0**: Runtime for installer, hooks, and scripts -- no change
-- **node:util.parseArgs**: CLI flag parsing -- add `--version` flag only
-- **Markdown files**: Workflows, agents, verticals, and state are all `.md` consumed by LLMs -- this is the architecture, not a limitation
-- **CSS custom properties**: Design tokens via `tokens.css` -- no change
-- **Claude Code hooks**: PostToolUse validation, statusLine monitoring -- enhance statusLine to show phase
+**Core technologies (spawned, not imported):**
+- `create-next-app@latest` (Next.js 16.1.x): Web app scaffolding with App Router, TypeScript, Tailwind -- the primary target framework
+- `create-expo-app@latest` (Expo SDK 55, RN 0.83): Mobile app scaffolding with blank-typescript template
+- `npm create vite@latest` (Vite 7.3.x): Lightweight web alternative with react-ts template
+- `npx serve .`: Static HTML serving for non-framework projects
 
-**Critical fix:** Remove `"motif-design": "^0.1.0"` self-referencing dependency from `package.json`. This is a bug that causes npm to nest an old version of the package inside itself during global install.
+**Critical version note:** All frameworks require Node.js >=18 or >=20. Motif requires >=22. No conflicts -- Motif's requirement is the strictest and satisfies all frameworks.
 
 ### Expected Features
 
 **Must have (table stakes):**
-- `npm install -g motif-design` with `motif init` per-project -- the standard global CLI pattern
-- Dual-mode support (both `npx` and global install must work)
-- Auto-read STATE.md on every `/motif:*` command after context loss
-- Artifact-based state inference as fallback when STATE.md is missing
-- YAML frontmatter in STATE.md for reliable machine parsing
-- Complete vertical reference files (~400-500 lines each) for Social, Education, Marketplace, DevTools with exact hex values, font names, component XML specs, and icon vocabulary
+- Framework recommendation during /motif:init -- conversational, domain-aware, with override support
+- Project scaffolding via official create-X tools with non-interactive flags
+- JSX/TSX component output -- compose-screen.md branches on framework for correct output format
+- Tailwind config extension with semantic token mapping (bg-primary, not bg-[var(--color-primary)])
+- Next.js framework reference file -- import patterns, file placement, "use client" directive rules
+- launch.json generation for Claude Code Desktop preview
+- Auto-run offer after composition with dev server management
 
 **Should have (differentiators):**
-- `motif status` and `motif doctor` commands for installation diagnostics
-- State continuity display in statusLine (`Motif: COMPOSING | 3/5 screens | ctx 42%`)
-- Checkpoint commits with phase tags for git-based state recovery
-- Richer decision logging (WHAT + WHY + SOURCE) for cross-session memory
-- Vertical-specific empty/error/loading state patterns
+- Domain-intelligent framework recommendation (fintech -> Next.js for SSR, social -> Expo for native scroll)
+- Token-first Tailwind integration (semantic classes backed by CSS variables, like shadcn/ui)
+- Unified token file for web + mobile (single tokens.css source, mechanical derivation)
+- Design-system-then-components pipeline (Motif's unique advantage over v0/Bolt.new/Lovable)
 
 **Defer (v2+):**
-- Cross-vertical composition (blending two verticals) -- HIGH complexity, needs dedicated research
-- Vertical migration path (switching vertical mid-project) -- MEDIUM complexity, defer to v0.4+
-- Plugin/extension system -- premature before v1.0 stability
-- Global config file (`~/.motifrc`) -- per-project config is correct, global preferences create cookie-cutter designs
+- shadcn/ui component library integration
+- Cross-platform single project (web + mobile from one design system simultaneously)
+- Pre-built project templates (SaaS dashboard, social feed, marketplace)
+- Additional frameworks (Svelte, Angular, Flutter, SwiftUI)
+- Full-stack scaffolding (database, auth, API routes)
+- Visual drag-and-drop editor
+- Framework migration tooling
 
 ### Architecture Approach
 
-The architecture extends the existing core/runtime split without restructuring. Global install copies files to `~/.motif/` and `~/.claude/commands/motif/` instead of per-project directories. The key pattern is dual-mode path resolution: the installer replaces `{MOTIF_ROOT}` with either a relative project path (local) or an absolute home-directory path (global) at install time. Workflows never know the difference. State recovery uses filesystem-as-state: deterministic mapping from artifact presence to minimum phase. CLAUDE.md injection remains per-project regardless of install mode.
+The architecture follows three core patterns: (1) **Canonical + Derived** -- tokens.css is always generated first by the design architect, then mechanically transformed to platform-specific formats by a deterministic script; (2) **Overlay, Don't Fork** -- platform-specific composition rules are appended to the composer agent prompt as overlay files, not baked into separate agent definitions; (3) **Platform Detection Flows Down** -- platform is detected once at init, stored in STATE.md, and read by all downstream workflows. This minimizes changes to existing components: only 8 files are modified (mostly small changes), 7-8 new files are added, and the entire design intelligence layer (verticals, research, COMPONENT-SPECS.md, review) remains untouched.
 
 **Major components:**
-1. **Global Installer Mode** -- Adds `--global` flag to `bin/install.js`, copies to `~/.motif/` and `~/.claude/`, resolves `{MOTIF_ROOT}` to absolute paths
-2. **Context-Resilient State Reader** -- CLAUDE.md recovery directive + STATE.md with YAML frontmatter + enhanced statusLine + artifact-based inference fallback
-3. **Path Resolver** -- `resolveMotifRoot()` function that returns different base paths per install mode, transparent to downstream workflows
-4. **4 New Verticals** -- Pure markdown data files in `core/references/verticals/`, following existing template exactly
+1. **Platform Adapters Reference** (core/references/platform-adapters.md) -- registry of supported platforms, token format specs, element mapping tables
+2. **Token Transformer Script** (scripts/token-transformer.js) -- deterministic CSS-to-platform token conversion, ~300 lines
+3. **Composer Platform Overlays** (core/templates/composer-react.md, composer-rn.md) -- platform-specific composition rules injected into agent prompts
+4. **Scaffolding Script** (scripts/scaffold.js) -- spawns official CLI tools, post-processes with Motif file overlay
+5. **Auto-Run Script** (scripts/auto-run.js) -- dev server launch, stdout-based ready detection, browser/simulator opening
 
 ### Critical Pitfalls
 
-1. **Global install from subdirectories installs to wrong location (CRITICAL)** -- `process.cwd()` is trusted unconditionally. Add project-root detection: walk up looking for `.git/`, `package.json`, or `.claude/`. Fail loudly if no root found.
-
-2. **STATE.md not read after context clear (CRITICAL)** -- Gate checks are advisory markdown, not enforced scripts. Add CLAUDE.md recovery directive as mandatory first action, enhance statusLine to show phase, and add context restoration preamble to every command file.
-
-3. **Manifest corruption from concurrent writes (CRITICAL)** -- `writeFileSync` is not atomic. Use write-to-temp-then-rename pattern for all JSON state files. Add lockfile guard.
-
-4. **Silent version downgrade via stale global install (CRITICAL)** -- No semver comparison exists. Add downgrade detection that refuses to proceed without `--force`.
-
-5. **New verticals drift from template structure (MODERATE)** -- Build a `validate-vertical.js` script before authoring verticals. Run it against all 8 files to ensure consistent section headings, token naming, palette tables, and component XML format.
+1. **CSS-to-RN silent property drops** -- Grid, box-shadow, pseudo-elements, position:fixed, calc(), CSS variables all have no React Native equivalent. Build a property compatibility matrix; emit inline TODO comments for untranslatable properties; never silently drop.
+2. **Zombie dev server processes** -- Spawned child processes survive parent crashes, locking ports. Use PID files, cleanup handlers on exit/SIGINT/SIGTERM, and tree-kill (process.kill(-pid)) to kill process groups.
+3. **Cross-platform spawn failures** -- `npx` is `npx.cmd` on Windows; path.join produces backslashes; case-insensitive macOS hides import case mismatches that crash on Linux. Use shell:true on Windows, path.posix for generated code, exact case matching in imports.
+4. **Token file drift (two sources of truth)** -- tokens.css and tokens.ts/tokens.native.ts can diverge if the LLM generates them independently. Always derive platform files from tokens.css via deterministic script, never LLM-generated.
+5. **Port conflicts on auto-run** -- Port 3000 is commonly in use; framework prompts for alternative port hang in non-TTY child processes. Pre-check port availability, auto-increment, pass explicit --port flag, set CI=true to suppress prompts.
 
 ## Implications for Roadmap
 
 Based on research, suggested phase structure:
 
-### Phase 1: Foundation Fixes and New Verticals
-**Rationale:** Zero dependencies on other work. Verticals are pure data files that can be authored in parallel. Foundation fixes (self-dependency removal, atomic writes) are prerequisites for everything else.
-**Delivers:** 4 new vertical reference files (social, education, marketplace, devtools), self-dependency bug fix, atomic write utility, vertical validation script
-**Addresses:** Table-stakes vertical coverage, package.json bug, concurrent write protection
-**Avoids:** Vertical structural drift (Pitfall 6) by building validator first; manifest corruption (Pitfall 3) by implementing atomic writes early
+### Phase 1: Platform Foundation
+**Rationale:** Everything downstream depends on platform detection and token transformation. This is pure infrastructure with no user-facing output, but without it, no other phase can function correctly.
+**Delivers:** Platform detection in init, STATE.md platform field, token-transformer.js script, platform-adapters.md reference
+**Addresses:** Stack persistence to PROJECT.md/STATE.md (table stakes), token delivery format per platform
+**Avoids:** Token drift (Pitfall 6) by establishing canonical+derived pattern from the start
 
-### Phase 2: Context-Resilient State Machine
-**Rationale:** Fixes a current user pain point that affects every session. Must be done before global install because global users will hit the same `/clear` problem, and state resilience should be validated in the simpler local-install context first.
-**Delivers:** CLAUDE.md recovery directive, YAML frontmatter in STATE.md, auto-read preamble in all commands, enhanced statusLine with phase display, artifact-based state inference fallback
-**Addresses:** Auto-read STATE.md, artifact inference, context restoration prompt, state continuity in statusLine
-**Avoids:** STATE.md not read after clear (Pitfall 2), phantom progress from naive inference (Pitfall 11), state file git conflicts (Pitfall 13)
+### Phase 2: Next.js Scaffolding and Output
+**Rationale:** Next.js is the highest-demand framework and the simplest cross-platform target (web-only, no RN translation complexity). Validates the entire platform adapter pattern with the least-risky framework first.
+**Delivers:** create-next-app scaffolding via spawn, Next.js framework reference file, composer-react.md overlay, Tailwind config extension with token mapping, JSX/TSX component output from /motif:compose
+**Addresses:** Framework recommendation (table stakes), project scaffolding (table stakes), JSX component output (table stakes), Tailwind token integration (table stakes + differentiator)
+**Avoids:** Interactive prompt hanging (Pitfall 12) via non-interactive flags; cross-platform spawn issues (Pitfall 4) via shell:true on Windows
 
-### Phase 3: Global CLI Install
-**Rationale:** Most complex change. Touches installer, manifest, hooks, and path resolution. Benefits from having all 8 verticals available for testing and state resilience in place for edge case recovery.
-**Delivers:** `npm install -g motif-design` support, `motif init`/`motif status`/`motif update` commands, project-root detection, downgrade protection, stale file cleanup
-**Addresses:** Global install UX, dual-mode support, `--version` flag, help text updates
-**Avoids:** Wrong install directory (Pitfall 1), silent downgrade (Pitfall 4), stale files after update (Pitfall 7), Windows hook path failures (Pitfall 5)
+### Phase 3: Auto-Run and Preview
+**Rationale:** Auto-run depends on a scaffolded, composable project (Phase 2). It is the "wow moment" that completes the zero-to-running story but is useless without working scaffolding and component output.
+**Delivers:** scripts/auto-run.js, dev server management with PID tracking, browser opening, launch.json generation, port conflict resolution
+**Addresses:** Auto-run offer after composition (table stakes), launch.json for Claude Code Desktop (table stakes)
+**Avoids:** Zombie processes (Pitfall 3) via PID files and cleanup handlers; port conflicts (Pitfall 9) via pre-check and auto-increment
 
-### Phase 4: Polish and Differentiators
-**Rationale:** Nice-to-haves that build on the foundation. Only worth doing after core functionality is stable.
-**Delivers:** `motif doctor` diagnostics, `motif list` verticals, checkpoint commits with phase tags, richer decision logging, vertical-specific empty/error states
-**Addresses:** Differentiator features from FEATURES.md
-**Avoids:** Scope creep into deferred features (cross-vertical composition, plugin system)
+### Phase 4: Expo / React Native Support
+**Rationale:** Mobile is the second platform and involves the hardest translation challenges (CSS-to-RN property gaps, different responsive paradigm, simulator prerequisites). Shipping this AFTER Next.js is proven reduces risk.
+**Delivers:** create-expo-app scaffolding, tokens.native.ts generation, composer-rn.md overlay, React Native component output, icon delivery via lucide-react-native
+**Addresses:** Expo/RN scaffolding and output (P2 feature), tokens.ts for React Native (P2), NativeWind configuration (P2)
+**Avoids:** CSS-to-RN silent drops (Pitfall 2) via property compatibility matrix; Text-in-View crashes (Pitfall 13) via strict Text wrapping; incorrect imports (Pitfall 10) via curated import map
+
+### Phase 5: Vite + React and Polish
+**Rationale:** Vite+React is a lightweight web alternative that reuses nearly all of Phase 2's web-react infrastructure. Low incremental cost, broadens framework coverage.
+**Delivers:** Vite scaffolding, Vite-specific dev server handling in auto-run, hook updates for platform-aware validation
+**Addresses:** Vite+React support (P2 feature)
+**Avoids:** Version mismatch (Pitfall 1) -- by this phase, the environment detection pattern is battle-tested
 
 ### Phase Ordering Rationale
 
-- **Verticals first** because they are zero-risk additive data with no dependencies on other work. They also provide test material for the later phases.
-- **State resilience before global install** because state recovery must work in the simpler local-install context before adding the complexity of global path resolution. Global install introduces new edge cases for state (different `{MOTIF_ROOT}` paths, stale global versions) that compound with state resilience bugs.
-- **Global install last among core features** because it is the highest-complexity change and depends on both verticals (for complete testing) and state resilience (for robust recovery in global-install edge cases).
-- **Polish deferred** because differentiator features do not block adoption. The three core capabilities (verticals, state resilience, global install) are the milestone.
+- **Foundation first:** Platform detection and token transformation are dependencies for every subsequent phase. Building them first prevents rework.
+- **Next.js before Expo:** Web output is simpler (no CSS-to-RN translation), higher demand, and validates the platform adapter pattern with lower risk. If the pattern works for Next.js, it will work for RN with predictable additions.
+- **Auto-run after scaffolding:** Cannot start a dev server without a scaffolded project. Auto-run is also the most isolated capability -- it can be developed and tested independently once scaffolding works.
+- **Expo last among major platforms:** RN has the most pitfalls (4 of 13 are RN-specific), the hardest translation challenges, and the heaviest prerequisites (Xcode, simulators). Deferring it de-risks the milestone.
+- **Vite last:** Near-zero incremental cost given web-react infrastructure from Phase 2. Can be squeezed in or deferred without affecting the milestone story.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 2 (Context Resilience):** The CLAUDE.md recovery directive is well-understood, but the exact YAML frontmatter schema for STATE.md needs design. The artifact-inference logic needs explicit rules for edge cases (partial files, files from other projects). Needs phase research.
-- **Phase 3 (Global Install):** Windows compatibility for hook paths is flagged but not deeply tested. The `$HOME` variable behavior in Claude Code hook commands on Windows needs verification. The dual-hook-firing risk (global + local hooks both executing) needs testing. Needs phase research for Windows support specifically.
+- **Phase 2 (Next.js Scaffolding):** Needs research on exact file placement conventions for Next.js 16 App Router, especially the co-location pattern for _components/ directories and how next/font/google integrates with Motif's token-based font selection.
+- **Phase 4 (Expo/RN):** Needs significant research on CSS property compatibility matrix, RN font loading (expo-font vs config plugin), and NativeWind v5 configuration specifics. The responsive design paradigm shift (CSS media queries to useWindowDimensions) requires careful design.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1 (Verticals + Fixes):** Verticals follow an established template with 4 existing examples. The validation script and atomic write pattern are well-documented Node.js patterns. Standard implementation.
-- **Phase 4 (Polish):** All differentiator features are incremental additions to existing infrastructure. No architectural decisions needed.
+- **Phase 1 (Platform Foundation):** Well-documented patterns -- STATE.md field addition, CSS parsing via regex, TypeScript code generation. No unknowns.
+- **Phase 3 (Auto-Run):** child_process.spawn, stdout parsing, PID file management -- all standard Node.js patterns with extensive documentation.
+- **Phase 5 (Vite):** Reuses Phase 2 infrastructure. Vite scaffolding is simpler than Next.js (fewer flags, no App Router complexity).
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Verified against npm docs, Claude Code docs, and existing codebase. Zero new dependencies confirmed. Self-referencing dependency bug identified and fix verified. |
-| Features | MEDIUM-HIGH | Feature landscape well-mapped across all three domains. Vertical design patterns sourced from multiple references. Some typography/spacing values are opinionated rather than empirical. |
-| Architecture | HIGH | Dual-mode path resolution, filesystem-as-state, and hook mechanisms verified against official Claude Code documentation. Global command/hook scoping and array merging behavior confirmed. |
-| Pitfalls | HIGH | Critical pitfalls identified from deep codebase analysis (install.js line-level review) and real-world bug reports (Claude Code JSON corruption issues #29036, #29153). Integration gotchas between the three features explicitly mapped. |
+| Stack | HIGH | All framework versions verified against official docs (March 2026). CLI flags confirmed. Zero-dependency constraint validated. |
+| Features | MEDIUM-HIGH | Feature set grounded in real competitor analysis (v0, Bolt.new, Lovable). MVP scoping is opinionated and clear. NativeWind v5 status is "preview" which adds uncertainty to Expo+Tailwind path. |
+| Architecture | HIGH | Platform adapter pattern is well-established in cross-platform tooling. Canonical+derived token approach prevents the most dangerous pitfall (token drift). Codebase analysis confirms minimal modification footprint. |
+| Pitfalls | HIGH | Critical pitfalls verified against official RN docs, Node.js child_process docs, and npm ecosystem behavior. CSS-to-RN gap is extensively documented. Auto-run pitfalls follow known patterns from the Node.js community. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **SessionStart hook bug timeline:** The compact/clear hook stdout injection bug (#15174, #13650) is confirmed broken as of March 2026. If Claude Code fixes this, the context resilience approach could be simplified. Monitor the upstream issue during implementation.
-- **Windows hook compatibility:** Hook commands using `$CLAUDE_PROJECT_DIR` and `$HOME` are verified on Unix but not tested on Windows. Global install makes Windows support more likely. Needs explicit testing before Phase 3 ships.
-- **Vertical token budgets:** Existing verticals (ecommerce, fintech, health, saas) have not been audited for token count. New verticals should target the same size, but if existing ones exceed the 3,000-token budget from context-engine.md, all 8 need trimming. Run `token-counter.js` against existing verticals during Phase 1.
-- **Cross-vertical loading prevention:** The context engine does not explicitly prevent loading multiple verticals for ambiguous descriptions ("educational marketplace"). The init flow must enforce single-vertical selection, but this guard is not yet implemented in the detection logic.
-- **Global + local hook deduplication:** When both global and local Motif hooks exist, Claude Code merges arrays by concatenation. The deduplication logic in `injectHookSettings()` handles this for project-level, but the interaction with global-level hooks needs testing to confirm hooks do not fire twice.
+- **NativeWind v5 stability:** NativeWind v5 is in preview as of March 2026. If it ships unstable, the Expo+Tailwind path may need to fall back to StyleSheet.create with raw token imports. Monitor before Phase 4 planning.
+- **Windows testing:** All research was conducted on macOS. The cross-platform spawn and path pitfalls are well-documented but need actual Windows testing before claiming Windows support. Consider deferring Windows support to a patch release with dedicated testing.
+- **Next.js 16 App Router conventions:** Next.js 16.1 is recent. Some community conventions around co-location and route groups may still be evolving. Validate file placement patterns against real Next.js 16 projects before finalizing the framework reference file.
+- **Expo SDK 55 + React 19.2 maturity:** Expo SDK 55 shipped January 2026 with React 19.2. Some third-party Expo libraries may not yet be fully compatible. Run expo-doctor as part of scaffold validation.
+- **Nuxt/Vue support scope:** FEATURES.md lists Nuxt/Vue as P3, but STACK.md does not research it. If Vue support is desired for v1.4.x, a separate stack research pass is needed for Nuxt 4 scaffolding and Vue SFC composition patterns.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [npm package.json bin field](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/) -- global install mechanics, bin symlink behavior
-- [Claude Code Settings documentation](https://code.claude.com/docs/en/settings) -- settings scopes, hook configuration, array merging, CLAUDE.md reload behavior
-- [Claude Code Hooks reference](https://code.claude.com/docs/en/hooks) -- hook types, environment variables, statusLine behavior
-- [Claude Code Slash Commands](https://code.claude.com/docs/en/slash-commands) -- global vs project command scope, discovery rules, precedence
-- Existing Motif codebase: `bin/install.js`, `state-machine.md`, `context-engine.md`, `VERTICAL-TEMPLATE.md`, `package.json`, `.motif-manifest.json` -- reviewed 2026-03-09
+- [Next.js create-next-app CLI Reference](https://nextjs.org/docs/app/api-reference/cli/create-next-app) -- scaffolding flags, version 16.1.6
+- [Vite Getting Started Guide](https://vite.dev/guide/) -- scaffolding, templates, version 7.3.1
+- [Expo create-expo-app Documentation](https://docs.expo.dev/more/create-expo/) -- flags, templates, SDK 55
+- [Expo SDK 55 Changelog](https://expo.dev/changelog/sdk-55) -- React Native 0.83, React 19.2
+- [React Native StyleSheet Documentation](https://reactnative.dev/docs/stylesheet) -- styling API, platform differences
+- [React Native Flexbox Layout](https://reactnative.dev/docs/flexbox) -- flexDirection defaults, flex behavior
+- [Node.js child_process Documentation](https://nodejs.org/api/child_process.html) -- spawn, stdio, process groups
+- [Expo CLI Documentation](https://docs.expo.dev/more/expo-cli/) -- start, run:ios, run:android commands
+- Existing Motif codebase analysis (direct source code inspection, March 2026)
 
 ### Secondary (MEDIUM confidence)
-- [SessionStart hook bug #15174](https://github.com/anthropics/claude-code/issues/15174) -- stdout silently dropped after compaction
-- [Claude Code JSON corruption #29036, #29153](https://github.com/anthropics/claude-code/issues/29036) -- concurrent write corruption pattern
-- [Evil Martians: Developer tool design](https://evilmartians.com/chronicles/devs-in-mind-how-to-design-interfaces-for-developer-tools) -- DevTools vertical patterns
-- [Node.js CLI best practices (lirantal)](https://github.com/lirantal/nodejs-cli-apps-best-practices) -- CLI state persistence patterns
-- Multiple vertical design sources: Rigby marketplace UX, Viartisan eLearning, Riseapps LMS, BricxLabs chat UI, Tech-stack social media guide
-
-### Tertiary (LOW confidence)
-- [SessionStart stdout dropped #13650](https://github.com/anthropics/claude-code/issues/13650) -- referenced but not directly verified
-- Windows-specific npm behavior for global installs -- inferred from npm docs, not tested
-- [npm CLI issue #5189](https://github.com/npm/cli/issues/5189) -- Windows junctions vs symlinks, relevant to global install but not validated
+- [NativeWind v5 overview](https://www.nativewind.dev/v5) -- Tailwind CSS for React Native (preview status)
+- [cross-spawn npm package](https://www.npmjs.com/package/cross-spawn) -- Windows spawn patterns
+- [css-to-react-native](https://github.com/styled-components/css-to-react-native) -- property compatibility reference
+- [Bolt.new GitHub repository](https://github.com/stackblitz/bolt.new) -- competitor architecture patterns
+- [Claude Code Desktop documentation](https://code.claude.com/docs/en/desktop) -- launch.json configuration
+- Competitor analysis sources (v0, Lovable, Replit comparisons)
 
 ---
 *Research completed: 2026-03-09*
