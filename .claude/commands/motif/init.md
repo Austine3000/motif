@@ -31,6 +31,7 @@ Before starting the interview, check if this is an existing project with code to
 When scan results exist, adapt the interview:
 - Pre-fill detected vertical from project type (e.g., fintech if financial dependencies detected)
 - Pre-fill detected stack from framework detection
+- Pre-fill detected platform from framework detection (e.g., Next.js detected -> web-nextjs, Vite detected -> web-vite, Expo detected -> mobile-expo). Skip the platform question in Round 4 if detected.
 - Tell user: "I scanned your existing project. Here's what I found: [summary]. I'll use these findings to tailor the design system."
 - In Round 4 (Scope & Stack), pre-populate the technical stack from scan findings instead of asking
 
@@ -39,12 +40,13 @@ When scan results do NOT exist (greenfield), the interview runs identically to v
 ## Auto Mode
 
 If `$ARGUMENTS` contains `--auto` OR contains flags like `--vertical`, `--stack`, `--theme`:
-- Parse flags: `--vertical [name]`, `--stack [react|next|vue|html]`, `--theme [light|dark|both]`, `--density [compact|comfortable|spacious]`
+- Parse flags: `--vertical [name]`, `--stack [react|next|vue|html]`, `--theme [light|dark|both]`, `--density [compact|comfortable|spacious]`, `--platform [web-nextjs|web-vite|web-static|mobile-expo]`
 - Skip the interview
 - Use sensible defaults for anything not specified
+- Default platform to `web-static` if `--platform` is not specified in auto mode
 - Generate files immediately
 
-Example: `/motif:init --auto --vertical fintech --stack react --theme dark`
+Example: `/motif:init --auto --vertical fintech --stack react --theme dark --platform web-nextjs`
 
 ## Interactive Mode (Default)
 
@@ -85,6 +87,14 @@ Then present the differentiation seed (adapted from design-inputs.md):
 If the user doesn't want to rate all axes, infer from their descriptions. Always capture at least personality, temperature, and formality.
 
 **Round 4 — Scope & Stack:**
+- What platform are you targeting?
+  - a) Web app with Next.js (SSR, App Router)
+  - b) Web app with Vite + React (SPA)
+  - c) Static HTML landing page
+  - d) Mobile app with Expo / React Native
+
+  Map selection to platform identifier: a -> web-nextjs, b -> web-vite, c -> web-static, d -> mobile-expo
+
 - Technical stack? (React/Next.js/Vue/HTML — or whatever you prefer)
 - What screens do you need for v1? (list them)
 - Any screen that's especially complex or critical?
@@ -130,6 +140,9 @@ mkdir -p .planning/design
 
 ## Technical Stack
 [framework, component library, CSS approach]
+
+## Platform
+[platform identifier: web-nextjs | web-vite | web-static | mobile-expo]
 
 ## Design Philosophy
 1. [How this product should FEEL — verb-based, e.g., "Reassure before asking for action"]
@@ -210,6 +223,9 @@ INITIALIZED
 ## Stack
 [technical stack]
 
+## Platform
+[platform identifier: web-nextjs | web-vite | web-static | mobile-expo]
+
 ## Screens
 | # | Screen | Status | Review Score | Last Updated |
 |---|--------|--------|-------------|-------------|
@@ -230,6 +246,18 @@ INITIALIZED
 ```
 
 ## Post-Generation
+
+### Persist Platform to STATE.md
+
+After creating STATE.md, persist the platform field via the state management script:
+
+```bash
+node .claude/get-motif/scripts/motif-state.js update platform {platform-id}
+```
+
+Where `{platform-id}` is one of: `web-nextjs`, `web-vite`, `web-static`, `mobile-expo`.
+
+This ensures the platform field survives `/clear` because it is written to STATE.md frontmatter on disk.
 
 ### CLAUDE.md Rules
 

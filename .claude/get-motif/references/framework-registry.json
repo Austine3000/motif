@@ -1,0 +1,134 @@
+{
+  "web-nextjs": {
+    "label": "Next.js (App Router)",
+    "category": "web",
+    "scaffold": {
+      "command": "npx",
+      "args": ["create-next-app@latest", "{name}", "--ts", "--tailwind", "--app", "--eslint", "--src-dir", "--use-npm", "--yes", "--disable-git"],
+      "postInstall": []
+    },
+    "devServer": {
+      "command": "npx",
+      "args": ["next", "dev", "--turbopack"],
+      "readyPattern": "Ready in",
+      "defaultPort": 3000,
+      "portFlag": "--port"
+    },
+    "tokens": {
+      "formats": ["css", "ts"],
+      "cssImportPath": "./tokens.css",
+      "tsImportPath": "./tokens"
+    },
+    "conventions": {
+      "srcDir": "src",
+      "pagesPattern": "src/app/{route}/page.tsx",
+      "layoutPattern": "src/app/{route}/layout.tsx",
+      "componentDir": "src/components",
+      "styleApproach": "tailwind+css-vars"
+    },
+    "composition": {
+      "overlay": "composer-nextjs.md",
+      "componentFormat": "jsx-tsx",
+      "fontLoading": "next/font/google",
+      "imageHandling": "next/image",
+      "iconDelivery": "lucide-react"
+    }
+  },
+  "web-vite": {
+    "label": "Vite + React",
+    "category": "web",
+    "scaffold": {
+      "command": "npm",
+      "args": ["create", "vite@latest", "{name}", "--", "--template", "react-ts"],
+      "postInstall": ["npm install"]
+    },
+    "devServer": {
+      "command": "npx",
+      "args": ["vite"],
+      "readyPattern": "Local:",
+      "defaultPort": 5173,
+      "portFlag": "--port"
+    },
+    "tokens": {
+      "formats": ["css", "ts"],
+      "cssImportPath": "./tokens.css",
+      "tsImportPath": "./tokens"
+    },
+    "conventions": {
+      "srcDir": "src",
+      "pagesPattern": "src/pages/{route}.tsx",
+      "componentDir": "src/components",
+      "styleApproach": "tailwind+css-vars"
+    },
+    "composition": {
+      "overlay": "composer-vite.md",
+      "componentFormat": "jsx-tsx",
+      "fontLoading": "google-fonts-cdn",
+      "imageHandling": "standard-img",
+      "iconDelivery": "lucide-react"
+    }
+  },
+  "web-static": {
+    "label": "Static HTML/CSS",
+    "category": "web",
+    "scaffold": {
+      "command": null,
+      "generatedStructure": ["index.html", "css/tokens.css", "css/styles.css", "js/main.js", "assets/"]
+    },
+    "devServer": {
+      "command": "npx",
+      "args": ["serve", "."],
+      "readyPattern": "Accepting connections",
+      "defaultPort": 3000,
+      "portFlag": "-l"
+    },
+    "tokens": {
+      "formats": ["css"],
+      "cssImportPath": "css/tokens.css"
+    },
+    "conventions": {
+      "srcDir": ".",
+      "componentDir": null,
+      "styleApproach": "css-vars"
+    },
+    "composition": {
+      "overlay": null,
+      "componentFormat": "html",
+      "fontLoading": "google-fonts-cdn",
+      "imageHandling": "standard-img",
+      "iconDelivery": "lucide-cdn"
+    }
+  },
+  "mobile-expo": {
+    "label": "Expo / React Native",
+    "category": "mobile",
+    "scaffold": {
+      "command": "npx",
+      "args": ["create-expo-app@latest", "{name}", "--template", "blank-typescript", "--yes"],
+      "postInstall": []
+    },
+    "devServer": {
+      "command": "npx",
+      "args": ["expo", "start", "--web"],
+      "readyPattern": "Metro waiting on",
+      "defaultPort": 8081,
+      "portFlag": "--port"
+    },
+    "tokens": {
+      "formats": ["css", "native-ts"],
+      "nativeTsImportPath": "./tokens.native"
+    },
+    "conventions": {
+      "srcDir": ".",
+      "componentDir": "components",
+      "styleApproach": "stylesheet-create"
+    },
+    "composition": {
+      "overlay": "composer-rn.md",
+      "componentFormat": "react-native",
+      "fontLoading": "expo-font",
+      "imageHandling": "expo-image",
+      "iconDelivery": "@expo/vector-icons"
+    }
+  }
+}
