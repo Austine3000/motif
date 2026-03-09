@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 21 of 21 (Package Source Sync — gap closure)
-Plan: 0 of 2 in current phase
-Status: Not started — needs planning
-Last activity: 2026-03-09 — Gap closure phase created from v1.3 audit
+Plan: 1 of 2 in current phase
+Status: In progress — 21-01 complete
+Last activity: 2026-03-09 — Completed 21-01 package source sync
 
-Progress: [==========================================...] ~96% (50/~52 plans)
+Progress: [==========================================..] ~98% (51/~52 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 50 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 10)
+- Total plans completed: 51 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 11)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -39,6 +39,7 @@ Progress: [==========================================...] ~96% (50/~52 plans)
 | Phase 19 P02 | 2min | 2 tasks | 1 files |
 | Phase 20 P01 | 3min | 3 tasks | 7 files |
 | Phase 20 P02 | 3min | 3 tasks | 4 files |
+| Phase 21 P01 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,8 @@ Recent decisions affecting current work:
 - [20-02]: Update delegates to init --force for file sync rather than duplicating install logic
 - [20-02]: Doctor exits 0 on warnings-only, exit 1 only on actual failures
 - [20-02]: Doctor checks 3 categories: file integrity, hook configuration, version consistency
+- [21-01]: SessionStart matcher uses 'startup|resume|clear|compact' for all session lifecycle events
+- [21-01]: CLAUDE-MD-SNIPPET.md stores content without MOTIF markers (injectConfig wraps them)
 
 ### Pending Todos
 
@@ -87,5 +90,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-09
-Stopped at: Completed 20-02-PLAN.md -- Phase 20 complete, all CLI commands implemented and tested
+Stopped at: Completed 21-01-PLAN.md -- 5 files synced to package source, SessionStart hook registration added
 Resume file: None
