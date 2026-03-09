@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 22 of 26 (Platform Foundation)
-Plan: 1 of 2 in current phase
-Status: Executing
-Last activity: 2026-03-09 — Completed 22-01 (Platform Foundation)
+Plan: 2 of 2 in current phase (COMPLETE)
+Status: Phase Complete
+Last activity: 2026-03-10 — Completed 22-02 (Token Transformer)
 
 Progress: [█░░░░░░░░░] 10% (v1.4)
 
@@ -33,6 +33,7 @@ Progress: [█░░░░░░░░░] 10% (v1.4)
 | 20. CLI Commands | 2/2 | 6min | 3.0min |
 | 21. Package Source Sync | 2/2 | 4min | 2.0min |
 | Phase 22 P01 | 3min | 2 tasks | 3 files |
+| Phase 22 P02 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -49,6 +50,9 @@ Recent decisions affecting current work:
 - [v1.4 roadmap]: SCAF-01 (framework recommendation) in Phase 23 with Next.js — first user-facing scaffolding experience
 - [v1.4 roadmap]: COMP-06 (cross-platform consistency) in Phase 26 — cannot verify until both web and mobile exist
 - [Phase 22]: Framework registry is static JSON; platform enum: web-nextjs, web-vite, web-static, mobile-expo
+- [Phase 22]: Colors category preserves text-/surface-/border- prefixes in token keys; only color- prefix stripped
+- [Phase 22]: text-* disambiguation: suffix pattern matching (size suffixes = typography, all else = colors)
+- [Phase 22]: Token transformer is non-blocking in pipeline; failure warns but does not stop design system generation
 
 ### Pending Todos
 
@@ -62,6 +66,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-09
-Stopped at: Completed 22-01-PLAN.md — Platform foundation (registry + init + state)
+Last session: 2026-03-10
+Stopped at: Completed 22-02-PLAN.md — Token transformer + pipeline integration (Phase 22 complete)
 Resume file: None
