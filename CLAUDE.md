@@ -6,6 +6,12 @@
 - NEVER compose a screen without a design system (`tokens.css` + `COMPONENT-SPECS.md`)
 - NEVER skip research. Domain patterns inform every design decision.
 
+## State Awareness
+- When running ANY /motif:* command, ALWAYS read `.planning/design/STATE.md` as the FIRST action before gate checks
+- If STATE.md is missing or corrupt, run recovery: `node .claude/get-motif/scripts/motif-state.js recover`
+- After recovery, notify the user briefly: "State recovered from artifacts -- phase: X, N/M screens"
+- State is advisory, not blocking: warn about out-of-order execution but proceed with the user's command
+
 ## Subagent Execution
 - Screen composition runs in fresh subagent contexts via Task()
 - Orchestrator stays at ≤30% context — passes file paths, not contents
