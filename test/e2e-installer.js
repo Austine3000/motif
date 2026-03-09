@@ -529,6 +529,97 @@ try {
   console.log(`\n  Test 5 result: ${test5Pass ? 'PASS' : 'FAIL'}\n`);
 
   // ═══════════════════════════════════════════════════════════════
+  // TEST 5B: Phase 21 — v1.3 Artifact Verification
+  // ═══════════════════════════════════════════════════════════════
+  console.log('━'.repeat(60));
+  console.log('TEST 5B: Phase 21 — v1.3 Artifact Verification');
+  console.log('━'.repeat(60));
+
+  const test5bStartIdx = testResults.length;
+
+  // 1. motif-state.js installed with full implementation
+  {
+    const statePath = path.join(tmpBase, '.claude', 'get-motif', 'scripts', 'motif-state.js');
+    assert(fs.existsSync(statePath), 'motif-state.js exists in scripts/');
+    if (fs.existsSync(statePath)) {
+      const stateContent = fs.readFileSync(statePath, 'utf8');
+      assert(stateContent.includes('cmdRecover'), 'motif-state.js contains cmdRecover function (full version)');
+    }
+  }
+
+  // 2. motif-session-start.js installed with real hook
+  {
+    const sessionPath = path.join(tmpBase, '.claude', 'get-motif', 'hooks', 'motif-session-start.js');
+    assert(fs.existsSync(sessionPath), 'motif-session-start.js exists in hooks/');
+    if (fs.existsSync(sessionPath)) {
+      const sessionContent = fs.readFileSync(sessionPath, 'utf8');
+      assert(sessionContent.includes('hookEventName'), 'motif-session-start.js contains hookEventName (real hook)');
+    }
+  }
+
+  // 3. motif-context-monitor.js is rich version (100+ lines)
+  {
+    const monitorPath = path.join(tmpBase, '.claude', 'get-motif', 'hooks', 'motif-context-monitor.js');
+    assert(fs.existsSync(monitorPath), 'motif-context-monitor.js exists in hooks/');
+    if (fs.existsSync(monitorPath)) {
+      const monitorContent = fs.readFileSync(monitorPath, 'utf8');
+      const lineCount = monitorContent.split('\n').length;
+      assert(lineCount >= 100, `motif-context-monitor.js has 100+ lines (got: ${lineCount})`);
+    }
+  }
+
+  // 4. CLAUDE.md has State Awareness between MOTIF markers
+  {
+    const claudeForV13 = fs.readFileSync(path.join(tmpBase, 'CLAUDE.md'), 'utf8');
+    const motifStart = claudeForV13.indexOf('<!-- MOTIF-START -->');
+    const motifEnd = claudeForV13.indexOf('<!-- MOTIF-END -->');
+    if (motifStart !== -1 && motifEnd !== -1) {
+      const motifSection = claudeForV13.substring(motifStart, motifEnd);
+      assert(motifSection.includes('State Awareness'), 'CLAUDE.md contains "State Awareness" between MOTIF markers');
+    } else {
+      assert(false, 'CLAUDE.md contains "State Awareness" between MOTIF markers');
+    }
+  }
+
+  // 5. settings.json has SessionStart hooks with correct matcher
+  {
+    const settingsPath = path.join(tmpBase, '.claude', 'settings.json');
+    assert(fs.existsSync(settingsPath), 'settings.json exists');
+    if (fs.existsSync(settingsPath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      assert(settings.hooks && settings.hooks.SessionStart, 'settings.json has hooks.SessionStart');
+      if (settings.hooks && settings.hooks.SessionStart) {
+        const sessionGroup = settings.hooks.SessionStart.find(
+          g => g.matcher === 'startup|resume|clear|compact'
+        );
+        assert(sessionGroup !== undefined, 'SessionStart has matcher "startup|resume|clear|compact"');
+        if (sessionGroup) {
+          const hasSessionHook = sessionGroup.hooks && sessionGroup.hooks.some(
+            h => h.command && h.command.includes('motif-session-start')
+          );
+          assert(hasSessionHook, 'SessionStart hook command contains "motif-session-start"');
+        }
+      }
+    }
+  }
+
+  // 6. icon-libraries.md has all 8 verticals
+  {
+    const iconLibPath = path.join(tmpBase, '.claude', 'get-motif', 'references', 'icon-libraries.md');
+    assert(fs.existsSync(iconLibPath), 'icon-libraries.md exists in references/');
+    if (fs.existsSync(iconLibPath)) {
+      const iconContent = fs.readFileSync(iconLibPath, 'utf8');
+      const verticals = ['Fintech', 'Health', 'SaaS', 'E-commerce', 'Social', 'Education', 'Marketplace', 'DevTools'];
+      for (const v of verticals) {
+        assert(iconContent.includes(v), `icon-libraries.md contains "${v}" vertical`);
+      }
+    }
+  }
+
+  const test5bPass = testResults.slice(test5bStartIdx).every(r => r.result === 'PASS');
+  console.log(`\n  Test 5B result: ${test5bPass ? 'PASS' : 'FAIL'}\n`);
+
+  // ═══════════════════════════════════════════════════════════════
   // TEST 6: Uninstall
   // ═══════════════════════════════════════════════════════════════
   console.log('━'.repeat(60));
@@ -590,8 +681,8 @@ try {
   // FINAL SUMMARY
   // ═══════════════════════════════════════════════════════════════
   console.log('═'.repeat(60));
-  const testCount = 11;
-  const testsPassed = [cliCmdPass, cliRouterPass, rootDetectPass, legacyShimPass, test1Pass, test2Pass, test3Pass, test4Pass, test5Pass, test6Pass, test7Pass].filter(Boolean).length;
+  const testCount = 12;
+  const testsPassed = [cliCmdPass, cliRouterPass, rootDetectPass, legacyShimPass, test1Pass, test2Pass, test3Pass, test4Pass, test5Pass, test5bPass, test6Pass, test7Pass].filter(Boolean).length;
   console.log(`\n${testsPassed}/${testCount} tests passed\n`);
 
   if (testsPassed < testCount) {
