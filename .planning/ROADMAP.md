@@ -5,6 +5,7 @@
 - v1.0 Core Design System — Phases 1-8 (shipped 2026-03-04)
 - v1.1 Icon Library Integration — Phases 9-12 (shipped 2026-03-04)
 - v1.2 Brownfield Intelligence — Phases 13-16 (shipped 2026-03-06)
+- v1.3 Global Reach — Phases 17-20 (in progress)
 
 ## Phases
 
@@ -43,82 +44,93 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 
 </details>
 
-### v1.2 Brownfield Intelligence (In Progress)
+<details>
+<summary>v1.2 Brownfield Intelligence (Phases 13-16) — SHIPPED 2026-03-06</summary>
 
-**Milestone Goal:** Make Motif's entire pipeline project-aware — scan existing codebases, present findings to the user for decisions, and output properly decomposed components that integrate with existing project conventions.
+- [x] Phase 13: Scan Infrastructure (2/2 plans) — completed 2026-03-05
+- [x] Phase 14: Token and System Integration (3/3 plans) — completed 2026-03-05
+- [x] Phase 15: Compose Integration (2/2 plans) — completed 2026-03-06
+- [x] Phase 16: Validation and Hardening (2/2 plans) — completed 2026-03-06
 
-- [x] Phase 13: Scan Infrastructure - Users can scan an existing project and review confirmed findings — completed 2026-03-05
-- [x] Phase 14: Token and System Integration - Users can have their existing design tokens detected, choose a merge strategy, and see what components are missing — completed 2026-03-05
-- [x] Phase 15: Compose Integration - Users can receive decomposed, project-aware screen output written to their actual directories — completed 2026-03-06
-- [x] Phase 16: Validation and Hardening - Users can trust that decomposed output is validated, atomically committed, and rollback-safe — completed 2026-03-06
+</details>
+
+### v1.3 Global Reach (In Progress)
+
+**Milestone Goal:** Make Motif installable once and usable everywhere — resilient state that survives context clears, global CLI for zero-friction setup, and complete vertical coverage across 8 domains.
+
+- [ ] Phase 17: Context Resilience — Every Motif workflow survives /clear and context compaction without losing state
+- [ ] Phase 18: New Verticals — Users can generate domain-intelligent designs for Social, Education, Marketplace, and DevTools projects
+- [ ] Phase 19: Global CLI Core — Users can install Motif globally and scaffold it into any project with a single command
+- [ ] Phase 20: CLI Commands and Vertical Discovery — Users can inspect, diagnose, update, and browse their Motif installation from the command line
 
 ## Phase Details
 
-### Phase 13: Scan Infrastructure
-**Goal**: Users can scan an existing project and review confirmed findings about its structure, components, and conventions before any generation happens
-**Depends on**: Phase 12 (v1.1 complete)
-**Requirements**: SCAN-01, SCAN-02, SCAN-04, SCAN-05
+### Phase 17: Context Resilience
+**Goal**: Every Motif workflow survives /clear and context compaction without losing progress or requiring manual re-orientation
+**Depends on**: Phase 16 (v1.2 complete)
+**Requirements**: CTXR-01, CTXR-02, CTXR-03, CTXR-04
 **Success Criteria** (what must be TRUE):
-  1. User can run `/motif:scan` on an existing project and receive a structured report of framework, directory layout, CSS approach, and naming conventions
-  2. User can see a catalog of existing components found in the project with file paths and export names
-  3. User can review and confirm or correct all scan findings before any downstream generation uses them
-  4. User can see extracted conventions from existing components (recurring patterns like border-radius values, spacing scales, shadow usage)
-  5. Existing greenfield workflow (`/motif:init` without prior scan) continues to work unchanged
-**Plans**: 2 plans
+  1. User can run `/clear` mid-workflow, invoke the next `/motif:*` command, and have the agent automatically know the current phase, vertical, and screen count without being told
+  2. User can open STATE.md and see machine-parseable YAML frontmatter with phase, vertical, and stack fields that any script or hook can read reliably
+  3. User can delete or corrupt STATE.md, run a `/motif:*` command, and have the system infer minimum progress from existing artifacts (tokens.css, COMPONENT-SPECS.md, screen files) rather than failing
+  4. User sees a status line on every agent turn showing the current Motif phase and screen count (e.g., "Motif: COMPOSING | 3/5 screens")
+**Plans**: TBD
 
 Plans:
-- [x] 13-01-PLAN.md — Build core project scanner script (framework, CSS, structure, components, conventions)
-- [x] 13-02-PLAN.md — Create /motif:scan command, scan workflow, init integration, state machine update
+- [ ] 17-01: TBD
+- [ ] 17-02: TBD
 
-### Phase 14: Token and System Integration
-**Goal**: Users can have their existing design tokens detected and merged with Motif's system, and see a gap analysis of which components already exist versus what the vertical needs
-**Depends on**: Phase 13
-**Requirements**: TOKN-01, TOKN-02, TOKN-03, SCAN-03
+### Phase 18: New Verticals
+**Goal**: Users can generate domain-intelligent designs for Social, Education, Marketplace, and DevTools projects with the same quality and completeness as existing verticals
+**Depends on**: Phase 16 (v1.2 complete — no dependency on Phase 17; can be parallelized)
+**Requirements**: VERT-01, VERT-02, VERT-03, VERT-04, VERT-05, VERT-06
 **Success Criteria** (what must be TRUE):
-  1. User can see existing CSS custom properties or Tailwind config tokens detected and presented from their project
-  2. User can choose a token strategy (adopt existing, merge with Motif, or start fresh) through a single top-level decision
-  3. User can receive a selective token overlay that fills gaps in their existing tokens without overwriting what they already have
-  4. User can see a gap analysis comparing their existing components against the vertical-required components, showing what needs to be generated versus what already exists
-**Plans**: 3 plans
+  1. User can select "social" as their vertical during `/motif:init` and receive a complete design system with Social-specific palettes, typography, components, spacing, and interaction patterns
+  2. User can select "education", "marketplace", or "devtools" as their vertical and receive the same completeness — each vertical has full design intelligence including palettes, typography, components, spacing, interaction patterns, and accessibility guidance
+  3. User can see icon vocabulary entries for each new vertical mapped across all 4 icon libraries (Lucide, Phosphor, Material Symbols, Tabler) in the generated ICON-CATALOG.md
+  4. User can receive domain-specific empty states, error states, and loading state patterns appropriate to each vertical (e.g., "no messages yet" for Social, "no courses enrolled" for Education)
+  5. Each new vertical file validates against the same template structure as existing verticals (consistent section headings, token naming, palette tables, component specs)
+**Plans**: TBD
 
 Plans:
-- [x] 14-01-PLAN.md — Build token extractor script and integrate into scan workflow
-- [x] 14-02-PLAN.md — Build component gap analysis script
-- [x] 14-03-PLAN.md — Wire brownfield mode into system generator workflow, agent, and context engine
+- [ ] 18-01: TBD
+- [ ] 18-02: TBD
 
-### Phase 15: Compose Integration
-**Goal**: Users can receive decomposed screen compositions that reuse existing project components and are written to the project's actual directories following its conventions
-**Depends on**: Phase 14
-**Requirements**: COMP-01, COMP-02, COMP-03
+### Phase 19: Global CLI Core
+**Goal**: Users can install Motif once globally and scaffold it into any project without needing npx or per-project npm install
+**Depends on**: Phase 17, Phase 18
+**Requirements**: GCLI-01, GCLI-02, GCLI-06
 **Success Criteria** (what must be TRUE):
-  1. User can receive screen output decomposed into one component per file, each in its own file with proper imports
-  2. User can have composed files written to the project's actual source directories (e.g., `src/components/`, `src/app/`) instead of only `.planning/design/screens/`
-  3. User can have existing project components imported and reused in new compositions instead of being recreated from scratch
-  4. Composed output follows the project's detected naming conventions, file structure, and framework patterns
-**Plans**: 2 plans
+  1. User can run `npm install -g motif-design` and have a `motif` command available system-wide
+  2. User can run `motif init` from any project directory and have Motif scaffolded into that project (commands, workflows, agents, hooks, CLAUDE.md injection) without needing npx or a local install
+  3. User can still use `npx motif-design@latest` as before — the global install does not break the existing npx path
+  4. The installer detects project root correctly (walks up to find .git/ or package.json) and refuses to install from non-project directories with a clear error
+**Plans**: TBD
 
 Plans:
-- [x] 15-01-PLAN.md — Update context engine, summary template, and state machine for decomposed composition
-- [x] 15-02-PLAN.md — Add decomposition, project-directory placement, and component reuse to compose workflow
+- [ ] 19-01: TBD
+- [ ] 19-02: TBD
 
-### Phase 16: Validation and Hardening
-**Goal**: Users can trust that all decomposed output passes validation checks and is committed atomically with automatic rollback on failure
-**Depends on**: Phase 15
-**Requirements**: COMP-04
+### Phase 20: CLI Commands and Vertical Discovery
+**Goal**: Users can inspect, diagnose, update, and browse their Motif installation entirely from the command line
+**Depends on**: Phase 19
+**Requirements**: GCLI-03, GCLI-04, GCLI-05, VERT-07
 **Success Criteria** (what must be TRUE):
-  1. User can have all decomposed files from a composition committed atomically in a single git commit
-  2. User can have the commit automatically rolled back if any post-decomposition validation check fails (import cycles, naming conflicts, missing props)
-  3. Stale scan artifacts are detected before composition, preventing ghost component references from outdated scans
-**Plans**: 2 plans
+  1. User can run `motif status` and see the installed version, current workflow phase, and number of screens composed for the current project
+  2. User can run `motif update` and have project files synced from a newer global package version, with downgrade protection that refuses to overwrite newer files without --force
+  3. User can run `motif doctor` and receive a diagnostic report checking file integrity (all expected files present), hook configuration (CLAUDE.md entries correct), and version consistency (global vs project)
+  4. User can run `motif list` and see all available verticals (all 8) with short descriptions, so they know their options before running init
+**Plans**: TBD
 
 Plans:
-- [x] 16-01-PLAN.md — Build compose-validator.js script (import cycles, naming conflicts, missing props)
-- [x] 16-02-PLAN.md — Add validation gate, atomic commit/rollback, and staleness check to compose workflow
+- [ ] 20-01: TBD
+- [ ] 20-02: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 13 → 14 → 15 → 16
+Phases execute in numeric order: 17 → 18 → 19 → 20
+(Note: Phases 17 and 18 have no mutual dependency and can be parallelized)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -139,3 +151,7 @@ Phases execute in numeric order: 13 → 14 → 15 → 16
 | 14. Token and System Integration | v1.2 | 3/3 | Complete | 2026-03-05 |
 | 15. Compose Integration | v1.2 | 2/2 | Complete | 2026-03-06 |
 | 16. Validation and Hardening | v1.2 | 2/2 | Complete | 2026-03-06 |
+| 17. Context Resilience | v1.3 | 0/TBD | Not started | - |
+| 18. New Verticals | v1.3 | 0/TBD | Not started | - |
+| 19. Global CLI Core | v1.3 | 0/TBD | Not started | - |
+| 20. CLI Commands and Vertical Discovery | v1.3 | 0/TBD | Not started | - |

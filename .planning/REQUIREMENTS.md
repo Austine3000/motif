@@ -98,29 +98,29 @@ Requirements for Global Reach milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CTXR-01 | — | Pending |
-| CTXR-02 | — | Pending |
-| CTXR-03 | — | Pending |
-| CTXR-04 | — | Pending |
-| GCLI-01 | — | Pending |
-| GCLI-02 | — | Pending |
-| GCLI-03 | — | Pending |
-| GCLI-04 | — | Pending |
-| GCLI-05 | — | Pending |
-| GCLI-06 | — | Pending |
-| VERT-01 | — | Pending |
-| VERT-02 | — | Pending |
-| VERT-03 | — | Pending |
-| VERT-04 | — | Pending |
-| VERT-05 | — | Pending |
-| VERT-06 | — | Pending |
-| VERT-07 | — | Pending |
+| CTXR-01 | Phase 17 | Pending |
+| CTXR-02 | Phase 17 | Pending |
+| CTXR-03 | Phase 17 | Pending |
+| CTXR-04 | Phase 17 | Pending |
+| VERT-01 | Phase 18 | Pending |
+| VERT-02 | Phase 18 | Pending |
+| VERT-03 | Phase 18 | Pending |
+| VERT-04 | Phase 18 | Pending |
+| VERT-05 | Phase 18 | Pending |
+| VERT-06 | Phase 18 | Pending |
+| GCLI-01 | Phase 19 | Pending |
+| GCLI-02 | Phase 19 | Pending |
+| GCLI-06 | Phase 19 | Pending |
+| GCLI-03 | Phase 20 | Pending |
+| GCLI-04 | Phase 20 | Pending |
+| GCLI-05 | Phase 20 | Pending |
+| VERT-07 | Phase 20 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 17 total
-- Mapped to phases: 0
-- Unmapped: 17 ⚠️
+- Mapped to phases: 17
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-04*
-*Last updated: 2026-03-09 after v1.3 milestone requirements defined*
+*Last updated: 2026-03-09 after v1.3 roadmap created*

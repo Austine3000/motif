@@ -2,17 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-04)
+See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** v1.3 Global Reach
+**Current focus:** Phase 17 — Context Resilience
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-09 — Milestone v1.3 started
+Phase: 17 of 20 (Context Resilience)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-03-09 — v1.3 roadmap created, 4 phases (17-20) covering 17 requirements
+
+Progress: [================================..........] ~80% (40/~48 plans estimated)
 
 ## Performance Metrics
 
@@ -37,32 +39,10 @@ Last activity: 2026-03-09 — Milestone v1.3 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [v1.2 roadmap]: 4-phase structure derived from dependency chain — scan artifacts must exist before any downstream integration
-- [v1.2 roadmap]: SCAN-03 (gap analysis) assigned to Phase 14 (requires system generator awareness, not just scanning)
-- [13-01]: Used regex over AST parsing for zero-dependency component detection with confidence tags
-- [13-01]: Multi-signal scoring (directory + export + JSX + filename) for component confidence
-- [13-01]: Split output: PROJECT-SCAN.md (~1200 tokens) and CONVENTIONS.md (~800 tokens)
-- [13-02]: Scan workflow runs in MAIN context for user interaction (not subagent)
-- [13-02]: Brownfield detection gated behind package.json AND source directory -- greenfield unchanged
-- [13-02]: No new SCANNED state -- scan is optional pre-step, not a phase transition
-- [14-01]: Separate token-extractor.js script from project-scanner.js for single-responsibility
-- [14-01]: Regex Tailwind config parsing with confidence flags (LOW for dynamic configs)
-- [14-01]: All scan.md token references existence-gated -- greenfield path unchanged
-- [14-02]: Line-based markdown table parsing instead of regex exec loop for reliability
-- [14-02]: 3-tier component matching (exact, alias, contains) with alias table for known equivalents
-- [14-02]: Contains match requires minimum 3 characters to avoid false positives
-- [14-03]: Token strategy presented as 3-option choice (adopt/merge/fresh) with merge as default
-- [14-03]: All brownfield additions existence-gated -- greenfield path has zero behavioral change
-- [14-03]: Existing components get reference-only specs to reduce COMPONENT-SPECS.md size
-- [Phase 15]: TOKEN-INVENTORY.md in composer never_load -- tokens.css is sufficient for composition
-- [Phase 15]: Summary template uses N/A (greenfield) fallback when no brownfield scan data exists
-
-- [15-02]: All decomposition/brownfield additions existence-gated -- greenfield behavior unchanged
-- [15-02]: Subagent loads full scan artifacts (~1500 tokens) rather than pre-extracted slim context
-- [15-02]: 150-line per-component limit enforced via agent instructions, not tooling
-- [16-01]: Used git status --porcelain for naming conflict detection (M vs A/??  distinguishes overwrites)
-- [16-01]: Import cycle detection only tracks inter-generated-file imports, excluding externals
-- [16-01]: Missing prop check is regex-based best-effort, consistent with project-scanner.js
+- [v1.3 roadmap]: Context resilience first — fixes current /clear breakage before adding global CLI complexity
+- [v1.3 roadmap]: Verticals independent of context resilience — pure data files, parallelizable with Phase 17
+- [v1.3 roadmap]: VERT-07 (motif list) grouped with CLI commands in Phase 20, not with vertical authoring
+- [v1.3 roadmap]: Global CLI split into core (install/init/dual-mode) and commands (status/update/doctor/list) phases
 
 ### Pending Todos
 
@@ -70,10 +50,12 @@ None.
 
 ### Blockers/Concerns
 
-None.
+- SessionStart hook bug (#15174) — stdout silently dropped after compaction. Context resilience must work around this.
+- Windows hook compatibility unverified for global install paths ($HOME, $CLAUDE_PROJECT_DIR)
+- Self-referencing dependency bug in package.json needs fixing during global CLI work
 
 ## Session Continuity
 
 Last session: 2026-03-09
-Stopped at: Starting v1.3 milestone — defining requirements
+Stopped at: v1.3 roadmap created, ready to plan Phase 17
 Resume file: None
