@@ -321,6 +321,22 @@ function injectHookSettings(mapping, flags, projectRoot) {
     ],
   });
 
+  // Ensure SessionStart hooks structure exists
+  if (!settings.hooks.SessionStart) settings.hooks.SessionStart = [];
+
+  // Remove existing Motif SessionStart matcher group (idempotent re-install)
+  settings.hooks.SessionStart = settings.hooks.SessionStart.filter(
+    g => !(g.matcher === 'startup|resume|clear|compact' && g.hooks?.some(h => h.command?.includes('motif')))
+  );
+
+  // Add Motif SessionStart hooks
+  settings.hooks.SessionStart.push({
+    matcher: 'startup|resume|clear|compact',
+    hooks: [
+      { type: 'command', command: 'node "$CLAUDE_PROJECT_DIR"/.claude/get-motif/hooks/motif-session-start.js' },
+    ],
+  });
+
   // Add or update statusLine (Motif context monitor)
   settings.statusLine = {
     type: 'command',
@@ -551,8 +567,18 @@ function removeHookSettings(flags, projectRoot) {
     );
     // Clean up empty arrays
     if (settings.hooks.PostToolUse.length === 0) delete settings.hooks.PostToolUse;
-    if (Object.keys(settings.hooks).length === 0) delete settings.hooks;
   }
+
+  // Remove Motif SessionStart matcher group
+  if (settings.hooks?.SessionStart) {
+    settings.hooks.SessionStart = settings.hooks.SessionStart.filter(
+      g => !(g.matcher === 'startup|resume|clear|compact' && g.hooks?.some(h => h.command?.includes('motif')))
+    );
+    if (settings.hooks.SessionStart.length === 0) delete settings.hooks.SessionStart;
+  }
+
+  // Clean up empty hooks object
+  if (settings.hooks && Object.keys(settings.hooks).length === 0) delete settings.hooks;
 
   // Remove Motif statusLine (only if it's the Motif one)
   if (settings.statusLine?.command?.includes('motif')) {

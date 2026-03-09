@@ -1,4 +1,3 @@
-<!-- MOTIF-START -->
 # Motif Rules
 
 ## Workflow
@@ -39,5 +38,3 @@
 - `design(fix):` — review-driven fixes
 - `design(evolve):` — design system evolution
 - `design(quick):` — quick-mode tasks
-
-<!-- MOTIF-END -->
