@@ -19,7 +19,7 @@ Progress: [====================================........] ~88% (44/~48 plans esti
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 44 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 4)
+- Total plans completed: 45 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 5)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -32,6 +32,7 @@ Progress: [====================================........] ~88% (44/~48 plans esti
 | 15. Compose Integration | 2/2 | 3min | 1.5min |
 | 16. Validation and Hardening | 2/2 | 3min | 1.5min |
 | 17. Context Resilience | 3/3 | 8min | 2.7min |
+| Phase 18 P01 | 5min | 2 tasks | 2 files |
 | Phase 18 P02 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
@@ -53,6 +54,8 @@ Recent decisions affecting current work:
 - [17-03]: Self-contained YAML parsing in status hook for <10ms performance
 - [17-03]: warn-then-obey gates consistently across all 8 workflow commands
 - [Phase 18]: Marketplace differentiated from E-commerce via two-sided trust focus; DevTools differentiated from SaaS via dense/dark-mode-first/monospace-dominant
+- [18-01]: Phosphor Icons primary for Social (rich social/communication set); Material Symbols Rounded primary for Education (broadest education set)
+- [18-01]: Social omits Data & Mono typography section (no numerical data); Education includes it (code snippets in technical courses)
 
 ### Pending Todos
 
@@ -67,5 +70,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-09
-Stopped at: Completed 18-02-PLAN.md
+Stopped at: Completed 18-01-PLAN.md and 18-02-PLAN.md
 Resume file: None
