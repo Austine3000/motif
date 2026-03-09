@@ -84,6 +84,109 @@ let keepTmpDir = false;
 
 try {
   // ═══════════════════════════════════════════════════════════════
+  // CLI COMMANDS TESTS
+  // ═══════════════════════════════════════════════════════════════
+  console.log('━'.repeat(60));
+  console.log('CLI COMMANDS TESTS');
+  console.log('━'.repeat(60));
+
+  const cliCmdStartIdx = testResults.length;
+
+  // Test: motif list
+  {
+    const listOutput = execSync(`node ${INSTALLER} list`, { encoding: 'utf8', timeout: 10000 });
+    assert(listOutput.includes('Available Verticals'), 'motif list output contains "Available Verticals"');
+    const verticals = ['fintech', 'health', 'saas', 'ecommerce', 'social', 'education', 'marketplace', 'devtools'];
+    for (const v of verticals) {
+      assert(listOutput.includes(v), `motif list output contains "${v}"`);
+    }
+    assert(listOutput.includes('8 verticals available'), 'motif list output contains "8 verticals available"');
+  }
+
+  // Test: motif status (in temp project with manifest)
+  {
+    const statusTmp = fs.mkdtempSync(path.join('/tmp', 'motif-cmd-status-'));
+    fs.mkdirSync(path.join(statusTmp, '.git'), { recursive: true });
+    fs.writeFileSync(path.join(statusTmp, 'package.json'), '{"name":"test"}');
+    fs.writeFileSync(path.join(statusTmp, '.motif-manifest.json'), JSON.stringify({
+      version: '0.2.2',
+      runtime: 'claude-code',
+      installedAt: '2026-01-01T00:00:00Z',
+      files: {},
+    }));
+    try {
+      const statusOutput = execSync(`node ${INSTALLER} status`, {
+        cwd: statusTmp, encoding: 'utf8', timeout: 10000,
+      });
+      assert(statusOutput.includes('Motif Status'), 'motif status output contains "Motif Status"');
+      assert(statusOutput.includes('0.2.2'), 'motif status output contains version "0.2.2"');
+    } finally {
+      fs.rmSync(statusTmp, { recursive: true, force: true });
+    }
+  }
+
+  // Test: motif update (already up to date)
+  {
+    const updateTmp = fs.mkdtempSync(path.join('/tmp', 'motif-cmd-update-'));
+    fs.mkdirSync(path.join(updateTmp, '.git'), { recursive: true });
+    fs.writeFileSync(path.join(updateTmp, 'package.json'), '{"name":"test"}');
+    const pkgVersion = require(path.join(PROJECT_ROOT, 'package.json')).version;
+    fs.writeFileSync(path.join(updateTmp, '.motif-manifest.json'), JSON.stringify({
+      version: pkgVersion,
+      runtime: 'claude-code',
+      installedAt: '2026-01-01T00:00:00Z',
+      files: {},
+    }));
+    try {
+      const updateOutput = execSync(`node ${INSTALLER} update`, {
+        cwd: updateTmp, encoding: 'utf8', timeout: 10000,
+      });
+      assert(updateOutput.includes('up to date'), 'motif update output contains "up to date"');
+    } finally {
+      fs.rmSync(updateTmp, { recursive: true, force: true });
+    }
+  }
+
+  // Test: motif doctor (in temp project)
+  {
+    const doctorTmp = fs.mkdtempSync(path.join('/tmp', 'motif-cmd-doctor-'));
+    fs.mkdirSync(path.join(doctorTmp, '.git'), { recursive: true });
+    fs.writeFileSync(path.join(doctorTmp, 'package.json'), '{"name":"test"}');
+    fs.writeFileSync(path.join(doctorTmp, '.motif-manifest.json'), JSON.stringify({
+      version: '0.2.2',
+      runtime: 'claude-code',
+      installedAt: '2026-01-01T00:00:00Z',
+      files: {},
+    }));
+    try {
+      const doctorOutput = execSync(`node ${INSTALLER} doctor`, {
+        cwd: doctorTmp, encoding: 'utf8', timeout: 10000,
+      });
+      assert(doctorOutput.includes('Motif Doctor'), 'motif doctor output contains "Motif Doctor"');
+      assert(doctorOutput.includes('passed'), 'motif doctor output contains "passed"');
+    } catch (err) {
+      // doctor may exit 1 if checks fail, that's OK -- we just want it to run
+      const output = (err.stdout || '') + (err.stderr || '');
+      assert(output.includes('Motif Doctor'), 'motif doctor output contains "Motif Doctor"');
+      assert(output.includes('passed'), 'motif doctor output contains "passed"');
+    } finally {
+      fs.rmSync(doctorTmp, { recursive: true, force: true });
+    }
+  }
+
+  // Test: motif help includes all commands
+  {
+    const helpOutput = execSync(`node ${INSTALLER} help`, { encoding: 'utf8', timeout: 10000 });
+    assert(helpOutput.includes('status'), 'motif help output contains "status"');
+    assert(helpOutput.includes('update'), 'motif help output contains "update"');
+    assert(helpOutput.includes('doctor'), 'motif help output contains "doctor"');
+    assert(helpOutput.includes('list'), 'motif help output contains "list"');
+  }
+
+  const cliCmdPass = testResults.slice(cliCmdStartIdx).every(r => r.result === 'PASS');
+  console.log(`\n  CLI Commands Tests result: ${cliCmdPass ? 'PASS' : 'FAIL'}\n`);
+
+  // ═══════════════════════════════════════════════════════════════
   // CLI ROUTER TESTS
   // ═══════════════════════════════════════════════════════════════
   console.log('━'.repeat(60));
@@ -487,8 +590,8 @@ try {
   // FINAL SUMMARY
   // ═══════════════════════════════════════════════════════════════
   console.log('═'.repeat(60));
-  const testCount = 10;
-  const testsPassed = [cliRouterPass, rootDetectPass, legacyShimPass, test1Pass, test2Pass, test3Pass, test4Pass, test5Pass, test6Pass, test7Pass].filter(Boolean).length;
+  const testCount = 11;
+  const testsPassed = [cliCmdPass, cliRouterPass, rootDetectPass, legacyShimPass, test1Pass, test2Pass, test3Pass, test4Pass, test5Pass, test6Pass, test7Pass].filter(Boolean).length;
   console.log(`\n${testsPassed}/${testCount} tests passed\n`);
 
   if (testsPassed < testCount) {

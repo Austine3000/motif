@@ -5,9 +5,12 @@ const { parseArgs, styleText } = require('node:util');
 const path = require('node:path');
 
 // ─── Subcommand registry ────────────────────────────────────────
-// Phase 19: init only. Phase 20 adds: status, update, doctor, list
 const COMMANDS = {
-  init: './commands/init.js',
+  init:   './commands/init.js',
+  status: './commands/status.js',
+  update: './commands/update.js',
+  doctor: './commands/doctor.js',
+  list:   './commands/list.js',
 };
 
 // ─── Parse top-level args ───────────────────────────────────────
@@ -38,6 +41,10 @@ ${styleText('bold', 'USAGE')}
 
 ${styleText('bold', 'COMMANDS')}
   ${styleText('cyan', 'init')}       Install Motif into the current project
+  ${styleText('cyan', 'status')}     Show version, workflow phase, and screens composed
+  ${styleText('cyan', 'update')}     Sync project files from updated global package
+  ${styleText('cyan', 'doctor')}     Check installation integrity and configuration
+  ${styleText('cyan', 'list')}       Show available design verticals
   ${styleText('cyan', 'help')}       Show this help message
 
 ${styleText('bold', 'OPTIONS')}
@@ -47,8 +54,10 @@ ${styleText('bold', 'OPTIONS')}
 ${styleText('bold', 'EXAMPLES')}
   motif init                              Install with auto-detected runtime
   motif init --runtime claude-code        Explicit runtime selection
-  motif init --dry-run                    Preview installation
-  npx motif-design@latest                 Legacy one-shot install
+  motif status                            Check installation status
+  motif list                              Browse available verticals
+  motif doctor                            Diagnose installation issues
+  motif update                            Update to latest version
 `);
 }
 
