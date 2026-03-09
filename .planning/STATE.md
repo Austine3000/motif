@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 18 — New Verticals
+**Current focus:** Phase 19 — Global CLI Core
 
 ## Current Position
 
-Phase: 18 of 20 (New Verticals)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-03-09 — Phase 18 complete (3/3 plans, all 4 new verticals authored and integrated)
+Phase: 19 of 20 (Global CLI Core)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-03-09 — Plan 19-01 complete (CLI router + init extraction)
 
-Progress: [======================================......] ~92% (46/~48 plans estimated)
+Progress: [=======================================.....] ~94% (47/~50 plans estimated)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 46 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 6)
+- Total plans completed: 47 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 7)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -35,6 +35,7 @@ Progress: [======================================......] ~92% (46/~48 plans esti
 | Phase 18 P01 | 5min | 2 tasks | 2 files |
 | Phase 18 P02 | 5min | 2 tasks | 2 files |
 | Phase 18 P03 | 2min | 2 tasks | 3 files |
+| Phase 19 P01 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -58,6 +59,9 @@ Recent decisions affecting current work:
 - [18-01]: Phosphor Icons primary for Social (rich social/communication set); Material Symbols Rounded primary for Education (broadest education set)
 - [18-01]: Social omits Data & Mono typography section (no numerical data); Education includes it (code snippets in technical courses)
 - [18-03]: Marketplace removed from ecommerce detection keywords -- now its own vertical with separate detection
+- [19-01]: Backward-compat shim in bin/install.js delegates to commands/init.js for seamless transition
+- [19-01]: Unrecognized subcommands fall through to init for npx backward compatibility
+- [19-01]: findProjectRoot checks .git (file or directory) and package.json as root indicators
 
 ### Pending Todos
 
@@ -67,10 +71,10 @@ None.
 
 - SessionStart hook bug (#15174) — stdout silently dropped after compaction. Context resilience must work around this.
 - Windows hook compatibility unverified for global install paths ($HOME, $CLAUDE_PROJECT_DIR)
-- Self-referencing dependency bug in package.json needs fixing during global CLI work
+- Self-referencing dependency bug in package.json -- FIXED in 19-01
 
 ## Session Continuity
 
 Last session: 2026-03-09
-Stopped at: Phase 18 complete -- all 3 plans executed, ready for Phase 19
+Stopped at: Completed 19-01-PLAN.md -- CLI router and init extraction done, ready for 19-02
 Resume file: None
