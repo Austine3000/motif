@@ -266,8 +266,10 @@ function cmdStatusLine() {
   const phase = state.phase || '?';
   const composed = state.screens_composed || 0;
   const total = state.screen_count || 0;
+  const platform = state.platform || '';
+  const platformShort = platform ? platform.replace('web-', '').replace('mobile-', '') : '';
 
-  let line = `Motif: ${vertical} | ${phase} ${composed}/${total}`;
+  let line = `Motif: ${vertical}${platformShort ? '/' + platformShort : ''} | ${phase} ${composed}/${total}`;
 
   // Add next action hint based on phase
   switch (phase) {
@@ -347,9 +349,10 @@ function cmdRecover() {
       return;
     }
 
-    // Vertical and stack from PROJECT.md
+    // Vertical, stack, and platform from PROJECT.md
     let vertical = 'unknown';
     let stack = 'unknown';
+    let platform = null;
     const projectPath = path.join(designDir, 'PROJECT.md');
 
     if (fs.existsSync(projectPath)) {
@@ -362,6 +365,16 @@ function cmdRecover() {
       const stackMatch = projectContent.match(/## Technical Stack\n(.+)/) ||
                           projectContent.match(/stack:\s*(.+)/i);
       if (stackMatch) stack = stackMatch[1].trim();
+
+      // Platform from PROJECT.md
+      const platMatch = projectContent.match(/## Platform\n(\S+)/) ||
+                         projectContent.match(/platform:\s*(\S+)/i);
+      if (platMatch) {
+        const validPlatforms = ['web-nextjs', 'web-vite', 'web-static', 'mobile-expo'];
+        if (validPlatforms.includes(platMatch[1])) {
+          platform = platMatch[1];
+        }
+      }
     }
 
     // Screen list from PROJECT.md
@@ -404,6 +417,11 @@ function cmdRecover() {
       last_outcome: 'recovered',
       updated: new Date().toISOString().split('T')[0]
     };
+
+    // Only include platform if recovered (avoid writing null which downstream may misinterpret)
+    if (platform) {
+      recovered.platform = platform;
+    }
 
     // Write recovered state
     const frontmatter = serializeFrontmatter(recovered);
