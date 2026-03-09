@@ -1,194 +1,163 @@
 # Project Research Summary
 
-**Project:** Motif v1.2 — Brownfield Intelligence Features
-**Domain:** AI design engineering system extension — project scanning, component cataloging, and brownfield-aware composition
-**Researched:** 2026-03-04
+**Project:** Motif v1.3 -- Global Install, Context Resilience, New Verticals
+**Domain:** CLI tooling for AI-assisted design engineering (npm package distribution, LLM state persistence, domain-specific design intelligence)
+**Researched:** 2026-03-09
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Motif v1.2 adds brownfield intelligence to an existing AI design engineering CLI. The core insight from research is that brownfield awareness is not a single feature — it is a pipeline-wide capability that flows from a single scan artifact (SCAN-SUMMARY.md) through every existing workflow step. The approach is scan-present-decide-execute: the system scans the user's project, presents findings for confirmation, the user makes one top-level decision (respect / fresh / customize), and then every downstream agent (init, research, system generator, composer) operates with project-aware context. This is additive to the existing pipeline — greenfield projects skip scanning entirely and every existing workflow must continue to work unchanged when no scan artifact is present.
+Motif v1.3 delivers three capabilities that address distinct adoption blockers: global CLI install (`npm install -g motif-design`), context-resilient state recovery after `/clear` and compaction, and four new vertical design references (Social, Education, Marketplace, DevTools). The research confirms that the existing zero-dependency, markdown-first architecture handles all three without fundamental changes. Global install works today mechanically -- npm's `bin` field already symlinks correctly -- and requires only project-root detection, a `--version` flag, and removal of the self-referencing dependency bug in `package.json`. New verticals are pure data files that slot into the existing template-driven loading system with zero code changes.
 
-The recommended approach is a staged build in four phases: (1) scan infrastructure (new agents, new artifacts, state machine extension), (2) init and system generator integration (pre-fill init from scan, EXTRACT+EXTEND mode for token generation), (3) compose integration (existing component awareness, multi-file output to project directories), and (4) decomposition engine validation and polish. The critical constraint throughout is Motif's zero-dependency rule — all scanning is implemented in pure Node.js 22+ stdlib using regex-based heuristics, matching the existing hook pattern. No AST parsers, no npm packages.
+The hardest problem is context resilience. The state machine relies on an AI agent voluntarily reading STATE.md, which breaks after `/clear` because the agent starts fresh with no memory that STATE.md exists. The recommended approach avoids the broken SessionStart compact/clear hooks (confirmed bug, stdout silently dropped, issue #15174) and instead layers three reliable mechanisms: a CLAUDE.md recovery directive (always re-read after context loss), STATE.md as the durable state file, and an enhanced statusLine hook that displays current phase on every turn. Artifact-based state inference provides defense-in-depth when STATE.md is missing, but must be conservative -- inferring minimum phase, not maximum -- to avoid phantom progress from partial or copied files.
 
-The primary risk is context budget overrun. Scan artifacts that exceed their token ceilings crowd out COMPONENT-SPECS.md and tokens.css in downstream agent contexts, causing agents to ignore design system constraints. Every scan artifact must have a hard token budget enforced from day one: SCAN-SUMMARY.md under 2,000 tokens, component catalog under 1,500 tokens, raw scan files under 3,000 tokens each. The second major risk is decision fatigue — the brownfield init flow must collapse to a single user-facing question, not eight per-category choices. Both of these are architecture decisions that must be locked in Phase 1 before any implementation begins.
-
----
+The primary risks are: (1) global install from subdirectories silently installing to the wrong location (no project-root detection exists today), (2) concurrent JSON file writes corrupting manifests (the same class of bug that hit Claude Code's own `.claude.json`), and (3) version downgrade when a stale global install overwrites newer per-project files. All three have straightforward mitigations. The new verticals carry the least risk -- they are additive data files -- but must be validated against the existing template structure to prevent drift that would cause inconsistent design system generation.
 
 ## Key Findings
 
 ### Recommended Stack
 
-No new dependencies are introduced. All brownfield scanning runs on Node.js 22+ stdlib: `fs.globSync` for file discovery, `path.matchesGlob` for convention matching (stable since v22.20.0), `fs.readdirSync({ recursive: true })` as a fallback, and regex-based parsing for component and token extraction. This is identical to the approach used by all existing Motif hooks (`motif-token-check.js`, `motif-font-check.js`, `motif-aria-check.js`). The trade-off is parsing precision (~90% accuracy vs ~99% for AST-based tools), but the zero-dependency constraint is non-negotiable and the existing hooks prove this accuracy level is sufficient for catalog-quality output.
+No new dependencies. The zero-dependency constraint is maintained across all three capabilities. The entire stack remains Node.js built-ins: `node:fs`, `node:path`, `node:util` (parseArgs, styleText), and `node:crypto` (createHash). The `--version` flag is the only addition to the CLI surface.
 
-Three new scripts ship in the Motif package: `scripts/project-scanner.js`, `scripts/component-cataloger.js`, and `scripts/token-extractor.js`. These are invoked directly by agents (not triggered by PostToolUse hooks), write output to `.planning/design/scan/`, and follow the existing sync-API pattern for simplicity. All scan output is markdown, matching Motif's markdown-first architecture — this is the optimal format for Claude Code's Read tool context loading.
+**Core technologies (unchanged):**
+- **Node.js >=22.0.0**: Runtime for installer, hooks, and scripts -- no change
+- **node:util.parseArgs**: CLI flag parsing -- add `--version` flag only
+- **Markdown files**: Workflows, agents, verticals, and state are all `.md` consumed by LLMs -- this is the architecture, not a limitation
+- **CSS custom properties**: Design tokens via `tokens.css` -- no change
+- **Claude Code hooks**: PostToolUse validation, statusLine monitoring -- enhance statusLine to show phase
 
-**Core technologies:**
-- `node:fs` (globSync, readdirSync, readFileSync, writeFileSync): file discovery and reading — same APIs as existing Motif scripts, zero new packages
-- `node:path` (matchesGlob, join, relative): convention pattern matching — stable Node 22+ built-in replacing the `minimatch` npm package
-- `crypto.createHash('sha256')`: content hashing for scan freshness detection — already used in `install.js`
-- Regex-based parsing: component prop extraction, CSS custom property detection, token extraction — proven by existing hooks
-- Template string interpolation: component file generation — no templating library needed
+**Critical fix:** Remove `"motif-design": "^0.1.0"` self-referencing dependency from `package.json`. This is a bug that causes npm to nest an old version of the package inside itself during global install.
 
 ### Expected Features
 
-The feature dependency tree is clear: project scanning is the foundation that every other brownfield feature depends on. Nothing else is buildable until scanning works and produces confirmed artifacts.
+**Must have (table stakes):**
+- `npm install -g motif-design` with `motif init` per-project -- the standard global CLI pattern
+- Dual-mode support (both `npx` and global install must work)
+- Auto-read STATE.md on every `/motif:*` command after context loss
+- Artifact-based state inference as fallback when STATE.md is missing
+- YAML frontmatter in STATE.md for reliable machine parsing
+- Complete vertical reference files (~400-500 lines each) for Social, Education, Marketplace, DevTools with exact hex values, font names, component XML specs, and icon vocabulary
 
-**Must have (table stakes) — brownfield non-functional without these:**
-- **Project structure scanning** — detect framework, directory layout, CSS approach, naming conventions, routing, existing components, tokens
-- **Scan results presentation** — present to user, get confirmation (the trust contract; no AI tool should silently make structural decisions about an existing project)
-- **File output convention matching** — composer writes files with correct naming and to correct directories
-- **Composer output to project directories** — output goes to `src/app/dashboard/page.tsx`, not `.planning/design/screens/`
-- **Existing component catalog** — file list with export names; composer knows what to import vs recreate
-- **Import existing design tokens** — detect CSS custom properties and Tailwind colors; user decides whether to reuse
+**Should have (differentiators):**
+- `motif status` and `motif doctor` commands for installation diagnostics
+- State continuity display in statusLine (`Motif: COMPOSING | 3/5 screens | ctx 42%`)
+- Checkpoint commits with phase tags for git-based state recovery
+- Richer decision logging (WHAT + WHY + SOURCE) for cross-session memory
+- Vertical-specific empty/error/loading state patterns
 
-**Should have (differentiators) — makes Motif notably better than alternatives:**
-- **Component gap analysis** — diff existing component inventory against vertical-required components (COMPONENT-SPECS.md); generate only what is missing
-- **Reuse directive in COMPONENT-SPECS.md** — `<source type="existing" path="..." />` tells the composer to import, not recreate
-- **Component decomposition planner** — plan multi-file output, user approves the file plan before writing
-- **Selective token overlay** — generate `motif-extensions.css` for missing tokens only; preserve existing tokens
-
-**Defer to v1.3+:**
-- Convention extraction (analyzing existing components to teach the composer project-specific patterns — HIGH complexity, needs multiple analysis passes)
-- Multi-file atomic commit with rollback (nice-to-have safety net; standard git patterns suffice for v1.2)
-- Cross-framework component bridge (React/Vue/Svelte output adaptation)
+**Defer (v2+):**
+- Cross-vertical composition (blending two verticals) -- HIGH complexity, needs dedicated research
+- Vertical migration path (switching vertical mid-project) -- MEDIUM complexity, defer to v0.4+
+- Plugin/extension system -- premature before v1.0 stability
+- Global config file (`~/.motifrc`) -- per-project config is correct, global preferences create cookie-cutter designs
 
 ### Architecture Approach
 
-Brownfield scanning is implemented as a new optional phase (`SCANNED`) that sits between `UNINITIALIZED` and `INITIALIZED` in the state machine. The `/motif:scan` command spawns two parallel Task() subagents — a File Scanner agent and a Component Decomposer agent — which write raw artifacts to `.planning/design/scan/`. The scan orchestrator synthesizes these into a single compressed SCAN-SUMMARY.md (under 2,000 tokens) that all downstream agents load. Downstream workflows detect brownfield mode by checking whether SCAN-SUMMARY.md exists — no explicit mode flag needed. Artifact presence drives behavior, matching the existing Input Type D pattern. Every existing workflow continues to operate in standard greenfield mode when no scan artifact is present.
+The architecture extends the existing core/runtime split without restructuring. Global install copies files to `~/.motif/` and `~/.claude/commands/motif/` instead of per-project directories. The key pattern is dual-mode path resolution: the installer replaces `{MOTIF_ROOT}` with either a relative project path (local) or an absolute home-directory path (global) at install time. Workflows never know the difference. State recovery uses filesystem-as-state: deterministic mapping from artifact presence to minimum phase. CLAUDE.md injection remains per-project regardless of install mode.
 
 **Major components:**
-1. `/motif:scan` command + `workflows/scan.md` — thin entry point plus scan orchestrator; spawns scanner and decomposer agents; synthesizes SCAN-SUMMARY.md; presents findings to user; sets STATE.md to SCANNED
-2. `agents/motif-scanner.md` — File Scanner agent; walks project tree using Glob + Read tools only; writes PROJECT-SCAN.md (framework, structure, file inventory) — under 3,000 tokens
-3. `agents/motif-decomposer.md` — Component Decomposer agent; reads component files identified by scanner; extracts component inventory and design token values; writes COMPONENT-SCAN.md and TOKEN-SCAN.md — under 3,000 tokens each
-4. SCAN-SUMMARY.md — the compressed cross-pipeline artifact (under 2,000 tokens); loaded by init, research agents, system generator, and composer
-5. Modified `workflows/generate-system.md` — adds EXTRACT+EXTEND mode; reads TOKEN-SCAN.md to formalize existing values rather than replace them; presents adopt/evolve/fresh choice to user
-6. Modified `workflows/compose-screen.md` — passes COMPONENT-SCAN.md path to composer; composer knows which components exist and their prop interfaces; writes output to project directories
+1. **Global Installer Mode** -- Adds `--global` flag to `bin/install.js`, copies to `~/.motif/` and `~/.claude/`, resolves `{MOTIF_ROOT}` to absolute paths
+2. **Context-Resilient State Reader** -- CLAUDE.md recovery directive + STATE.md with YAML frontmatter + enhanced statusLine + artifact-based inference fallback
+3. **Path Resolver** -- `resolveMotifRoot()` function that returns different base paths per install mode, transparent to downstream workflows
+4. **4 New Verticals** -- Pure markdown data files in `core/references/verticals/`, following existing template exactly
 
 ### Critical Pitfalls
 
-1. **Over-scanning blows the context budget** — Hard token budgets must be locked in Phase 1: SCAN-SUMMARY.md under 2,000 tokens, component catalog under 1,500 tokens, raw scan files under 3,000 tokens each. Use tiered scanning (Tier 1: structure only; Tier 2: tokens; Tier 3: individual components on-demand only). Run existing `token-counter.js` against all scan artifacts before considering the scanner complete.
+1. **Global install from subdirectories installs to wrong location (CRITICAL)** -- `process.cwd()` is trusted unconditionally. Add project-root detection: walk up looking for `.git/`, `package.json`, or `.claude/`. Fail loudly if no root found.
 
-2. **Stale scans cause ghost component references** — Scan artifacts are snapshots of external state Motif does not control. Treat scan data as "hints," not "source of truth." Add freshness metadata (timestamp and file count at scan time). Before loading the scan artifact, run a drift check against 5 key file paths. Instruct subagents to verify paths before importing.
+2. **STATE.md not read after context clear (CRITICAL)** -- Gate checks are advisory markdown, not enforced scripts. Add CLAUDE.md recovery directive as mandatory first action, enhance statusLine to show phase, and add context restoration preamble to every command file.
 
-3. **Wrong framework assumptions cascade downstream** — Detecting "React" is not sufficient. The scanner must produce a structured framework profile: router type (App Router vs Pages Router vs React Router), rendering model (RSC vs client-only), styling approach (Tailwind-only vs Tailwind+CSS Modules vs CSS-in-JS), import conventions (tsconfig path aliases). Validate the profile against 3 heuristic checks and present it to the user during init before acting on it.
+3. **Manifest corruption from concurrent writes (CRITICAL)** -- `writeFileSync` is not atomic. Use write-to-temp-then-rename pattern for all JSON state files. Add lockfile guard.
 
-4. **Decision fatigue from too many adopt/merge/fresh choices** — Collapse to one top-level user question: "Respect your existing system / Fresh start / Let me choose per category." Option A maps to "evolve" for everything with smart defaults applied automatically. Never present more than 2 brownfield-specific questions beyond the existing init interview.
+4. **Silent version downgrade via stale global install (CRITICAL)** -- No semver comparison exists. Add downgrade detection that refuses to proceed without `--force`.
 
-5. **Token merge produces Franken-systems** — Make the merge decision explicit and traceable. Every token in output must be labeled as "kept from project," "derived from project," or "generated new." Use "evolve" as the default (respect brand, improve quality, fill gaps). Never silently drop a project token.
-
----
+5. **New verticals drift from template structure (MODERATE)** -- Build a `validate-vertical.js` script before authoring verticals. Run it against all 8 files to ensure consistent section headings, token naming, palette tables, and component XML format.
 
 ## Implications for Roadmap
 
-Based on combined research, the dependency chain is unambiguous. Scan infrastructure must be built first and independently — nothing downstream can function correctly until scanning produces validated artifacts. The suggested four-phase structure follows this dependency chain with clear handoff points between phases.
+Based on research, suggested phase structure:
 
-### Phase 1: Scan Infrastructure
+### Phase 1: Foundation Fixes and New Verticals
+**Rationale:** Zero dependencies on other work. Verticals are pure data files that can be authored in parallel. Foundation fixes (self-dependency removal, atomic writes) are prerequisites for everything else.
+**Delivers:** 4 new vertical reference files (social, education, marketplace, devtools), self-dependency bug fix, atomic write utility, vertical validation script
+**Addresses:** Table-stakes vertical coverage, package.json bug, concurrent write protection
+**Avoids:** Vertical structural drift (Pitfall 6) by building validator first; manifest corruption (Pitfall 3) by implementing atomic writes early
 
-**Rationale:** Every brownfield feature depends on scan artifacts. Build this first, in isolation. The token budget ceilings and catalog format decisions made here are load-bearing — every downstream agent encodes assumptions about these formats. Getting them wrong requires touching every consumer. Lock them once.
+### Phase 2: Context-Resilient State Machine
+**Rationale:** Fixes a current user pain point that affects every session. Must be done before global install because global users will hit the same `/clear` problem, and state resilience should be validated in the simpler local-install context first.
+**Delivers:** CLAUDE.md recovery directive, YAML frontmatter in STATE.md, auto-read preamble in all commands, enhanced statusLine with phase display, artifact-based state inference fallback
+**Addresses:** Auto-read STATE.md, artifact inference, context restoration prompt, state continuity in statusLine
+**Avoids:** STATE.md not read after clear (Pitfall 2), phantom progress from naive inference (Pitfall 11), state file git conflicts (Pitfall 13)
 
-**Delivers:** `/motif:scan` command, File Scanner agent (`motif-scanner.md`), Component Decomposer agent (`motif-decomposer.md`), scan orchestrator workflow (`workflows/scan.md`), SCAN-SUMMARY.md format, PROJECT-SCAN.md, COMPONENT-SCAN.md, TOKEN-SCAN.md, SCANNED phase in state machine, `references/scan-heuristics.md`, scan directory exclusion list (node_modules, .next, dist, coverage, .env*, server-side code).
+### Phase 3: Global CLI Install
+**Rationale:** Most complex change. Touches installer, manifest, hooks, and path resolution. Benefits from having all 8 verticals available for testing and state resilience in place for edge case recovery.
+**Delivers:** `npm install -g motif-design` support, `motif init`/`motif status`/`motif update` commands, project-root detection, downgrade protection, stale file cleanup
+**Addresses:** Global install UX, dual-mode support, `--version` flag, help text updates
+**Avoids:** Wrong install directory (Pitfall 1), silent downgrade (Pitfall 4), stale files after update (Pitfall 7), Windows hook path failures (Pitfall 5)
 
-**Addresses:** Project structure scanning, scan results presentation.
-
-**Avoids:** Over-scanning context dump (hard budgets from day one), stale scan references (freshness metadata and drift check design), wrong framework detection (structured framework profile with 3-heuristic validation), security exposure (hardcoded exclusion list for .env*, credentials, server code), monorepo misdetection (detect workspaces/turbo.json, ask user which package to scope), scanning performance on large projects (depth limits, file count ceiling at 5,000 files).
-
----
-
-### Phase 2: Init and System Generator Integration
-
-**Rationale:** Once scan artifacts exist, init and system generator are the first consumers. Init is modified to pre-fill from SCAN-SUMMARY.md. System generator gains EXTRACT+EXTEND mode. These two modifications are independent of the compose changes in Phase 3 and must be stable before Phase 3 builds on them.
-
-**Delivers:** Modified `/motif:init` that accepts SCANNED state and pre-fills answers from scan findings; user confirmation/override flow for scan results; single top-level brownfield decision (respect/fresh/customize); EXTRACT+EXTEND mode in `generate-system.md` reading TOKEN-SCAN.md and COMPONENT-SCAN.md; `motif-extensions.css` output for selective token overlay; GAP-ANALYSIS.md (which components exist vs which are needed per vertical); reuse directives in COMPONENT-SPECS.md (`<source type="existing" path="..." />`).
-
-**Addresses:** Import existing design tokens, component gap analysis, selective token overlay, reuse directive in COMPONENT-SPECS.md.
-
-**Avoids:** Decision fatigue (single top-level choice in init, at most 2 brownfield questions total), Franken-systems from bad token merge (adopt/evolve/fresh with full traceability, evolve as default), token format mismatch (CSS custom properties only for v1.2; Tailwind config translation deferred to v1.3).
-
----
-
-### Phase 3: Compose Integration
-
-**Rationale:** With scan artifacts available and the system generator brownfield-aware, the composer can now write files to project directories, import existing components, and plan multi-file output. This phase represents the highest user-visible change in v1.2 — the difference between output going to `.planning/design/screens/` vs `src/app/dashboard/page.tsx`.
-
-**Delivers:** Modified `compose-screen.md` that resolves target file paths from scan results and screen name; modified composer agent context profile loading COMPONENT-SCAN.md; compatibility map mechanism (Motif spec prop names vs project component prop names); component decomposition planner (DECOMPOSITION-PLAN.md output; user approves before writing); multi-file output to project directories following detected naming conventions.
-
-**Addresses:** File output convention matching, composer output to project directories, existing component catalog (compose-time usage), component decomposition planner.
-
-**Avoids:** Hallucinated component reuse with wrong prop APIs (compatibility map), framework-specific decomposition patterns (inject framework profile; use existing component as style reference), component naming conflicts (namespace prefix or compatibility mapping), over-decomposition (8-component-per-screen limit, 2-level depth limit, minimum 2 meaningful props per extraction).
-
----
-
-### Phase 4: Decomposition Engine Validation and Polish
-
-**Rationale:** The decomposition engine is partially delivered in Phase 3 but validation, cycle detection, and edge case handling warrant a dedicated phase. This phase completes the "looks done but isn't" checklist.
-
-**Delivers:** Post-decomposition validation (component count check, prop count check, import cycle detection using DAG check, naming conflict check); stale scan drift check implementation; `token-counter.js` integration into scan pipeline for automated budget enforcement; monorepo detection and scope selection; framework-specific decomposition templates (React functional, Next.js App Router with `'use client'`, Vue 3 SFC, Svelte).
-
-**Addresses:** No new table stakes or differentiators — this phase hardens Phase 3 deliverables against edge cases.
-
-**Avoids:** Import cycles in decomposed output (cycle detection), decomposition producing components nobody can reuse (depth limit and prop count enforcement), framework-specific pattern failures (`'use client'` directives, Vue `<script setup>`, Svelte format).
-
----
+### Phase 4: Polish and Differentiators
+**Rationale:** Nice-to-haves that build on the foundation. Only worth doing after core functionality is stable.
+**Delivers:** `motif doctor` diagnostics, `motif list` verticals, checkpoint commits with phase tags, richer decision logging, vertical-specific empty/error states
+**Addresses:** Differentiator features from FEATURES.md
+**Avoids:** Scope creep into deferred features (cross-vertical composition, plugin system)
 
 ### Phase Ordering Rationale
 
-- **Phases are strictly ordered by dependency:** Scan infrastructure produces artifacts that every other phase consumes. No Phase 2, 3, or 4 work is possible without Phase 1 artifacts. This is a dependency chain, not a preference.
-- **Phase 1 decisions are irreversible:** Token budget ceilings, catalog format (index vs dump), and user decision UX (single question vs per-category) must be locked in Phase 1 because every downstream agent encodes assumptions about these formats.
-- **Phase 2 (init and system) before Phase 3 (compose) prevents a common mistake:** If compose integration is built before the system generator is brownfield-aware, composed screens will reference tokens and components that the system generator may overwrite or conflict with.
-- **Greenfield mode must work throughout:** Every phase modification must preserve the no-scan path. Greenfield regression tests should run against every phase deliverable.
+- **Verticals first** because they are zero-risk additive data with no dependencies on other work. They also provide test material for the later phases.
+- **State resilience before global install** because state recovery must work in the simpler local-install context before adding the complexity of global path resolution. Global install introduces new edge cases for state (different `{MOTIF_ROOT}` paths, stale global versions) that compound with state resilience bugs.
+- **Global install last among core features** because it is the highest-complexity change and depends on both verticals (for complete testing) and state resilience (for robust recovery in global-install edge cases).
+- **Polish deferred** because differentiator features do not block adoption. The three core capabilities (verticals, state resilience, global install) are the milestone.
 
 ### Research Flags
 
-Phases likely needing deeper investigation during planning:
-- **Phase 3 (compose integration):** The compatibility map design — how the composer distinguishes "use project's Button API (variant='filled')" from "Motif spec says variant='primary'" — has no established pattern in the existing codebase. Needs a design spike before Phase 3 implementation begins.
-- **Phase 2 (token merge algorithm):** The "evolve" mode logic (which existing tokens to keep, which to improve, how to generate a full scale around an existing anchor color) warrants an explicit algorithm design artifact before coding begins.
+Phases likely needing deeper research during planning:
+- **Phase 2 (Context Resilience):** The CLAUDE.md recovery directive is well-understood, but the exact YAML frontmatter schema for STATE.md needs design. The artifact-inference logic needs explicit rules for edge cases (partial files, files from other projects). Needs phase research.
+- **Phase 3 (Global Install):** Windows compatibility for hook paths is flagged but not deeply tested. The `$HOME` variable behavior in Claude Code hook commands on Windows needs verification. The dual-hook-firing risk (global + local hooks both executing) needs testing. Needs phase research for Windows support specifically.
 
-Phases with standard patterns (skip additional research):
-- **Phase 1:** Node.js 22+ file system APIs, regex-based parsing, and markdown output are all established Motif patterns. The scan heuristics reference file captures all needed detection rules.
-- **Phase 4:** Import cycle detection (DAG check), prop count validation, and framework-specific component templates are well-documented. No novel territory.
-
----
+Phases with standard patterns (skip research-phase):
+- **Phase 1 (Verticals + Fixes):** Verticals follow an established template with 4 existing examples. The validation script and atomic write pattern are well-documented Node.js patterns. Standard implementation.
+- **Phase 4 (Polish):** All differentiator features are incremental additions to existing infrastructure. No architectural decisions needed.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Zero-dependency constraint is established project policy. Node.js 22+ APIs verified via official docs (WebFetch 2026-03-04). All new scripts follow proven patterns from existing hooks. No new technologies to evaluate. |
-| Features | HIGH for table stakes; MEDIUM for differentiators | Table stakes derived from direct analysis of Motif's pipeline gaps and observable patterns in AI coding tools. Differentiators (gap analysis, reuse directives, decomposition planner) are novel — well-reasoned from existing architecture but without external comparators. Competitive landscape analysis (Cursor, v0, Bolt, Lovable) is training data only (LOW confidence on specific competitor capabilities). |
-| Architecture | HIGH | Based on deep analysis of existing Motif workflows, agents, context engine, and state machine. New components follow existing patterns directly. Context budget calculations are precise (derived from current context-engine.md figures). The layered scan with compression pattern is novel but sound. |
-| Pitfalls | HIGH | Pitfalls derived from concrete Motif architectural constraints (context budgets, orchestrator 30% ceiling, subagent fresh context, zero npm deps). Each pitfall references specific existing system constraints that would cause the failure — not theoretical. |
+| Stack | HIGH | Verified against npm docs, Claude Code docs, and existing codebase. Zero new dependencies confirmed. Self-referencing dependency bug identified and fix verified. |
+| Features | MEDIUM-HIGH | Feature landscape well-mapped across all three domains. Vertical design patterns sourced from multiple references. Some typography/spacing values are opinionated rather than empirical. |
+| Architecture | HIGH | Dual-mode path resolution, filesystem-as-state, and hook mechanisms verified against official Claude Code documentation. Global command/hook scoping and array merging behavior confirmed. |
+| Pitfalls | HIGH | Critical pitfalls identified from deep codebase analysis (install.js line-level review) and real-world bug reports (Claude Code JSON corruption issues #29036, #29153). Integration gotchas between the three features explicitly mapped. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Compatibility map design (Phase 3 spike):** How the composer distinguishes project component APIs from Motif spec APIs is not fully specified. Propose as an explicit planning spike at the start of Phase 3. Without this, the "import existing components" feature risks wrong-prop-name bugs that silently render incorrectly.
-
-- **Token merge algorithm (Phase 2 design):** The "evolve" mode — anchor an existing color, generate a full scale around it, fill semantic gaps — needs an explicit algorithm document before coding. Motif's current token generation is greenfield; the brownfield extension has not been written.
-
-- **`fs.globSync` stability status:** Confirmed available in Node 22 but stability level (stable vs experimental) needs runtime verification. Fallback strategy is documented (`readdirSync({ recursive: true })` + `path.matchesGlob` filter) and both fallback APIs are confirmed stable.
-
-- **Scan accuracy floor:** Regex-based prop extraction claims ~90% accuracy but has not been tested against real projects. If accuracy drops significantly for unusual component patterns (HOCs, compound components, render props), catalog quality degrades. Recommend testing against 2-3 real brownfield projects before Phase 3.
-
-- **Competitive landscape specifics:** Claims about Cursor, v0, Bolt.new, and Lovable brownfield behavior are training data (last updated August 2025). Does not affect implementation decisions but should be validated before any positioning or marketing use.
-
----
+- **SessionStart hook bug timeline:** The compact/clear hook stdout injection bug (#15174, #13650) is confirmed broken as of March 2026. If Claude Code fixes this, the context resilience approach could be simplified. Monitor the upstream issue during implementation.
+- **Windows hook compatibility:** Hook commands using `$CLAUDE_PROJECT_DIR` and `$HOME` are verified on Unix but not tested on Windows. Global install makes Windows support more likely. Needs explicit testing before Phase 3 ships.
+- **Vertical token budgets:** Existing verticals (ecommerce, fintech, health, saas) have not been audited for token count. New verticals should target the same size, but if existing ones exceed the 3,000-token budget from context-engine.md, all 8 need trimming. Run `token-counter.js` against existing verticals during Phase 1.
+- **Cross-vertical loading prevention:** The context engine does not explicitly prevent loading multiple verticals for ambiguous descriptions ("educational marketplace"). The init flow must enforce single-vertical selection, but this guard is not yet implemented in the detection logic.
+- **Global + local hook deduplication:** When both global and local Motif hooks exist, Claude Code merges arrays by concatenation. The deduplication logic in `injectHookSettings()` handles this for project-level, but the interaction with global-level hooks needs testing to confirm hooks do not fire twice.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Existing Motif codebase — `install.js`, `motif-token-check.js`, `motif-font-check.js`, `motif-aria-check.js`, `token-counter.js`, `contrast-checker.js`. Reviewed 2026-03-04. Proven regex patterns and zero-dep approach.
-- Existing Motif workflow files — `workflows/init.md`, `workflows/compose-screen.md`, `workflows/generate-system.md`, `workflows/research.md`, `references/context-engine.md`, `references/state-machine.md`, `references/design-inputs.md`. Reviewed 2026-03-04. Direct source for integration points, context budgets, and state machine gates.
-- Node.js 22.x official documentation — `fs.globSync`, `fs.readdirSync({ recursive })`, `path.matchesGlob`. Verified via WebFetch 2026-03-04. `path.matchesGlob` confirmed stable since v22.20.0.
+- [npm package.json bin field](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/) -- global install mechanics, bin symlink behavior
+- [Claude Code Settings documentation](https://code.claude.com/docs/en/settings) -- settings scopes, hook configuration, array merging, CLAUDE.md reload behavior
+- [Claude Code Hooks reference](https://code.claude.com/docs/en/hooks) -- hook types, environment variables, statusLine behavior
+- [Claude Code Slash Commands](https://code.claude.com/docs/en/slash-commands) -- global vs project command scope, discovery rules, precedence
+- Existing Motif codebase: `bin/install.js`, `state-machine.md`, `context-engine.md`, `VERTICAL-TEMPLATE.md`, `package.json`, `.motif-manifest.json` -- reviewed 2026-03-09
 
 ### Secondary (MEDIUM confidence)
-- Training data — React/Next.js/Vue project structure conventions, Tailwind CSS configuration patterns, CSS custom property detection methods. Well-established patterns, consistent across training data.
-- Training data — AI coding assistant brownfield behavior patterns (Cursor, Claude Code, v0, Bolt.new, Lovable). Consistent across training data but may not reflect current tool capabilities.
+- [SessionStart hook bug #15174](https://github.com/anthropics/claude-code/issues/15174) -- stdout silently dropped after compaction
+- [Claude Code JSON corruption #29036, #29153](https://github.com/anthropics/claude-code/issues/29036) -- concurrent write corruption pattern
+- [Evil Martians: Developer tool design](https://evilmartians.com/chronicles/devs-in-mind-how-to-design-interfaces-for-developer-tools) -- DevTools vertical patterns
+- [Node.js CLI best practices (lirantal)](https://github.com/lirantal/nodejs-cli-apps-best-practices) -- CLI state persistence patterns
+- Multiple vertical design sources: Rigby marketplace UX, Viartisan eLearning, Riseapps LMS, BricxLabs chat UI, Tech-stack social media guide
 
 ### Tertiary (LOW confidence)
-- Training data — Brownfield migration tool patterns (codemod, jscodeshift), design system adoption literature (Storybook migration guides, design token specification patterns). Used for pitfall identification only, not implementation decisions.
+- [SessionStart stdout dropped #13650](https://github.com/anthropics/claude-code/issues/13650) -- referenced but not directly verified
+- Windows-specific npm behavior for global installs -- inferred from npm docs, not tested
+- [npm CLI issue #5189](https://github.com/npm/cli/issues/5189) -- Windows junctions vs symlinks, relevant to global install but not validated
 
 ---
-*Research completed: 2026-03-04*
+*Research completed: 2026-03-09*
 *Ready for roadmap: yes*

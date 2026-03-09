@@ -1,334 +1,132 @@
-# Domain Pitfalls: Brownfield Intelligence & Component Decomposition
+# Domain Pitfalls: Global Install, Context-Resilient State, and New Verticals
 
-**Domain:** Adding project scanning, component cataloging, and component decomposition to an AI-agent-based design engineering system (Motif)
-**Researched:** 2026-03-04
-**Confidence:** HIGH (based on deep codebase analysis of existing Motif architecture, context engine constraints, and known AI agent behavior patterns)
+**Domain:** Adding global CLI install, context-resilient state machine, and 4 new verticals to existing per-project npm design tool (Motif)
+**Researched:** 2026-03-09
+**Confidence:** HIGH (based on deep codebase analysis of install.js, state-machine.md, context-engine.md, vertical files, and verified npm/Node.js ecosystem patterns)
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, break existing functionality, or silently produce wrong output.
+Mistakes that cause broken installations, data loss, or silent corruption.
 
 ---
 
-### Pitfall 1: Over-Scanning Blows the Context Budget
+### Pitfall 1: Global Install Breaks `process.cwd()` Assumptions
 
-**What goes wrong:**
-The project scanner reads too much of the user's codebase and produces a scan artifact that exceeds the context budget. Motif's context engine enforces strict token budgets (PROJECT.md: 1000 tokens, DESIGN-RESEARCH.md: 3000 tokens, total subagent context: ~15,000 tokens). A project scan that catalogs every file, every component, every CSS variable in a brownfield project easily produces 5,000-20,000 tokens of output. When this scan artifact is loaded into a composer or system generator subagent, it crowds out COMPONENT-SPECS.md (5000 tokens) and tokens.css (3000 tokens) -- the files that actually drive correct output. The agent starts ignoring design system constraints because they are pushed to the tail end of its loaded context.
+**What goes wrong:** The current installer (`bin/install.js`) uses `process.cwd()` as the target project directory (line 62: `const cwd = process.cwd()`). With npx, users naturally run it from the project root. With a globally installed `motif` command, users invoke it from anywhere -- subdirectories, home directory, or unrelated paths. Running `motif` from `src/components/` installs all files into `src/components/.claude/` instead of the project root. No error is thrown. The installation silently succeeds in the wrong location.
 
-**Why it happens:**
-The natural instinct is "scan everything so nothing is missed." A React project with 50 components, 200 files, and an existing design system has genuinely useful information everywhere. Without aggressive filtering, the scanner captures: every component name, every prop signature, every CSS file, every route, every config file. Each additional data point feels valuable in isolation but collectively they exceed the context budget. The Motif context engine reference explicitly warns: "If a file exceeds its budget, it must be split or summarized." But the scanner does not know what the budget IS unless it is told.
+**Why it happens:** The npx workflow masks this problem because npx users almost always `cd` to the project root before running `npx motif-design@latest`. Global install removes that implicit constraint. The installer has zero project-root detection -- it trusts `process.cwd()` unconditionally. There is no check for `package.json`, `.git`, or any other project root signal.
 
 **Consequences:**
-- Composer agents produce monolithic output that ignores component specs (specs pushed out of effective context window)
-- Token-check and font-check hooks catch violations but cannot fix the root cause (agent never internalized the rules)
-- System generator creates a design system that does not account for existing project tokens because it could not fit both scan results AND research findings
-- Orchestrator exceeds the 30-40% context ceiling because it reads the oversized scan artifact to determine what to pass to subagents
+- `.claude/` directory created in a subdirectory, not the project root
+- CLAUDE.md created in the wrong location (ignored by Claude Code)
+- `.motif-manifest.json` written to the wrong directory (future upgrades fail to find it)
+- Hooks reference paths relative to the wrong root, causing silent failures
+- User runs `motif` again from the correct directory, creating a second parallel installation
 
 **Prevention:**
-1. Define a hard token budget for the scan artifact: `PROJECT-SCAN.md` must be under 2000 tokens. Period. This forces the scanner to summarize, not dump.
-2. Implement a tiered scanning strategy:
-   - **Tier 1 (always):** Framework detection, routing pattern, component directory structure (paths only, not contents). Target: 500 tokens.
-   - **Tier 2 (always):** Existing design tokens/theme file detection. Extract token names and values, not the entire file. Target: 800 tokens.
-   - **Tier 3 (on-demand):** Individual component analysis. Only performed when a specific component is referenced during compose. Never loaded in bulk. Target: 300 tokens per component.
-3. Add the scan artifact to the context engine's budget table with an enforced ceiling. The context-engine.md reference already defines budgets for every file type; the scan artifact needs the same treatment.
-4. Build the scanner output as structured markdown (tables, not prose) to maximize information density per token.
+- Add project root detection: walk up from `process.cwd()` looking for `.git/`, `package.json`, or `.claude/` directory (in that priority order)
+- If no project root found within 10 parent directories, fail with: "Could not find project root. Run `motif` from your project directory, or use `--project-dir <path>`."
+- Add `--project-dir` flag for explicit override
+- Print the resolved project directory at the start of installation: "Installing to: /Users/user/my-project"
+- Add a confirmation prompt when `process.cwd()` differs from detected root: "You are in src/components/ but the project root appears to be /Users/user/my-project. Install there? [Y/n]"
 
-**Warning signs:**
-- Scan artifact exceeds 2000 tokens
-- Composer agents produce output with hardcoded values (sign they lost track of tokens.css instructions)
-- Orchestrator context usage spikes above 40% after reading scan results
-- System generator ignores existing project tokens despite scan claiming to detect them
+**Detection:** Files appearing in unexpected directories. `motif-context-monitor.js` (statusLine hook) failing because STATE.md is not at the expected path. Multiple `.motif-manifest.json` files in the project tree.
 
-**Detection:**
-Run `token-counter.js` (existing script in `scripts/`) against the scan artifact. If it exceeds budget, the scanner must re-run with stricter filtering.
-
-**Phase to address:**
-Phase 1 (Scanner Design). The budget constraint must be baked into the scanner's architecture from day one, not retrofitted.
+**Phase:** Global Install -- must be solved before shipping. This is the first code change.
 
 ---
 
-### Pitfall 2: Stale Scans Causing Ghost Component References
+### Pitfall 2: STATE.md Not Read After Context Window Clear
 
-**What goes wrong:**
-The project scan runs once during `/motif:init` (or a new `/motif:scan` command) and produces a snapshot. The user continues developing their project -- renaming components, deleting files, refactoring structure. The scan artifact becomes stale. Composer agents reference components that no longer exist, propose imports from deleted files, or structure output to match a routing pattern that has changed. Unlike STATE.md (which Motif controls and updates atomically), the scan artifact reflects external state that Motif does not control.
+**What goes wrong:** Motif's state machine stores workflow state in `.planning/design/STATE.md`, a markdown file the AI reads to determine the current phase. When the user clears their AI context (new conversation, `/clear`, context limit reached, machine restart), the AI loses all memory of what phase the project is in. STATE.md exists on disk but the AI does not automatically read it. The CLAUDE.md snippet says workflows should check state, but after a context clear the AI may not process CLAUDE.md instructions strictly -- it sees the user's command and starts executing without checking prerequisites.
 
-**Why it happens:**
-Motif's state machine is designed for Motif's own artifacts: STATE.md tracks phase, screens, decisions. The scan artifact is fundamentally different -- it describes external reality that changes independently of Motif operations. The existing state machine has no concept of "external state invalidation." The state transitions (UNINITIALIZED -> INITIALIZED -> RESEARCHED -> etc.) assume that once a phase completes, its artifacts remain valid. A scan artifact violates this assumption.
+**Why it happens:** The state machine's gate checks are documented in `state-machine.md` as rules for the AI to follow, but they are ADVISORY, not ENFORCED. There is no programmatic check -- no script that runs before a command and returns pass/fail. The AI must voluntarily read STATE.md, parse a markdown table, determine the current phase, compare it against the gate check rules, and decide whether to proceed. After a context clear, this chain breaks at the first link: the AI does not voluntarily read STATE.md because it has no memory that STATE.md exists or matters.
 
 **Consequences:**
-- Composer agent generates `import { Button } from '@/components/Button'` referencing a component the user renamed to `PrimaryButton` last week
-- System generator tries to merge with existing tokens from a theme file the user deleted
-- Decomposition strategy outputs component boundaries matching a file structure that has been reorganized
-- User loses trust in the tool because it gives advice based on outdated project state
+- Commands run out of order (compose before system generation)
+- Work duplicated (re-running research that was already completed)
+- AI creates a new STATE.md over the existing one (resetting to INITIALIZED)
+- Screens composed without referencing design system tokens
+- User gets inconsistent results depending on whether they cleared context mid-workflow
 
 **Prevention:**
-1. Never cache the full scan. Instead, scan lazily: the orchestrator runs targeted scans at the moment they are needed, not ahead of time.
-   - Before `/motif:system`: scan for existing theme/token files (not the full project)
-   - Before `/motif:compose {screen}`: scan for components related to that screen's domain (not all components)
-   - This means no single `PROJECT-SCAN.md` artifact. Instead, scan results are ephemeral and injected directly into the subagent prompt.
-2. If a persistent scan artifact IS created, add a freshness timestamp and a re-scan trigger:
-   ```markdown
-   ## Scan Metadata
-   Scanned: 2026-03-04T14:30:00Z
-   Project root: /Users/user/project
-   Files at scan time: 247
-   WARNING: This scan is a snapshot. If project structure has changed, re-run /motif:scan.
-   ```
-3. Add a lightweight "drift check" before loading the scan: verify that 3-5 key paths from the scan still exist. If any are missing, warn the user and suggest re-scanning.
-4. Design the scan artifact as a "hints" document, not a "source of truth." Subagent prompts should say: "The following project structure was detected at scan time. VERIFY paths before importing. If a referenced file does not exist, adapt accordingly."
+- Create a machine-readable state file: `.motif-state.json` with structured fields:
+  ```json
+  {
+    "phase": "SYSTEM_GENERATED",
+    "vertical": "saas",
+    "screens": [{"name": "dashboard", "status": "composed"}],
+    "lastCommand": "system",
+    "timestamp": "2026-03-09T10:00:00Z"
+  }
+  ```
+- Create a `state-check.js` script that validates prerequisites for any command:
+  ```
+  node .claude/get-motif/scripts/state-check.js compose
+  # Output: PASS (phase: SYSTEM_GENERATED, tokens.css exists, COMPONENT-SPECS.md exists)
+  # or: FAIL (phase: INITIALIZED, missing: DESIGN-RESEARCH.md. Run /motif:research first.)
+  ```
+- Make the existing `motif-context-monitor.js` statusLine hook output the current phase prominently (it already exists but may not report phase)
+- Add the state check as a PreToolUse hook or as the first step in every command's markdown file, using a script call rather than AI-parsed markdown rules
 
-**Warning signs:**
-- Composed screens reference import paths that produce 404/module-not-found errors
-- User reports "it keeps referencing my old component names"
-- The scan artifact's timestamp is more than 1 session old
-- Git diff between scan time and current HEAD touches files in the scanned directories
+**Detection:** AI attempting to run `/motif:init` on an already-initialized project. Duplicate STATE.md files. STATE.md showing an earlier phase than the artifacts on disk suggest.
 
-**Detection:**
-Before loading scan artifact, run `stat` on 5 random file paths from the scan. If any return "not found," trigger a re-scan warning.
-
-**Phase to address:**
-Phase 1 (Scanner Design). The freshness strategy must be decided before the artifact format is finalized.
+**Phase:** Context Resilience -- the core problem this milestone exists to solve.
 
 ---
 
-### Pitfall 3: Wrong Framework Assumptions from Ambiguous Project Signals
+### Pitfall 3: .motif-manifest.json Corruption from Concurrent Writes
 
-**What goes wrong:**
-The scanner detects a `package.json` with React listed but misses that the project actually uses Next.js App Router (not Pages Router), or detects Tailwind CSS but misses that the project uses Tailwind with a custom design token layer, or detects TypeScript but misses that JSX files use `.tsx` while utilities use `.ts`. The scanner makes a top-level framework determination that cascades incorrectly through every downstream agent. The system generator creates a vanilla React design system when it should create an App Router-aware one. The composer generates `import` patterns that do not work in the project's actual setup.
+**What goes wrong:** Two terminal sessions (or two Claude Code instances) run Motif commands simultaneously against the same project. Both read `.motif-manifest.json`, both modify it, and the last write wins -- destroying the first write's changes. This is the exact bug documented in Claude Code's own `.claude.json` corruption (GitHub issues #29036 and #29153), where running multiple Claude Code windows simultaneously causes repeated config file corruption.
 
-**Why it happens:**
-Framework detection from static file analysis is inherently ambiguous. A project with `next` in `package.json` could be using Pages Router, App Router, or both. A project with `tailwindcss` could be using utility classes directly, using `@apply` in component files, using CSS Modules with Tailwind, or using Tailwind alongside a custom CSS variable system. The scanner looks at file existence (`next.config.js` exists -> Next.js) but does not read configuration deeply enough to determine the actual usage pattern. Motif's existing init interview asks about the stack, but the user might say "React" when they mean "Next.js 14 App Router with RSC."
+**Why it happens:** The current `writeManifest()` function (install.js line 360-401) performs a plain `fs.writeFileSync()` with no locking, no atomic write, no conflict detection. `writeFileSync` is NOT atomic -- it truncates the file then writes new content. A concurrent read during the truncation phase gets empty or partial content. `JSON.parse` on partial content throws, and the installer's catch block (line 714-717) treats corrupted manifest as `null` (fresh install), triggering a full re-install that may overwrite user-modified files.
 
 **Consequences:**
-- Composed screens use `useState` in Server Components
-- Import patterns use `pages/` convention in an App Router project
-- Generated components assume client-side rendering when the project uses SSR
-- CSS output uses `@apply` when the project uses CSS Modules
-- Decomposed components do not account for the `'use client'` boundary
+- Manifest data loss (file list, version, hashes gone)
+- Next install treats project as fresh, overwriting user-modified files without backup (since the manifest that tracks modifications is destroyed)
+- `.motif-state.json` (new state file) will have the same vulnerability if written the same way
+- STATE.md concurrent writes produce garbled markdown
 
 **Prevention:**
-1. Do not rely on `package.json` alone. Check for configuration signals:
-   - `next.config.js` or `next.config.ts` -> Next.js. Then check for `app/` directory (App Router) vs `pages/` directory (Pages Router) vs both.
-   - `tailwind.config.js` -> Tailwind. Then check for `@apply` usage in CSS files, CSS Modules co-existence, custom plugin configuration.
-   - `tsconfig.json` -> TypeScript. Check `paths` aliases to understand import conventions.
-   - `vite.config.ts` -> Vite-based setup. Check for framework plugins (React, Vue, Svelte).
-2. Produce a structured framework profile, not a single label:
-   ```markdown
-   ## Framework Profile
-   - Runtime: Next.js 14
-   - Router: App Router (app/ directory detected, no pages/ directory)
-   - Rendering: Mixed (RSC default, 'use client' in 12 files)
-   - Styling: Tailwind CSS + CSS Modules (*.module.css files found alongside tailwind classes)
-   - Language: TypeScript (strict mode, path aliases: @/ -> src/)
-   - State: Zustand (detected in 3 store files)
-   ```
-3. Present the detected profile to the user during init for confirmation: "I detected the following setup. Is this correct?" This catches misdetections before they propagate.
-4. Make the framework profile available to every subagent, not just the system generator. Composer agents need to know about RSC boundaries. Reviewer agents need to check framework-appropriate patterns.
+- Atomic writes for all JSON state files: write to `filename.tmp` then `fs.renameSync()` over the original (`rename` is atomic on POSIX and Windows NTFS)
+- Add a lockfile guard: create `.motif-manifest.lock` before writing, remove after. If lock exists and is less than 60 seconds old, wait 1 second and retry (3 attempts max)
+- Validate JSON integrity after write: read back and `JSON.parse` to confirm
+- Apply the same pattern to `.motif-state.json` from day one
 
-**Warning signs:**
-- Scanner reports "React" without App Router/Pages Router distinction
-- Composed screens import from wrong paths (`pages/api/` in an App Router project)
-- User corrects framework detection during compose instead of during init
-- Generated components missing `'use client'` directives
+**Detection:** `JSON.parse` errors in install.js or state-check.js. Manifest showing fewer files than expected. Unexpected "fresh install" behavior on an established project.
 
-**Detection:**
-After scanning, validate the framework profile against 3 heuristic checks: (1) does the detected router match the directory structure, (2) do the detected styling patterns match actual file contents, (3) do import path aliases match tsconfig paths.
-
-**Phase to address:**
-Phase 1 (Scanner Design). Framework detection is the foundation; getting it wrong poisons everything downstream.
+**Phase:** Context Resilience -- same phase as state resilience, since both manifest and state files need atomic write protection.
 
 ---
 
-### Pitfall 4: Decomposition Produces Components Nobody Can Reuse
+### Pitfall 4: Global and Local Versions Diverge Silently (Downgrade on Re-install)
 
-**What goes wrong:**
-Motif currently outputs monolithic HTML files per screen. v1.2 adds component decomposition -- breaking screens into reusable components. But the decomposer creates components that are either (a) too granular (a `<DividerLine />` component wrapping a single `<hr>`) or (b) too coupled (a `<DashboardHeader />` that hardcodes the user's name, avatar URL, and notification count). Neither extreme produces actually reusable components. The components exist as files but nobody would import them into a real project.
+**What goes wrong:** User installs `motif-design@0.3.0` globally. Later, they (or a teammate) run `npx motif-design@latest` (now 0.4.0) on the same project. The project files are now at 0.4.0. The first user continues using the globally installed 0.3.0. When they run `motif` (which invokes the global 0.3.0), it copies 0.3.0 source files over the 0.4.0 files, silently DOWNGRADING the project. The installer prints "Re-installing Motif v0.3.0" (line 728-729) but does not warn that this is a downgrade.
 
-**Why it happens:**
-Component decomposition requires understanding two things AI agents are bad at: (1) which parts of a UI will be reused across screens vs. which are one-offs, and (2) what the right prop interface is for a component to be flexible without being over-abstracted. The agent does not know the user's future plans -- it cannot predict which screens will share a sidebar, which cards will appear in multiple contexts, or which buttons need variant support. Without this knowledge, it either decomposes everything (creating a folder of 30 tiny components per screen) or decomposes nothing meaningful (creating 3 components that each contain half a page of coupled markup).
+**Why it happens:** Global npm packages do not auto-update. The installer compares `existingManifest.version` against the running package version (lines 721-733) but only distinguishes "upgrade" vs "re-install" based on whether versions differ. It never checks whether the running version is OLDER than the manifest version. There is no downgrade detection.
 
 **Consequences:**
-- Component folder contains 20-40 components per screen, most used exactly once
-- Components have no props or only hardcoded props (not actually parameterized)
-- Components import each other in circular or deeply nested chains
-- User must manually refactor every decomposed component to make it usable in their real project
-- The decomposition adds complexity without adding value, making users distrust the feature
+- Design system files silently reverted to older versions
+- New vertical files (added in 0.4.0) deleted by 0.3.0's file list (if 0.3.0 has stale file cleanup)
+- New workflows, hooks, or agent files overwritten with older versions
+- User gets different behavior depending on which install method they use
+- Team members get different results for the same project
 
 **Prevention:**
-1. Decompose to the design system's component catalog, not to arbitrary UI chunks. The COMPONENT-SPECS.md already defines the reusable components (Button, Card, Input, etc.). Decomposition should produce instances of these components, not invent new ones. New components should only be created when they represent a domain-specific pattern (TransactionRow, MetricCard) already identified in research.
-2. Apply a "2+ screens" heuristic: only extract a new component if it appears (or would logically appear) in 2 or more screens. Single-use arrangements should remain inline.
-3. Define a decomposition depth limit: maximum 2 levels of custom component nesting. `Screen -> Section -> Component` is fine. `Screen -> Section -> Subsection -> Card -> CardHeader -> CardHeaderIcon -> IconWrapper` is not.
-4. Require prop interfaces for every extracted component. If the agent cannot identify at least 2 meaningful props (beyond `children`), the extraction probably is not worthwhile.
-5. Include the component catalog from the scan (what components already exist in the project) so the agent maps to existing components rather than creating duplicates.
+- Add semver comparison in installer: if `existingManifest.version` is NEWER than the running package version, print a warning and require `--force` to proceed:
+  ```
+  WARNING: This project was last installed with Motif v0.4.0, but you are running v0.3.0.
+  This would DOWNGRADE the installation. Run `npm update -g motif-design` to update,
+  or use `motif --force` to downgrade intentionally.
+  ```
+- Run `check-version.js` on every `motif` invocation (not just `/motif:progress`) to alert about available updates
+- Document clearly that npx is the recommended method; global install is a convenience shortcut that requires manual updates
 
-**Warning signs:**
-- More than 8 custom components extracted from a single screen
-- Components with zero or one prop
-- Component names that are screen-specific (`DashboardSidebar` instead of `Sidebar`)
-- Components that import other newly-created components (deep nesting)
-- The decomposed output is harder to read than the monolithic version
+**Detection:** `check-version.js` already exists but is only invoked by the `/motif:progress` command. Should run during every install/re-install.
 
-**Detection:**
-Post-decomposition validation: count components per screen (flag if >8), check prop counts (flag if <2), check for circular imports, check naming for screen-specific prefixes.
-
-**Phase to address:**
-Phase 3 (Decomposition Engine). But the decomposition RULES must be defined in Phase 1 (Scanner/Catalog Design) so the catalog informs decomposition boundaries.
-
----
-
-### Pitfall 5: Token Merge Conflicts -- Adopt vs. Fresh Creates Franken-Systems
-
-**What goes wrong:**
-When a brownfield project already has design tokens (a `theme.ts`, `variables.css`, Tailwind config, or styled-components theme), Motif must decide: adopt the existing tokens, merge them with Motif-generated tokens, or generate fresh tokens that replace the existing ones. Each choice has failure modes:
-- **Adopt:** Motif inherits inconsistent, incomplete, or poorly-structured tokens. The existing system might have 14 shades of gray with no naming convention, 3 different spacing scales, or colors that fail WCAG contrast.
-- **Merge:** Motif tries to combine existing tokens with generated ones, producing a Frankenstein system where `--color-primary` comes from the project but `--color-primary-50` through `--color-primary-950` are generated, and they do not form a coherent scale.
-- **Fresh:** Motif ignores the existing system entirely, producing designs that look nothing like the user's existing product. The user expected brownfield awareness; they got greenfield output with extra steps.
-
-**Why it happens:**
-This is a genuinely hard UX problem. The user's existing design tokens are a form of brand identity -- replacing them feels wrong, but adopting them constraints Motif to their quality level. Motif's Type B input handling (brand constraints) already handles explicit brand colors, but brownfield scanning detects tokens implicitly, without the user having consciously declared them as brand constraints. The scanner might find `--primary: #3b82f6` in a CSS file and treat it as a brand constraint, when the user actually copied it from a template and wants something better.
-
-**Consequences:**
-- Merged token files have duplicate or near-duplicate tokens (`--primary` and `--color-primary-500` both existing)
-- Generated color scales do not harmonize with adopted base colors
-- Spacing systems conflict (project uses 8px base, Motif generates 4px base)
-- User sees their old tokens in the showcase alongside new tokens and is confused about which to use
-- Components reference tokens from both systems, creating implicit dependencies on both
-
-**Prevention:**
-1. Make the decision explicit and user-facing. During init (after scanning), present findings:
-   ```
-   I found existing design tokens in your project:
-   - Colors: 12 custom properties in variables.css (primary: #3b82f6, 6 grays, 5 semantic)
-   - Spacing: 8px base unit, 6 scale values
-   - Typography: Inter for body, system-ui for display
-
-   How should I handle these?
-   a) Adopt -- use your existing tokens as-is, fill gaps only
-   b) Evolve -- use your tokens as starting points, improve and extend them
-   c) Fresh -- generate a new system (your project's look will change)
-   ```
-2. "Evolve" (option b) should be the default recommendation. It respects the user's existing work while allowing Motif to add structure, fill gaps, and improve quality.
-3. For "evolve" mode, generate a diff-style output showing what changed and why:
-   ```
-   KEPT: --primary: #3b82f6 (your brand color, LOCKED)
-   ADDED: --color-primary-50 through --color-primary-950 (scale derived from your primary)
-   REPLACED: --gray-100 through --gray-900 (your grays had inconsistent lightness steps; replaced with even scale)
-   ADDED: --color-success, --color-error, --color-warning (missing semantic colors)
-   ```
-4. Never silently merge. Every token in the output must be traceable to either "kept from project," "derived from project," or "generated new."
-5. Store the merge decision in STATE.md so downstream agents know whether they are working with adopted, evolved, or fresh tokens.
-
-**Warning signs:**
-- Token showcase shows duplicate-looking colors at slightly different values
-- Composed screens reference tokens that do not exist in tokens.css (referencing old project tokens)
-- User asks "why did it change my colors?" (fresh mode without clear communication)
-- User asks "why didn't it improve my colors?" (adopt mode when evolve was expected)
-
-**Detection:**
-After token generation, diff the output against detected project tokens. Flag any project token that was silently dropped (neither kept nor explicitly replaced).
-
-**Phase to address:**
-Phase 2 (System Generator Brownfield Mode). But the user-facing decision flow must be designed in Phase 1 (Scanner/Init Flow).
-
----
-
-### Pitfall 6: Component Catalog Becomes a Context Dump
-
-**What goes wrong:**
-The component catalog -- the artifact listing what components exist in the user's project -- tries to capture too much about each component. Instead of "Button component at `src/components/Button.tsx` with variants: primary, secondary, ghost," it captures the full prop types, the full implementation, the full styling, the usage examples. This turns the catalog into a 10,000+ token document that cannot be loaded into any subagent without blowing the context budget.
-
-**Why it happens:**
-The cataloger agent (or scanner) reads each component file and extracts "everything useful." For a single React component, "everything useful" includes: the component name, file path, exported interface, prop types (with JSDoc), internal state, CSS classes used, imported dependencies, and usage patterns. Multiply by 30-50 components in a typical project and the catalog exceeds any reasonable context budget. The cataloger does not know which details matter for downstream agents, so it preserves everything to be safe.
-
-**Consequences:**
-- Catalog exceeds context budget, cannot be loaded alongside tokens.css + COMPONENT-SPECS.md
-- Orchestrator reads the full catalog to decide what to pass to subagents, blowing its 30% context ceiling
-- Subagents that receive the catalog spend most of their effective context on project component details and less on design system compliance
-- Information overload causes the agent to reference existing components incorrectly (mixing up prop names, confusing similar components)
-
-**Prevention:**
-1. Define a strict catalog format: one line per component, maximum 3 columns:
-   ```markdown
-   | Component | Path | Interface Summary |
-   |-----------|------|-------------------|
-   | Button | src/components/Button.tsx | variants: primary/secondary/ghost, size: sm/md/lg |
-   | Card | src/components/Card.tsx | variant: default/outlined, children |
-   | Modal | src/components/Modal.tsx | open: boolean, onClose: () => void, title: string |
-   ```
-2. Set a hard budget: component catalog must be under 1500 tokens. For a project with 50 components, that is ~30 tokens per component -- enough for name + path + one-line summary.
-3. Use the catalog as an INDEX, not a source of truth. When a subagent needs details about a specific component, it reads the actual component file directly. The catalog tells it WHERE to look, not WHAT it will find.
-4. Add the catalog to the context engine's profile definitions. The composer profile should include the catalog in `load_if_exists`, not `always_load`. The catalog is helpful context, not mandatory context.
-
-**Warning signs:**
-- Catalog file exceeds 1500 tokens (run `token-counter.js` to check)
-- Catalog contains prop type definitions or implementation details
-- Subagent prompts include the full catalog alongside full COMPONENT-SPECS.md (context competition)
-- Orchestrator reads the catalog file contents into its own context (should only read file path)
-
-**Detection:**
-Automated: `token-counter.js` on catalog file. Manual: if any single component entry exceeds 2 lines, the catalog is too detailed.
-
-**Phase to address:**
-Phase 1 (Catalog Design). The format must be locked before the cataloger is built.
-
----
-
-### Pitfall 7: Decision Fatigue from Too Many Adopt/Merge/Fresh Choices
-
-**What goes wrong:**
-The brownfield flow presents the user with too many decisions. For each detected artifact (colors, spacing, typography, radii, shadows, components, routing patterns, state management), the system asks: "adopt, evolve, or fresh?" The user faces 8-12 binary/ternary choices before any design work begins. They either (a) pick "adopt" for everything to avoid decisions (defeating the purpose of Motif), (b) pick "fresh" for everything to avoid complexity (defeating the purpose of brownfield awareness), or (c) disengage entirely because the tool feels like a configuration wizard, not a design assistant.
-
-**Why it happens:**
-The engineering instinct is to give users control over every aspect. Each individual choice makes sense: "Do you want to keep your colors?" is a reasonable question. "Do you want to keep your spacing?" is also reasonable. But asking 8 reasonable questions in sequence creates a burdensome experience. The existing Motif init interview is already 3-4 rounds of questions (product context, design inputs, differentiation seed, screens). Adding 8 more token-merge decisions doubles the cognitive load of initialization.
-
-**Consequences:**
-- Users default to extremes (all-adopt or all-fresh) rather than thoughtful per-category decisions
-- The init flow takes 10+ minutes of Q&A before any design output is produced
-- Users perceive Motif as complex/enterprise-y rather than fast/assistive
-- The decision surface area creates more bug surface area (8 independent merge strategies that must all work correctly)
-
-**Prevention:**
-1. Collapse to ONE top-level decision with smart defaults:
-   ```
-   I found an existing design system in your project. How should I work with it?
-
-   a) Respect it -- I'll build on your existing tokens and components
-   b) Fresh start -- I'll generate a new design system (your existing look will change)
-   c) Let me choose per category -- I'll ask about colors, spacing, typography separately
-   ```
-   Option (a) maps to "evolve" for everything. Option (b) maps to "fresh" for everything. Option (c) unlocks the per-category flow for power users. Most users will pick (a) or (b) and move on.
-2. For option (a) "respect it," apply smart heuristics without asking:
-   - If existing colors pass WCAG AA: adopt them as brand constraints (Type B input)
-   - If existing colors fail WCAG AA: evolve them (fix contrast, keep hue)
-   - If existing spacing uses a consistent scale: adopt it
-   - If existing spacing is inconsistent: evolve to nearest standard scale (4px or 8px base)
-   - If existing typography uses banned fonts (Inter, system-ui): evolve to Motif-appropriate alternatives
-   - If existing typography uses distinctive fonts: adopt them as brand constraints
-3. Show what was decided, not ask what to decide:
-   ```
-   Here's how I'll handle your existing system:
-   - Colors: Keeping your primary (#3b82f6) and secondary (#10b981). Improving your grays (inconsistent lightness). Adding missing semantic colors.
-   - Typography: Your body font (Inter) is generic -- I'll suggest alternatives. Your display font (Clash Display) is distinctive -- keeping it.
-   - Spacing: Your 8px base is solid. I'll extend the scale with missing values.
-
-   Looks good? Or want to adjust anything?
-   ```
-   This is a single confirmation, not 8 separate decisions.
-4. Store the merge strategy in DESIGN-BRIEF.md's Inputs section, extending the existing Type B (Brand Constraints) pattern rather than creating a new input type.
-
-**Warning signs:**
-- Init flow has more than 5 rounds of questions
-- Users consistently pick the same answer for all categories (sign they are not actually deciding)
-- Per-category merge logic has >5 code paths (combinatorial complexity)
-- Bug reports about "wrong merge behavior" in specific category combinations
-
-**Detection:**
-Count the number of user-facing questions in the brownfield init flow. If more than 2 brownfield-specific questions (beyond the existing init interview), the flow is too complex.
-
-**Phase to address:**
-Phase 2 (Init Flow Extension). But the decision to collapse choices must be made in Phase 1 (Design Decisions) before any UI flow is built.
+**Phase:** Global Install -- must be implemented before shipping global install.
 
 ---
 
@@ -336,115 +134,122 @@ Phase 2 (Init Flow Extension). But the decision to collapse choices must be made
 
 ---
 
-### Pitfall 8: Scanner Assumes Monorepo is a Single Project
+### Pitfall 5: Windows PATH and Shell Differences Break Hook Commands
 
-**What goes wrong:**
-The scanner encounters a monorepo (Turborepo, Nx, Lerna, yarn workspaces) and scans all packages as if they are one project. It finds 3 different design systems (one per package), 150 components across 5 apps, and conflicting framework choices (one package uses React, another uses Vue). The scan artifact mixes all of them, producing an incoherent project profile.
+**What goes wrong:** Hook commands in `.claude/settings.json` use Unix-style environment variables: `node "$CLAUDE_PROJECT_DIR"/.claude/get-motif/hooks/motif-token-check.js`. On macOS/Linux, this works because shells expand `$CLAUDE_PROJECT_DIR`. On Windows with cmd.exe, environment variables use `%CLAUDE_PROJECT_DIR%` syntax. The `$` syntax is silently ignored, causing the path to resolve incorrectly. The hooks fail silently (no error shown to user, just no enforcement).
+
+**Why it happens:** The hook injection code (install.js lines 316-322) hardcodes Unix shell syntax. npm global installs on Windows create `.cmd` shim files that run in cmd.exe by default. Claude Code on Windows may invoke hooks through different shell contexts depending on configuration. The existing per-project npx install has the same potential issue, but global install makes Windows usage more likely (global install is the more "permanent" workflow that Windows developers expect).
+
+**Consequences:**
+- Token checks, font checks, and ARIA checks silently disabled on Windows
+- Context monitor statusLine shows nothing (or errors)
+- State check hooks (new in this milestone) fail, undermining the entire context resilience system
+- Windows users get a degraded experience with no indication anything is wrong
 
 **Prevention:**
-1. Detect monorepo signals: `workspaces` in `package.json`, `turbo.json`, `nx.json`, `lerna.json`, `pnpm-workspace.yaml`.
-2. When a monorepo is detected, ask the user which package/app to focus on. Scan that package in isolation.
-3. Record the scoped package path in STATE.md so all subsequent operations use the correct root.
+- Test all hook commands on Windows (PowerShell and cmd.exe) before release
+- Use cross-platform path construction in hooks: detect `process.platform` and emit appropriate variable syntax, or use Node.js to resolve paths rather than shell expansion
+- Consider requiring PowerShell on Windows (Claude Code likely uses PowerShell already -- verify)
+- Add a post-install verification step that actually runs each hook command and checks for non-zero exit
 
-**Warning signs:**
-- Scan artifact lists components from multiple packages with conflicting patterns
-- Framework profile shows multiple frameworks
-- Component catalog has duplicate component names from different packages
-
-**Phase to address:**
-Phase 1 (Scanner Design).
+**Phase:** Global Install -- must be tested before release.
 
 ---
 
-### Pitfall 9: Decomposition Ignores Framework-Specific Component Patterns
+### Pitfall 6: New Verticals Drift from Existing Vertical Structure
 
-**What goes wrong:**
-The decomposer extracts components as generic HTML/CSS fragments when the project uses React (JSX), Vue (SFCs), or Svelte (`.svelte` files). The decomposed output does not match the project's component authoring pattern. A React project gets components without proper hook usage. A Vue project gets components without `<script setup>`. A Next.js App Router project gets components without `'use client'` directives where needed.
+**What goes wrong:** The 4 existing verticals (ecommerce, fintech, health, saas) follow a specific structure defined in `VERTICAL-TEMPLATE.md` -- a 145-line template with exact section headings, table formats, palette structures, component spec XML format, and spacing value formats. When authoring 4 new verticals (Social, Education, Marketplace, DevTools), the new files gradually drift from this structure: missing sections, different token naming, inconsistent palette table columns, different component spec XML attributes, or using different heading levels.
+
+**Why it happens:** Each vertical file is 400-500 lines of highly specific content (hex values, component specs, spacing values, accessibility rules). Manual authoring without automated validation inevitably introduces inconsistencies. The template exists as a reference but there is no runtime or CI check that a vertical file conforms to it. Additionally, each new vertical is likely authored in a separate session, and the AI may not load the template or existing verticals for cross-reference.
+
+**Consequences:**
+- System architect agent produces inconsistent design systems depending on which vertical is loaded
+- Token names in one vertical (`primary-500`) don't match another (`brand-primary`), causing the architect to reference nonexistent tokens
+- Component specs use different XML structures, causing the screen composer to misinterpret specs
+- Palette tables have different column counts, so AI parsing extracts wrong values
+- Users perceive quality as inconsistent between verticals
 
 **Prevention:**
-1. The framework profile from scanning (Pitfall 3's prevention) must flow into the decomposer. The decomposer's prompt must specify: "Output components in {framework} format with {router} conventions."
-2. Include 1-2 example components from the user's project in the decomposer's context (read the simplest existing component as a "style reference"). This gives the agent the project's actual authoring conventions, not generic framework patterns.
-3. Define decomposition templates per framework:
-   - React: functional component with typed props, hooks for state
-   - Next.js App Router: default to Server Component, add `'use client'` only if interactive
-   - Vue 3: `<script setup lang="ts">` + `<template>` + `<style scoped>`
-   - Svelte: `<script lang="ts">` + markup + `<style>`
+- Create a `validate-vertical.js` script that checks:
+  - All required sections from VERTICAL-TEMPLATE.md are present (using heading matching)
+  - All token names match the standard set (primary-50 through primary-900, surface-*, text-*, semantic colors)
+  - All palettes have both Light Mode and Dark Mode columns
+  - All component specs use valid XML structure with required attributes (name, category)
+  - Contrast ratios are documented for text-primary and text-secondary
+  - File is between 350-600 lines (not too sparse, not bloated)
+- Run the validator as part of the build/CI and as a pre-publish check
+- Author new verticals one at a time, validate, then proceed -- not all 4 simultaneously
+- When authoring each new vertical, explicitly load 1-2 existing verticals as structural references
 
-**Warning signs:**
-- Decomposed components use class components in a functional-component project
-- Missing `'use client'` in interactive components for App Router projects
-- Vue components output as React JSX
+**Detection:** `validate-vertical.js` failures. System architect referencing token names not found in the vertical. Missing sections when the architect tries to read spacing or component specs.
 
-**Phase to address:**
-Phase 3 (Decomposition Engine). Framework profile from Phase 1 is a prerequisite.
+**Phase:** New Verticals -- validation script should be built BEFORE writing the vertical files.
 
 ---
 
-### Pitfall 10: Existing Component Detection Hallucinates Reuse Opportunities
+### Pitfall 7: Stale Files Persist After Global Package Update
 
-**What goes wrong:**
-The catalog lists a `Button` component in the user's project. The composer agent sees it and generates `import { Button } from '@/components/Button'` in the composed screen. But the existing `Button` has a completely different API than what Motif's COMPONENT-SPECS.md defines. The existing button takes `variant="filled"` while Motif's spec says `variant="primary"`. The composed screen uses Motif's prop names on the project's component, producing silent rendering bugs (wrong variant, missing styles, undefined prop warnings).
+**What goes wrong:** User has `motif-design@0.3.0` globally installed, which installed files including a workflow file like `.claude/get-motif/workflows/legacy-flow.md`. They update to `motif-design@0.4.0` which removes or renames that file. Running `motif` again copies new files but does NOT remove files that were deleted from the package. The stale `legacy-flow.md` remains in the project, and the AI may read and follow it (it is in the `.claude/get-motif/` directory that AI agents load from).
+
+**Why it happens:** The installer is additive only -- `walkAndCopy` (install.js lines 118-188) adds and overwrites files but never deletes. The manifest tracks what was installed, but the upgrade logic does not diff the old manifest file list against the new package contents to detect removals.
+
+**Consequences:**
+- Stale workflow files cause the AI to follow outdated instructions
+- Stale vertical files (if a vertical is renamed or restructured) cause the system architect to load incorrect patterns
+- Stale hook scripts may conflict with new hook scripts
+- The project accumulates cruft over multiple upgrades
 
 **Prevention:**
-1. The component catalog must include interface summaries (Pitfall 6's format) so the agent knows the actual prop API.
-2. When the composer references an existing project component, it must use THAT component's interface, not Motif's COMPONENT-SPECS.md interface. This requires the prompt to clearly distinguish: "Motif's design system defines Button with these variants. Your project's Button has these variants. Use your project's Button API."
-3. Add a "compatibility map" concept: for each Motif component type, note whether the project has a compatible component and what the mapping is:
-   ```
-   Motif Button(variant="primary") -> Project Button(variant="filled")
-   Motif Card(variant="elevated") -> No project equivalent, generate new
-   Motif Modal(open, onClose) -> Project Dialog(isOpen, onDismiss)
-   ```
-4. If no compatibility can be determined, default to generating new components rather than incorrectly using existing ones.
+- During upgrade, compare existing manifest file list against the new package's file list. Files in old manifest but NOT in new package should be flagged:
+  ```
+  The following files from v0.3.0 are no longer in v0.4.0:
+    .claude/get-motif/workflows/legacy-flow.md
+    .claude/get-motif/references/verticals/old-vertical.md
+  Remove them? [Y/n] (or use motif --clean to auto-remove)
+  ```
+- Add a `--clean` flag that removes files no longer in the current package version
+- At minimum, print a warning about orphaned files so the user can decide
 
-**Warning signs:**
-- Composed screens import project components but pass Motif-spec props
-- Console warnings about unknown props in development
-- Components render with default/missing styles because the wrong variant name was used
-
-**Phase to address:**
-Phase 2 (Catalog Enhancement) for the compatibility mapping. Phase 3 (Compose Flow) for the prompt modifications.
+**Phase:** Global Install -- stale file cleanup is a basic upgrade hygiene requirement.
 
 ---
 
-### Pitfall 11: Scanner Exposes Sensitive Information
+### Pitfall 8: Context Budget Explosion with 8 Verticals
 
-**What goes wrong:**
-The scanner reads project files indiscriminately and captures sensitive data in the scan artifact: API keys in `.env` files, database connection strings in config files, auth secrets in server-side code. This artifact is then loaded into subagent prompts. While the data stays local (Motif does not transmit scan results), it unnecessarily expands the attack surface and wastes context tokens on non-design information.
+**What goes wrong:** The context engine loads the vertical file for the detected project type. Each vertical is ~400-500 lines. The context-engine.md budget table allocates a general 2,000 tokens per research file, but vertical files are not explicitly budgeted. Examining the existing `ecommerce.md` (which has detailed palettes, component specs, interaction patterns, and accessibility rules), it likely exceeds 3,000 tokens. With 8 verticals, the system is fine IF only one loads at a time. But edge cases arise:
+- A project described as "educational marketplace" triggers loading of both `education.md` and `marketplace.md`
+- The system architect loads the vertical file AND all 4 research files, exceeding the ~15,000 token subagent budget
+- Multi-vertical loading is not explicitly prevented in the context engine profiles
 
 **Prevention:**
-1. Hardcode an exclusion list: `.env*`, `*.key`, `*.pem`, `*.secret`, `credentials.*`, `*config.server.*`
-2. Only scan directories relevant to design: `src/components/`, `src/styles/`, `src/app/` (or equivalents). Never scan `server/`, `api/`, `lib/db/`, `scripts/`.
-3. Only read file metadata (path, type, size) for most files. Only read file CONTENTS for component files, style files, and config files (package.json, tsconfig.json, tailwind.config.js).
-4. Document what the scanner reads and does not read so users can audit.
+- Enforce single-vertical selection in the init flow: one project = one primary vertical
+- Audit existing vertical file sizes with `token-counter.js` and establish a hard budget (3,000 tokens max per vertical)
+- If existing verticals exceed the budget, trim them (remove redundant palette options, condense component specs)
+- Add an explicit guard in context engine profiles: `<load_exactly_one>` directive for verticals
+- If multi-vertical support is desired later, create a "vertical blender" that extracts only the relevant sections from each, producing a merged file under budget
 
-**Warning signs:**
-- Scan artifact contains strings that look like API keys or connection strings
-- Scanner reads server-side code or API route implementations
-- Scan artifact is unexpectedly large (reading non-design files)
-
-**Phase to address:**
-Phase 1 (Scanner Design). Security exclusions must be in the first version.
+**Phase:** New Verticals -- audit existing file sizes before adding more.
 
 ---
 
-### Pitfall 12: Decomposition Creates Import Cycles
+### Pitfall 9: Self-Dependency in package.json Causes npm Warnings
 
-**What goes wrong:**
-The decomposer extracts components that import each other circularly. `Header` imports `Navigation`, `Navigation` imports `UserMenu`, `UserMenu` imports `Header` (to access a shared context or layout reference). In the monolithic file, these were just sections of HTML with no import relationships. Decomposition introduces module boundaries that create cycles.
+**What goes wrong:** The current `package.json` lists `"motif-design": "^0.1.0"` as a dependency of itself. This circular dependency causes npm warnings during install, unexpected `node_modules` nesting (npm may install an older version of the package inside its own `node_modules`), and confusing behavior during global install where npm tries to resolve the self-reference.
+
+**Why it happens:** Likely a leftover from development or testing. The package is designed as zero-dependency (`"description"` says "zero deps"), but the dependencies field contradicts this.
+
+**Consequences:**
+- `npm install -g motif-design` downloads and nests an older version of itself
+- Package size increases unnecessarily
+- npm audit may flag circular dependency
+- Confusing for contributors examining the package
 
 **Prevention:**
-1. Enforce a strict component dependency tree: components can import from the design system (tokens, primitives) and from siblings, but never from parent layout components.
-2. Run a post-decomposition cycle check: build an import graph and verify it is a DAG (directed acyclic graph).
-3. Shared state or context that creates the cycle should be extracted into a separate module (a context provider, a shared hook, a shared constant) rather than being duplicated or circularly referenced.
-4. Limit decomposition depth to 2 levels (Pitfall 4's prevention) which naturally prevents most cycles.
+- Remove the self-dependency from package.json before publishing the global install version
+- Verify with `npm pack --dry-run` that the published package contains only the intended files
+- Add a CI check that `dependencies` is empty (or absent) in package.json
 
-**Warning signs:**
-- Build errors about circular imports after decomposition
-- Components that reference each other bidirectionally
-- The decomposer creating "shared" utility files to resolve its own cycles (sign of over-decomposition)
-
-**Phase to address:**
-Phase 3 (Decomposition Engine). Add cycle detection as a post-decomposition validation step.
+**Phase:** Global Install -- must be fixed before publishing. Trivial fix, high impact.
 
 ---
 
@@ -452,55 +257,60 @@ Phase 3 (Decomposition Engine). Add cycle detection as a post-decomposition vali
 
 ---
 
-### Pitfall 13: Scanning Performance on Large Projects
+### Pitfall 10: Vertical File Naming Convention Ambiguity
 
-**What goes wrong:**
-The scanner uses `glob` and `read` operations to traverse the project. On a large project (10,000+ files), this takes significant time and may hit the Bash tool timeout (120 seconds). The user waits, the scan times out, and the init flow fails.
+**What goes wrong:** Existing verticals use lowercase single-word names: `ecommerce.md`, `fintech.md`, `health.md`, `saas.md`. New verticals include potentially multi-word names: "DevTools" could be `devtools.md`, `dev-tools.md`, or `dev_tools.md`. The vertical detection logic (in init and research commands) uses string matching on the vertical name to load the corresponding file. If the naming convention is not locked down, the file path construction fails silently (file not found -> vertical not loaded -> system architect works without domain intelligence).
 
 **Prevention:**
-1. Use `find` with depth limits (`-maxdepth 3`) for initial structure detection.
-2. Only read files in known component/style directories, not the entire tree.
-3. Set a file count ceiling: if the project has >5000 files, only scan `src/` or the detected source root.
-4. Add a progress indicator or at minimum an early message: "Scanning project structure..."
+- Define naming convention: lowercase, no hyphens, no underscores. Names: `devtools.md`, `social.md`, `education.md`, `marketplace.md`
+- Add a vertical registry (array constant) in the context engine or a shared constants file listing all valid vertical identifiers
+- The init flow should present verticals from this registry, not accept freeform input
+- Validate at install time that all vertical files in the package match the registry
 
-**Phase to address:**
-Phase 1 (Scanner Implementation).
+**Phase:** New Verticals -- decide convention before creating files.
 
 ---
 
-### Pitfall 14: Component Naming Conflicts Between Project and Motif
+### Pitfall 11: State Recovery Creates Phantom Progress via Filesystem Inference
 
-**What goes wrong:**
-The project has a `Card` component. Motif's COMPONENT-SPECS.md also defines `Card`. The decomposer outputs a new `Card` component that follows Motif's spec but shadows the project's existing `Card`. Import resolution becomes ambiguous.
+**What goes wrong:** When building context-resilient state recovery, the natural approach is to infer state from filesystem artifacts: "tokens.css exists, so we must be in SYSTEM_GENERATED phase." But a user might have manually created tokens.css, copied it from another project, or have a partial file from a failed generation. The state recovery incorrectly advances the phase, and the AI skips prerequisite steps (like research) because it believes they were already completed.
+
+**Why it happens:** Filesystem inference feels robust because it checks "real" artifacts. But it confuses "file exists" with "step completed successfully." A tokens.css file created by a crashed system generation is technically present but may be incomplete or invalid. Research files from a previous project copied into the directory trigger false RESEARCHED state.
 
 **Prevention:**
-1. Decomposed Motif components should use a namespace prefix when conflicting: `MotifCard` or scoped to a `motif/` directory.
-2. Better: map Motif's component spec to the project's existing component (Pitfall 10's compatibility map) and use the existing component directly.
-3. During decomposition, check for name conflicts against the component catalog and rename proactively.
+- State recovery should trust the explicit state file (`.motif-state.json`) as the primary source of truth
+- Filesystem checks should only serve as VALIDATION ("state says SYSTEM_GENERATED, and tokens.css exists -- confirmed") not as DISCOVERY ("tokens.css exists, so state must be SYSTEM_GENERATED")
+- If state file is missing but artifacts exist, present findings to the user and ASK rather than auto-advancing: "I found tokens.css and COMPONENT-SPECS.md but no state file. It looks like the design system was already generated. Should I set the phase to SYSTEM_GENERATED? [Y/n]"
+- Include a checksum or generation timestamp in `.motif-state.json` that can be validated against the actual file
 
-**Phase to address:**
-Phase 3 (Decomposition Engine).
+**Phase:** Context Resilience -- design the recovery hierarchy carefully.
 
 ---
 
-### Pitfall 15: Evolve Mode Produces Tokens the Project Cannot Consume
+### Pitfall 12: Hook Paths Assume Per-Project File Layout
 
-**What goes wrong:**
-Motif generates `tokens.css` with CSS custom properties (`:root { --color-primary-500: #3b82f6; }`). But the project's existing token system uses a different format: Tailwind config (`colors: { primary: { 500: '#3b82f6' } }`), TypeScript theme object (`const theme = { colors: { primary500: '#3b82f6' } }`), or SCSS variables (`$primary-500: #3b82f6`). The generated tokens.css is technically correct but useless -- the project cannot consume it without a manual translation layer.
+**What goes wrong:** Hook commands in `.claude/settings.json` reference files at `"$CLAUDE_PROJECT_DIR"/.claude/get-motif/hooks/...`. This works because both npx and global install copy files into the project. However, a future optimization might try to reference hooks from the global install location (avoiding file duplication across projects). This would fundamentally break the path model and require different hook command syntax per install method.
 
 **Prevention:**
-1. During scanning, detect the project's token format (CSS custom properties, Tailwind config, TS theme object, SCSS variables, styled-components theme).
-2. Generate tokens in the project's native format IN ADDITION to Motif's canonical `tokens.css`. The canonical format remains for Motif's internal agents. A translated format is produced for the user's project.
-3. Start with CSS custom properties only (v1.2). Add Tailwind config translation in a later version. This limits scope while covering the most common case.
-4. Document clearly: "tokens.css is Motif's canonical token file. For Tailwind projects, see the generated tailwind.tokens.js."
+- Keep the current architecture: global install copies files to the project, identical to npx install. The `motif` command is just a convenience entry point, not a different file layout.
+- Document this decision explicitly: "Global install does NOT change where files are stored. Files are always project-local. The global `motif` command is equivalent to `npx motif-design@latest`."
+- Resist the temptation to add "run from global" mode -- it introduces a completely different file resolution model and breaks the hook path contract.
 
-**Warning signs:**
-- User asks "how do I use these tokens in my Tailwind project?"
-- Composed screens reference CSS variables but the project uses Tailwind utility classes
-- Token showcase works but the tokens do not integrate into the project's build pipeline
+**Phase:** Global Install -- architectural decision to document, not code to write.
 
-**Phase to address:**
-Phase 2 (Token Evolution). But scope to CSS custom properties only for v1.2. Tailwind/SCSS translation is a follow-up feature.
+---
+
+### Pitfall 13: New State File (.motif-state.json) Not Added to .gitignore Guidance
+
+**What goes wrong:** The new `.motif-state.json` file contains ephemeral session state (current phase, last command, timestamp). If committed to git, it creates merge conflicts when teammates are at different workflow phases. One person is at COMPOSING, another at RESEARCHED -- git cannot merge these. Alternatively, if NOT committed, a teammate cloning the repo has no state file and the recovery mechanism cannot determine where the project is.
+
+**Prevention:**
+- Decide and document: `.motif-state.json` should be GITIGNORED (it is session-local state, like `.DS_Store`)
+- The recovery mechanism should reconstruct state from committed artifacts (STATE.md, which IS committed) when `.motif-state.json` is missing
+- STATE.md remains the git-committed human-readable state. `.motif-state.json` is the machine-readable session-local accelerator.
+- Add `.motif-state.json` to the recommended .gitignore entries in the init flow or README
+
+**Phase:** Context Resilience -- decide the git strategy for the new file before implementing it.
 
 ---
 
@@ -508,59 +318,71 @@ Phase 2 (Token Evolution). But scope to CSS custom properties only for v1.2. Tai
 
 | Phase Topic | Likely Pitfall | Mitigation |
 |-------------|---------------|------------|
-| Scanner Design (Phase 1) | Over-scanning, stale data, wrong framework detection, security exposure | Hard token budget (2000), lazy scanning, framework profile validation, exclusion list |
-| Catalog Design (Phase 1) | Context dump, information overload for agents | Index format (name + path + one-line), 1500 token budget, load-on-demand details |
-| Init Flow Extension (Phase 2) | Decision fatigue, too many adopt/merge/fresh choices | Single top-level decision, smart defaults, show-don't-ask pattern |
-| Token Evolution (Phase 2) | Franken-systems from naive merge, incompatible token formats | Evolve as default, explicit diff output, keep-or-explain every token |
-| Decomposition Engine (Phase 3) | Useless components, import cycles, framework mismatch, naming conflicts | Design-system-aligned decomposition, 2-level depth limit, framework templates, cycle detection |
-| Compose Flow Update (Phase 3) | Hallucinated reuse of existing components, wrong prop APIs | Compatibility maps, "verify before import" instructions, existing component interface in prompt |
+| Global Install | Wrong `process.cwd()` from subdirectory (Pitfall 1) | Project root detection: walk up to find .git/package.json |
+| Global Install | Silent version downgrade (Pitfall 4) | Semver comparison, refuse downgrade without --force |
+| Global Install | Windows hook path failures (Pitfall 5) | Test on Windows, cross-platform variable syntax |
+| Global Install | Stale files after update (Pitfall 7) | Diff old manifest against new package, flag removals |
+| Global Install | Self-dependency in package.json (Pitfall 9) | Remove before publishing |
+| Context Resilience | STATE.md not read after context clear (Pitfall 2) | Machine-readable .motif-state.json + state-check.js script |
+| Context Resilience | JSON file corruption from concurrent writes (Pitfall 3) | Atomic write (tmp + rename) + lockfile |
+| Context Resilience | Phantom progress from filesystem inference (Pitfall 11) | Trust state file over artifact detection |
+| Context Resilience | New state file git strategy (Pitfall 13) | Gitignore .motif-state.json, reconstruct from STATE.md |
+| New Verticals | Structural drift between old and new (Pitfall 6) | validate-vertical.js script before authoring |
+| New Verticals | Naming convention ambiguity (Pitfall 10) | Enforce lowercase single-word names + registry |
+| New Verticals | Context budget explosion (Pitfall 8) | Audit sizes, enforce single-vertical loading |
+
+## Integration Gotchas Between Features
+
+These pitfalls arise from the INTERACTION between the three features, not from any single feature alone.
+
+| Integration Point | What Goes Wrong | Correct Approach |
+|-------------------|-----------------|------------------|
+| Global install + state resilience | Global install overwrites `.motif-state.json` on re-install, losing current workflow phase | Exclude `.motif-state.json` from the install manifest. It is not a package-delivered file. |
+| Global install + new verticals | Global install at v0.3.0 does not have new vertical files. Running `motif` on a project that selected a new vertical (education) produces "vertical not found" | State check should validate that the vertical file exists. If missing, advise: "Your Motif installation does not include the 'education' vertical. Run `npm update -g motif-design`." |
+| State resilience + new verticals | State file records `"vertical": "education"` but the vertical file was deleted or renamed in an update | State validation should check that the recorded vertical has a corresponding file on disk. Warn if mismatch. |
+| All three features | User installs globally (v0.3.0), inits a project with `education` vertical, clears context, updates globally to v0.4.0 (which renames education.md to edu.md), runs `motif` to re-install, then resumes workflow | The state file references a vertical name that no longer maps to a file. State check must detect this: "Your project uses the 'education' vertical, but this version uses 'edu'. Update your state? [Y/n]" |
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Scanner respects context budget:** `PROJECT-SCAN.md` (or equivalent) is under 2000 tokens
-- [ ] **Framework profile is validated:** Scanner output includes router type, styling approach, and import conventions -- not just "React"
-- [ ] **Catalog is an index:** Each component entry is 1 line with name + path + summary. No prop type definitions in the catalog.
-- [ ] **Token merge is explicit:** Every token in output is labeled "kept," "evolved," or "generated new." No silent drops.
-- [ ] **User faces <= 2 brownfield decisions:** Top-level choice (respect/fresh/customize) and confirmation. Not per-category interrogation.
-- [ ] **Decomposition produces < 8 components per screen:** Components map to design system primitives + domain-specific patterns, not arbitrary UI chunks.
-- [ ] **No import cycles in decomposed output:** Post-decomposition validation confirms DAG structure.
-- [ ] **Sensitive files excluded from scan:** `.env*`, credentials, server-side code never read.
-- [ ] **Stale scan protection exists:** Either lazy scanning or freshness check before loading scan artifact.
-- [ ] **Existing component compatibility mapped:** When the compose flow uses project components, it uses the project's prop API, not Motif's spec API.
+- [ ] **Project root detection works from subdirectories:** Run `motif` from `src/`, `test/`, and home directory. Verify it finds (or rejects) the correct root.
+- [ ] **State check enforces prerequisites programmatically:** A script (not markdown rules) returns pass/fail for each command. Test after context clear.
+- [ ] **All JSON writes are atomic:** Write to .tmp then rename. Verify by killing the process mid-write and checking file integrity.
+- [ ] **Downgrade detection works:** Install v0.4.0 via npx, then run global v0.3.0. Verify warning and refusal.
+- [ ] **Stale file detection works:** Install v0.3.0, add a file manually to the manifest, install v0.4.0. Verify orphan warning.
+- [ ] **New verticals pass validation:** Run `validate-vertical.js` against all 8 verticals. Zero failures.
+- [ ] **Single vertical loading enforced:** Init with an ambiguous description. Verify only one vertical file loads.
+- [ ] **Windows hooks work:** Test token-check, font-check, and state-check hooks on Windows PowerShell.
+- [ ] **Self-dependency removed:** `npm pack --dry-run` shows zero runtime dependencies.
+- [ ] **State file survives context clear:** Clear AI context, invoke `/motif:compose`. Verify the AI reads `.motif-state.json` and knows the current phase.
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Over-scanned context dump | LOW | Re-run scanner with stricter budget; replace artifact; no downstream impact if caught before compose |
-| Stale scan causing wrong imports | MEDIUM | Re-scan; diff against current project; re-compose affected screens |
-| Wrong framework detection | HIGH | Re-scan with corrected detection; regenerate system if framework affects token/component decisions; re-compose all screens |
-| Useless decomposition | MEDIUM | Revert decomposed files; re-decompose with stricter rules; or keep monolithic output (it works, just not decomposed) |
-| Franken-system from bad merge | HIGH | Delete generated tokens; re-run system generator with explicit adopt-or-fresh choice; re-compose all screens |
-| Decision fatigue abandonment | LOW | Simplify the init flow; user re-runs init with fewer questions; no code impact |
-| Component API mismatch | MEDIUM | Update compatibility map; re-compose affected screens with correct prop names |
-| Import cycles in decomposition | LOW | Run cycle detector; refactor circular dependencies into shared modules; small, localized changes |
-
-## Integration Gotchas Specific to Motif's Architecture
-
-| Integration Point | Common Mistake | Correct Approach |
-|-------------------|----------------|------------------|
-| Context engine profiles | Adding scan artifact to `always_load` for all profiles | Add to `load_if_exists` only for composer and system generator. Never load for researcher or reviewer. |
-| Orchestrator context ceiling | Reading scan artifact contents to decide what to pass to subagents | Read only scan METADATA (framework, token format, component count). Pass scan FILE PATH to subagent. Let subagent read details in fresh context. |
-| STATE.md | No tracking of scan freshness or merge decisions | Add `Scan` section with timestamp, scoped package path, merge strategy. |
-| DESIGN-BRIEF.md Inputs | Creating new Input Type E for brownfield | Extend Type B (Brand Constraints) and Type D (Design File) to cover brownfield detection. No new type needed. |
-| Subagent spawning | Passing full project component code to subagent prompt | Pass component catalog (index) + specific file paths. Subagent reads files in its fresh window. |
-| Existing hooks | Assuming existing hooks (token-check, font-check, aria-check) will catch brownfield-specific issues | Hooks validate Motif's output format. They do not validate that output is compatible with the project. Need new validation for import path correctness, prop API compatibility. |
-| Compose workflow | Modifying compose-screen.md to always include brownfield context | Make brownfield context conditional. If no scan exists, compose workflow should work exactly as v1.1. Brownfield is additive, not required. |
+| Wrong install directory (Pitfall 1) | LOW | Delete misplaced `.claude/` and `.motif-manifest.json`. Re-run from correct directory. |
+| Lost state after context clear (Pitfall 2) | MEDIUM | If STATE.md exists on disk, read it manually and create `.motif-state.json`. If not, check for artifacts (tokens.css, research files) and reconstruct. |
+| Manifest corruption (Pitfall 3) | MEDIUM | Delete `.motif-manifest.json`. Re-run `motif --force` to re-install and regenerate manifest. User modifications to installed files will be lost. |
+| Version downgrade (Pitfall 4) | LOW-MEDIUM | Run `npx motif-design@latest --force` to restore latest version. Verify with manifest version. |
+| Windows hook failures (Pitfall 5) | LOW | Update hook commands to use cross-platform syntax. Re-run `motif` to re-inject hooks. |
+| Vertical drift (Pitfall 6) | MEDIUM | Run validator, fix non-conforming sections. May require re-running system generation for affected projects. |
+| Stale files (Pitfall 7) | LOW | Run `motif --clean` (once implemented) or manually delete orphaned files using old manifest as reference. |
+| Context budget exceeded (Pitfall 8) | MEDIUM | Trim vertical files to budget. Re-run system generation. Composed screens may need re-composition if architect output changed. |
 
 ## Sources
 
-- Codebase analysis: `context-engine.md` (context budgets, profile definitions, anti-patterns), `state-machine.md` (phase transitions, gate checks), `design-inputs.md` (input types A-D, brand constraint flow), `compose-screen.md` (composer agent context loading, anti-slop checks), `generate-system.md` (token generation algorithm, component spec format), `runtime-adapters.md` (orchestrator context constraints, subagent spawning)
-- Existing hooks: `motif-token-check.js`, `motif-font-check.js`, `motif-aria-check.js` (current validation scope and gaps)
-- Existing scripts: `token-counter.js`, `contrast-checker.js` (available validation tools)
-- Architecture constraints: orchestrator <= 30% context, subagent fresh 200K windows, zero npm deps, markdown-first artifacts
-- Training data: patterns from brownfield migration tools (codemod, jscodeshift), design system adoption literature (Storybook migration guides, design token specification patterns), AI coding assistant context management patterns. Confidence: MEDIUM (not verified against current sources due to WebSearch unavailability).
+- Codebase analysis: `bin/install.js` (complete install flow, path resolution, manifest handling, hook injection), `core/references/state-machine.md` (phase definitions, gate checks, STATE.md format), `core/references/context-engine.md` (context budgets, loading profiles, orchestrator rules), `core/templates/VERTICAL-TEMPLATE.md` (vertical file structure contract), `core/references/verticals/ecommerce.md` (reference vertical implementation), `.motif-manifest.json` (current manifest structure), `package.json` (self-dependency issue, bin field, engine requirements)
+- [Claude Code .claude.json corruption -- GitHub #29036](https://github.com/anthropics/claude-code/issues/29036) -- concurrent write corruption in a similar JSON state file
+- [Claude Code .claude.json corruption -- GitHub #29153](https://github.com/anthropics/claude-code/issues/29153) -- Windows + OneDrive concurrent write cascade failure
+- [npm Docs: Folders](https://docs.npmjs.com/cli/v11/configuring-npm/folders/) -- global vs local install paths, bin symlink behavior
+- [npm Docs: package.json](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/) -- bin field behavior for global and local installs
+- [npm CLI issue #5189](https://github.com/npm/cli/issues/5189) -- Windows junctions vs symlinks in npm install
+- [Persistence Patterns for AI Agents](https://dev.to/aureus_c_b3ba7f87cc34d74d49/persistence-patterns-for-ai-agents-that-survive-restarts-59ck) -- handoff protocols and boot sequences for state resilience
+- [Context Rot in Claude Code](https://vincentvandeth.nl/blog/context-rot-claude-code-automatic-rotation) -- automatic context rotation and state recovery patterns
+- [Advanced AI Agents: Context Offloading](https://www.flowhunt.io/blog/advanced-ai-agents-with-file-access-mastering-context-offloading-and-state-management/) -- file-based state management for AI agents
+- [SitePoint: Global npm Module Dependency Problem](https://www.sitepoint.com/solve-global-npm-module-dependency-problem/) -- global version mismatch patterns
+- [Alternatives to Global npm Install](https://2ality.com/2022/06/global-npm-install-alternatives.html) -- why npx is preferred over global install
+- [writeFile corrupts data -- Node.js #2346](https://github.com/nodejs/help/issues/2346) -- Node.js writeFile is not atomic under concurrent load
 
 ---
-*Pitfalls research for: Brownfield Intelligence & Component Decomposition for Motif v1.2*
-*Researched: 2026-03-04*
+*Pitfalls research for: Global Install, Context-Resilient State, and New Verticals -- Motif milestone*
+*Researched: 2026-03-09*

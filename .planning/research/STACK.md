@@ -1,287 +1,261 @@
-# Stack Research: Brownfield Intelligence Features
+# Technology Stack
 
-**Domain:** Project scanning, component cataloging, and decomposition for an existing zero-dep Node.js design engineering CLI
-**Researched:** 2026-03-04
-**Confidence:** HIGH
+**Project:** Motif v1.3 -- Global Install, Context Resilience, New Verticals
+**Researched:** 2026-03-09
+**Overall Confidence:** HIGH
 
-## Design Principle: Zero Dependencies Maintained
+## Scope
 
-The brownfield scanning features must follow the same constraint as all existing Motif code: **zero npm dependencies, Node.js 22+ stdlib only**. This is non-negotiable. Every existing script (`install.js`, `token-check.js`, `font-check.js`, `aria-check.js`, `contrast-checker.js`, `token-counter.js`) uses pure Node.js APIs. The brownfield scanner must do the same.
+This document covers stack additions/changes for three new capabilities:
+1. **Global CLI install** (`npm install -g motif-design`)
+2. **Context-resilient state machine** (state persists across `/clear` and compaction)
+3. **4 new verticals** (Social, Education, Marketplace, DevTools)
 
-This constraint means: **no AST parsers** (no `@babel/parser`, no `typescript`, no `postcss`). All analysis is regex-based and heuristic-based, which is the proven pattern across all existing hooks. This is a trade-off: we sacrifice parsing precision for zero-dep simplicity. The existing hooks demonstrate this trade-off works well enough for design-system enforcement.
-
----
-
-## Recommended Stack Additions
-
-### No New External Technologies
-
-The brownfield features require **zero new packages**. Everything is built on the same Node.js 22+ stdlib already in use. What changes is how those APIs are composed into new scripts.
-
-### New Node.js APIs to Leverage
-
-These APIs are already available in the Node.js 22+ floor but are not yet used by Motif. They become critical for project scanning.
-
-| API | Purpose | Why Needed Now | Confidence |
-|-----|---------|---------------|------------|
-| `fs.globSync(pattern, { cwd })` | Find component files across project tree | Scanning for `*.tsx`, `*.jsx`, `*.vue`, `*.svelte` files in user projects. Replaces manual recursive `readdirSync` + extension filtering. Available in Node 22. | HIGH |
-| `path.matchesGlob(path, pattern)` | Match file paths against convention patterns | Detecting folder conventions (`components/`, `ui/`, `atoms/`, `molecules/`). Added v22.5.0, stable since v22.20.0. | HIGH |
-| `fs.readdirSync(path, { withFileTypes: true, recursive: true })` | Recursive directory listing with file type info | Building complete project structure map. Already used in `walkFiles()` in `install.js` but manually recursive -- the built-in `recursive` option simplifies this. | HIGH |
-| `fs.statSync(path).mtimeMs` | File modification timestamps | Ordering components by recency, detecting stale files. Already in use for verification. | HIGH |
-| `crypto.createHash('sha256')` | Content hashing for change detection | Already used in `install.js` manifest. Reuse for detecting when scanned component catalogs need refresh. | HIGH |
-
-**Source:** Node.js 22.x fs documentation (verified via WebFetch 2026-03-04). `path.matchesGlob` confirmed stable since v22.20.0.
+Existing stack is validated and not re-researched: pure Node.js, zero npm dependencies, Claude Code slash commands and hooks, CSS custom properties, CDN icons.
 
 ---
 
-## Core Technologies for Each Capability
+## 1. Global CLI Install
 
-### 1. Project Structure Scanner
+### Current State
 
-**Purpose:** Detect folder conventions, framework, component organization pattern.
+The `bin` field in package.json maps `"motif"` to `bin/install.js`. Currently designed for `npx motif-design@latest` (per-project install only). The installer copies files into `$CWD/.claude/` and writes hooks to `$CWD/.claude/settings.json`.
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `node:fs` (readdirSync, existsSync, statSync) | Node 22+ | Walk project tree, detect marker files | Same APIs used by `install.js` runtime detection. Pattern: check for `package.json`, `tsconfig.json`, framework config files to identify the stack. |
-| `node:path` (matchesGlob, join, relative) | Node 22+ | Match folder names against convention patterns | `path.matchesGlob` is purpose-built for checking if paths match `components/**`, `src/ui/**`, etc. |
+### What Changes for `npm install -g`
 
-**Detection strategy (regex-based, no AST):**
-```javascript
-// Framework detection via package.json deps (already proven pattern)
-const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-const framework = deps.next ? 'next' : deps.nuxt ? 'nuxt' : deps.react ? 'react' : deps.vue ? 'vue' : deps.svelte ? 'svelte' : 'unknown';
+| Aspect | Current (npx) | Needed (global) | Why |
+|--------|---------------|-----------------|-----|
+| **bin entry** | `"motif": "bin/install.js"` | Keep as-is | npm symlinks `bin/install.js` to `{prefix}/bin/motif` automatically on `npm install -g`. No change needed. |
+| **Package resolution** | `path.dirname(__dirname)` resolves to npm cache | Same expression resolves to global `node_modules/motif-design/` | `__dirname` always points to the script's actual location, whether cached by npx or installed globally. |
+| **Invocation** | `npx motif-design@latest` | `motif` (after global install) or still `npx motif-design@latest` | Both work. The `bin` field handles this. |
+| **CWD requirement** | Must be in project root | Must be in project root | No change. User runs `motif` from their project directory. The installer copies into `$CWD/.claude/`. |
 
-// Folder convention detection via marker directories
-const conventions = [
-  { pattern: 'src/components/**', type: 'flat-components' },
-  { pattern: 'src/ui/**', type: 'ui-library' },
-  { pattern: 'components/atoms/**', type: 'atomic-design' },
-  { pattern: 'app/**/components/**', type: 'feature-scoped' },
-];
-```
+**Confidence: HIGH** -- verified against [npm package.json docs](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/) and current `bin/install.js` code.
 
-**Confidence:** HIGH -- This is the same detection approach used by `detectRuntime()` in `install.js`, just expanded to more signals.
+### Recommendation: Minimal Changes Only
 
-### 2. Component Cataloger
+The existing `bin/install.js` already works for global install. When npm installs globally, it symlinks `{prefix}/bin/motif` to the installed `bin/install.js`. The script uses `path.dirname(__dirname)` to find its own package root for source files, and `process.cwd()` for the target project. Both resolve correctly whether invoked via npx or global install.
 
-**Purpose:** Find component files, extract component name, props interface, and styling approach.
+**What to add:**
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `node:fs` (readFileSync, globSync) | Node 22+ | Find and read component files | `globSync('**/*.{tsx,jsx,vue,svelte}')` gets all component candidates. |
-| Regex-based prop extraction | N/A (pure JS) | Extract prop types from component signatures | Same regex-over-source approach used by `motif-token-check.js` and `motif-font-check.js`. No AST needed for catalog-quality extraction. |
+| Change | Rationale | Effort |
+|--------|-----------|--------|
+| `--version` flag in `parseArgs` options | Users of globally installed CLIs expect `motif --version` | Trivial -- read `package.json` version |
+| Update help text | Show `motif` as invocation option alongside `npx motif-design@latest` | Trivial |
+| Remove self-referencing dependency | `package.json` lists `"motif-design": "^0.1.0"` in `dependencies` -- this is a bug that pulls in an old version of itself | Bug fix |
+| Add `"preferGlobal": false` note in README | Guide users to prefer `npx` for one-off, `npm install -g` for frequent use | Docs only |
 
-**Prop extraction strategy (regex, matching existing hook patterns):**
-```javascript
-// React/TSX: extract props from function signature or interface
-const propsInterfacePattern = /(?:interface|type)\s+(\w+Props)\s*(?:=\s*)?{([^}]*)}/gs;
-const functionComponentPattern = /(?:export\s+(?:default\s+)?)?(?:const|function)\s+(\w+)\s*[=:]\s*(?:\(|\s*(?:React\.)?FC)/g;
+**What NOT to add:**
 
-// Vue: extract defineProps
-const vuePropsPattern = /defineProps<{([^}]*)}>/gs;
-const vueOptionsPropsPattern = /props:\s*{([^}]*)}/gs;
-
-// Svelte: extract export let declarations
-const sveltePropsPattern = /export\s+let\s+(\w+)(?:\s*:\s*([^=;]+))?/g;
-```
-
-**Confidence:** HIGH -- The existing hooks prove this regex approach works. `motif-token-check.js` already does regex-based CSS property detection. `motif-aria-check.js` does regex-based HTML attribute detection across JSX. Component prop extraction is the same complexity class.
-
-### 3. Token/Style Analyzer
-
-**Purpose:** Detect existing design tokens, CSS custom properties, theme configuration.
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `node:fs` (readFileSync, globSync) | Node 22+ | Find CSS/theme files | Scan for `*.css`, `*.scss`, `tailwind.config.*`, `theme.*` files. |
-| Regex-based CSS custom property extraction | N/A (pure JS) | Extract existing `--var-name: value` declarations | Exact same pattern as `motif-token-check.js` which already parses CSS property-value pairs with regex. |
-
-**Token extraction strategy:**
-```javascript
-// CSS custom properties (same regex class as token-check.js)
-const customPropertyPattern = /--([a-zA-Z][\w-]*)\s*:\s*([^;]+)/g;
-
-// Tailwind detection
-const hasTailwind = fs.existsSync('tailwind.config.js') || fs.existsSync('tailwind.config.ts');
-
-// CSS-in-JS theme detection (styled-components, emotion)
-const themePattern = /(?:createTheme|ThemeProvider|theme)\s*[=({]\s*{/g;
-```
-
-**Confidence:** HIGH -- `motif-token-check.js` already parses CSS values with regex. Extracting custom property declarations is simpler than detecting violations.
-
-### 4. Component Decomposition Output
-
-**Purpose:** Generate one-component-per-file output that matches user's existing conventions.
-
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| Template string interpolation | N/A (JS built-in) | Generate component file content | No templating library needed. JavaScript template literals handle component scaffolding. |
-| `node:fs` (writeFileSync, mkdirSync) | Node 22+ | Write decomposed component files | Same file-writing pattern as `install.js` `walkAndCopy()`. |
-| `node:path` (join, dirname, relative) | Node 22+ | Resolve output paths matching project conventions | Compose output paths that follow the detected folder convention. |
-
-**Confidence:** HIGH -- This is file generation, the simplest capability. `install.js` already generates files with template variable resolution (`{MOTIF_ROOT}` replacement).
+| Avoid | Why |
+|-------|-----|
+| Separate CLI framework (commander, yargs) | `node:util.parseArgs` is sufficient. Zero-dependency constraint. |
+| Global config directory (`~/.motif/`) | State is per-project. Global config adds complexity with zero benefit. |
+| `postinstall` scripts | The bin entry handles everything. No setup needed after `npm install -g`. |
+| Auto-update mechanism | `npm update -g motif-design` covers this. No need to build our own. |
 
 ---
 
-## What the Scanner Outputs (Markdown, Not Code)
+## 2. Context-Resilient State Machine
 
-Critical architectural decision: the brownfield scanner produces **markdown reports** consumed by the AI agent, not programmatic data structures. This matches Motif's markdown-first architecture.
+### The Problem
 
-**Output format:**
+When a user runs `/clear` or context auto-compacts, the orchestrator loses its in-context knowledge of: current phase, which screens are composed, what to do next. Currently Motif relies on STATE.md (in `.planning/design/`) plus CLAUDE.md rules. But after `/clear`, the orchestrator starts fresh and must re-discover project state -- there is no automatic, guaranteed state recovery injection.
+
+### Available Hook Mechanisms (Verified)
+
+| Mechanism | How It Works | Status | Confidence |
+|-----------|-------------|--------|------------|
+| **SessionStart hook (matcher: "compact")** | Fires after compaction, stdout should be injected into context | **BUG**: stdout is silently dropped. Issue [#15174](https://github.com/anthropics/claude-code/issues/15174), closed as duplicate of [#13650](https://github.com/anthropics/claude-code/issues/13650). | LOW -- broken as of March 2026 |
+| **SessionStart hook (matcher: "clear")** | Fires after `/clear`, stdout injected into context | Same underlying bug suspected | LOW -- likely broken |
+| **SessionStart hook (matcher: "startup")** | Fires on fresh session start | Works reliably | HIGH |
+| **CLAUDE.md rules** | Always loaded after compaction and `/clear` | Works reliably -- CLAUDE.md is always re-read | HIGH |
+| **PreCompact hook** | Fires before compaction, can save state | Works but cannot inject into post-compact context | MEDIUM |
+| **statusLine hook** | Always visible in the status bar | Works reliably for persistent display | HIGH |
+
+### Recommended Approach: CLAUDE.md Directive + STATE.md + Enhanced statusLine
+
+**Confidence: HIGH** -- uses only verified-working mechanisms.
+
+Do NOT rely on SessionStart compact/clear hooks for state injection. They have a known, unresolved bug where stdout is silently dropped.
+
+#### Layer 1: CLAUDE.md Recovery Directive
+
+The CLAUDE-MD-SNIPPET.md already gets re-loaded after `/clear` and compaction. Add a mandatory recovery rule:
+
 ```markdown
-## Project Scan: [project-name]
-
-### Framework: Next.js 14 (App Router)
-### Component Pattern: Feature-scoped (app/**/components/)
-### Styling: Tailwind CSS + CSS Modules
-### Component Count: 47 files
-
-### Existing Tokens
-| Token | Value | Category |
-|-------|-------|----------|
-| --color-primary | #3B82F6 | Color |
-| --spacing-md | 1rem | Spacing |
-
-### Component Catalog
-| Component | File | Props | Styling |
-|-----------|------|-------|---------|
-| Button | src/components/ui/Button.tsx | variant, size, disabled | Tailwind |
-| Card | src/components/ui/Card.tsx | title, children | CSS Modules |
+## Recovery Protocol
+After ANY session start, `/clear`, or compaction:
+1. Read `.planning/design/STATE.md` FIRST before doing anything
+2. STATE.md is the source of truth for phase, screens, and decisions
+3. Never ask the user what to do -- STATE.md tells you
 ```
 
-This markdown is then read by the Motif agent (via Claude Code's Read tool) to inform design decisions. The scanner script writes to `.planning/design/scan/` -- fitting the existing `.planning/` convention.
+This costs zero new infrastructure. CLAUDE.md is always re-loaded by Claude Code. The instruction tells the model to self-recover by reading the file that already exists.
+
+**Confidence: HIGH** -- CLAUDE.md re-loading after compaction/clear is documented behavior in [Claude Code settings docs](https://code.claude.com/docs/en/settings).
+
+#### Layer 2: STATE.md as Durable State File
+
+STATE.md already tracks phase, vertical, stack, screens table, decisions log, and context budget. No format changes needed. The key change: ensure STATE.md is ALWAYS the first file read after any context recovery, not just "available if asked."
+
+#### Layer 3: Enhanced statusLine
+
+The existing `motif-context-monitor.js` shows context percentage. Enhance it to also parse STATE.md and display current phase:
+
+```
+Motif: COMPOSING | 3/5 screens | context: 42%
+```
+
+**Implementation:** The statusLine script reads `.planning/design/STATE.md`, extracts the phase line via regex, counts screens in the table. Pure Node.js, zero dependencies -- fits the existing pattern exactly.
+
+**Confidence: HIGH** -- statusLine hooks work reliably per [official docs](https://code.claude.com/docs/en/hooks).
+
+### What NOT to Build for Context Resilience
+
+| Anti-Pattern | Why Avoid |
+|-------------|-----------|
+| **Global state directory (`~/.motif/`)** | State is per-project. Global state creates cross-project contamination risk. `.planning/design/STATE.md` already works. |
+| **`.motif-manifest.json` as state store** | The manifest tracks *installed files* (hashes, versions). Overloading it with workflow state conflates installation tracking with workflow tracking. Keep them separate. |
+| **SessionStart compact hook for injection** | Broken. stdout silently dropped. Bug [#15174](https://github.com/anthropics/claude-code/issues/15174) is closed but not fixed. |
+| **SQLite or JSON database** | Markdown is readable by both humans and LLMs. STATE.md is already the correct format. Adding a database violates the zero-dep, markdown-first architecture. |
+| **Checkpoint/restore system with PreCompact** | Overly complex. CLAUDE.md re-read + STATE.md file read achieves the same result with zero new infrastructure. |
+| **Custom env var injection via CLAUDE_ENV_FILE** | Environment variables are not the right mechanism for structured project state. STATE.md is richer and more readable. |
+
+---
+
+## 3. Hook Installation Strategy (Global Install Context)
+
+### Current Hook Installation
+
+Hooks are written to `$CWD/.claude/settings.json` (project-level). Hook commands reference scripts via `$CLAUDE_PROJECT_DIR`:
+
+```json
+{
+  "type": "command",
+  "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/get-motif/hooks/motif-token-check.js"
+}
+```
+
+### Global vs Project Settings for Hooks
+
+| Location | Scope | Recommendation |
+|----------|-------|----------------|
+| `~/.claude/settings.json` | All projects globally | **NOT recommended** for Motif hooks. Hooks should only fire in Motif-enabled projects. Running token-check on non-Motif projects would cause errors (missing `.claude/get-motif/` directory). |
+| `.claude/settings.json` | Single project | **KEEP using this.** Hooks are installed per-project by the installer. |
+| `.claude/settings.local.json` | Single project (gitignored) | Not appropriate -- Motif hooks should be team-shared. |
+
+**Confidence: HIGH** -- verified against [Claude Code settings docs](https://code.claude.com/docs/en/settings). Settings merge across scopes (arrays concatenate), so project hooks and global user hooks coexist without conflict.
+
+**Decision: Keep project-level hook installation.** Even with global CLI install, `motif` still runs per-project and installs hooks into `$CWD/.claude/settings.json`. Global install only changes how the user invokes the installer (`motif` instead of `npx motif-design@latest`), not where hooks live.
+
+### Environment Variables Available in Hooks (Verified)
+
+| Variable | Description | Available In | Confidence |
+|----------|-------------|--------------|------------|
+| `$CLAUDE_PROJECT_DIR` | Absolute path to project root | All hook types | HIGH -- [official docs](https://code.claude.com/docs/en/hooks) |
+| `$CLAUDE_ENV_FILE` | File path for persisting env vars | SessionStart hooks only | HIGH -- official docs |
+| `$CLAUDE_CODE_REMOTE` | `"true"` in remote web environments | All hooks | HIGH -- official docs |
+| `$CLAUDE_PLUGIN_ROOT` | Plugin root directory | Plugin hooks only | HIGH -- official docs |
+
+The current hook commands using `"$CLAUDE_PROJECT_DIR"` are correct and work identically whether Motif was installed via npx or global install.
+
+---
+
+## 4. New Verticals (Social, Education, Marketplace, DevTools)
+
+### No Stack Changes Needed
+
+New verticals are pure Markdown files following the existing template (`core/templates/VERTICAL-TEMPLATE.md`). They follow the exact structure of `core/references/verticals/fintech.md`:
+
+- Navigation patterns (mobile, desktop, vertical-specific rules)
+- Color system (3 palettes with 10-shade scales, light/dark mode values)
+- Typography system (3 font pairings with Google Fonts CDN links)
+- Component XML specs (vertical-specific components)
+- Anti-patterns (what NOT to do in this vertical)
+- Accessibility requirements
+
+**Confidence: HIGH** -- the vertical template and existing 4 verticals (fintech, health, SaaS, e-commerce) are validated and stable.
+
+### Integration Points
+
+| Aspect | How It Works | Changes Needed |
+|--------|-------------|----------------|
+| File creation | Create `.md` file in `core/references/verticals/` | 4 new files |
+| Vertical detection | `/motif:init` asks user, maps name to file path | Update init command to list new options |
+| Installer | Copies entire `core/references/verticals/` directory | No change -- new files automatically included |
+| Context loading | Workflows load `verticals/{vertical}.md` by name | No change -- path pattern already dynamic |
+
+---
+
+## Recommended Stack (Complete Summary)
+
+### Zero New Dependencies -- Constraint Maintained
+
+| Technology | Version | Purpose | Change Status |
+|------------|---------|---------|---------------|
+| Node.js | >=22.0.0 | Installer, hooks, scripts | No change |
+| `node:fs` | built-in | File operations | No change |
+| `node:path` | built-in | Path resolution | No change |
+| `node:util` (parseArgs, styleText) | built-in | CLI flags, colored output | Add `--version` flag |
+| `node:crypto` (createHash) | built-in | File hashing for manifest | No change |
+
+### Files to Modify
+
+| File | Change | Purpose |
+|------|--------|---------|
+| `bin/install.js` | Add `--version` flag, update help text to show `motif` invocation | Global install UX |
+| `package.json` | Remove self-referencing `"motif-design": "^0.1.0"` dependency | Bug fix for clean global install |
+| `runtimes/claude-code/CLAUDE-MD-SNIPPET.md` | Add Recovery Protocol section | Context resilience after `/clear` and compaction |
+| `runtimes/claude-code/hooks/motif-context-monitor.js` | Parse STATE.md and display phase + screen count in statusLine | Context resilience -- always-visible state |
+| `runtimes/claude-code/commands/motif/init.md` | Add Social, Education, Marketplace, DevTools to vertical selection list | New verticals |
+
+### Files to Create
+
+| File | Purpose | Template |
+|------|---------|----------|
+| `core/references/verticals/social.md` | Social vertical design intelligence | Follow `fintech.md` structure |
+| `core/references/verticals/education.md` | Education vertical design intelligence | Follow `fintech.md` structure |
+| `core/references/verticals/marketplace.md` | Marketplace vertical design intelligence | Follow `fintech.md` structure |
+| `core/references/verticals/devtools.md` | DevTools vertical design intelligence | Follow `fintech.md` structure |
+
+### The Self-Referencing Dependency Bug
+
+The current `package.json` contains:
+```json
+"dependencies": {
+  "motif-design": "^0.1.0"
+}
+```
+
+This is a bug. The package lists itself as its own dependency at an old version. This causes `npm install -g motif-design` to pull in a stale copy alongside the current one, wasting space and potentially causing confusion. The `dependencies` field should be empty (or the entire key removed) to maintain the zero-dependency guarantee.
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| Regex-based component extraction | `@babel/parser` + `@babel/traverse` | External dependency. ~2MB install. Violates zero-dep constraint. Regex handles 90%+ of component detection for catalog purposes (we need names and prop lists, not full AST analysis). |
-| Regex-based CSS extraction | `postcss` parser | External dependency. For extracting `--custom-property: value` pairs, a regex is simpler and sufficient. PostCSS is overkill when we're not transforming CSS. |
-| Regex-based prop detection | `typescript` compiler API | External dependency. ~60MB install. The TypeScript compiler can parse prop interfaces perfectly, but the zero-dep constraint makes this impossible. Regex extracts prop names and basic types well enough for catalog display. |
-| `fs.globSync` | `glob` npm package | External dependency. Node 22 built-in `fs.globSync` provides the same core functionality. The npm `glob` package adds features (ignore patterns, dot files) that can be replicated with a filter function. |
-| `path.matchesGlob` | `minimatch` / `picomatch` | External dependency. `path.matchesGlob` (stable since Node 22.20.0) handles all convention-matching needs. |
-| Markdown output | JSON output | JSON is harder for the AI agent to read in context. Markdown tables are Claude's native format for structured data. The agent reads scan results via Claude Code's Read tool -- markdown is optimal for that context window. |
-| Sync APIs (`globSync`, `readFileSync`) | Async (`fs.promises.glob`, `readFile`) | The scanner runs once on demand, sequentially. Same rationale as `install.js` -- sync is simpler for linear scripts. |
-
----
-
-## What NOT to Use
-
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| `@babel/parser` | ~2MB dependency, violates zero-dep constraint | Regex-based component signature extraction |
-| `typescript` compiler API | ~60MB dependency, violates zero-dep constraint | Regex-based prop interface extraction |
-| `postcss` | Dependency, overkill for extracting CSS custom properties | Regex: `/--([\\w-]+)\\s*:\\s*([^;]+)/g` |
-| `jscodeshift` / `recast` | AST transform tools -- dependencies, and we're reading not transforming | Regex-based source reading |
-| `cheerio` / `jsdom` | HTML/JSX parsing libraries -- dependencies | Regex-based tag/attribute extraction (proven by `motif-aria-check.js`) |
-| `tailwindcss` (as dep) | Would add Tailwind as a dependency to read its config | `JSON.parse` or regex on `tailwind.config.js` for theme extraction |
-| `sass` / `less` compiler | Dependencies for preprocessing -- we only need to read variables | Regex: `$var-name: value` for SCSS, `@var-name: value` for LESS |
-| Streaming/async patterns | Scanner reads a bounded set of files (user's project) -- not a pipeline | Sync `readFileSync` for simplicity |
-| `node:worker_threads` | Parallel file processing -- unnecessary for scanning <1000 files | Sequential scan, results in <2 seconds for typical projects |
-
----
-
-## Stack Patterns by Scanning Scenario
-
-**If project uses TypeScript (most common):**
-- Scan `**/*.tsx` and `**/*.ts` (not `.js`/`.jsx` -- the TSX files are the source of truth)
-- Extract prop types from `interface FooProps` and `type FooProps = ` declarations
-- Detect `tsconfig.json` paths/aliases for import resolution hints
-
-**If project uses Vue SFC:**
-- Scan `**/*.vue` files
-- Extract props from `<script setup>` `defineProps<{...}>()` or Options API `props: {}`
-- Detect `<style scoped>` vs global styles
-
-**If project uses Svelte:**
-- Scan `**/*.svelte` files
-- Extract props from `export let propName` declarations
-- Detect `<style>` blocks for component-scoped styles
-
-**If project uses CSS Modules:**
-- Detect `*.module.css` or `*.module.scss` files co-located with components
-- Extract class names as the component's styling vocabulary
-- Map class names to token usage via regex
-
-**If project uses Tailwind:**
-- Detect `tailwind.config.{js,ts,mjs,cjs}` and read theme extensions
-- Extract custom colors, spacing, fonts from `theme.extend`
-- Note: Tailwind config is JS -- read it as text and regex-extract theme values (do NOT `require()` it)
-
-**If project uses styled-components / Emotion:**
-- Detect `import styled from 'styled-components'` or `@emotion/styled` in component files
-- Extract theme tokens from `ThemeProvider` value or `createTheme()` calls
-- CSS-in-JS themes are typically JS objects -- regex-extract key-value pairs
-
----
-
-## Performance Boundaries
-
-| Project Size | Files Scanned | Expected Duration | Approach |
-|-------------|---------------|-------------------|----------|
-| Small (<50 components) | <200 files | <500ms | Full sync scan, no optimization needed |
-| Medium (50-200 components) | 200-1000 files | 500ms-2s | Full sync scan, still fast enough |
-| Large (200-500 components) | 1000-3000 files | 2-5s | Consider glob patterns to limit scope |
-| Very large (>500 components) | 3000+ files | 5-10s | Must use targeted glob patterns, skip `node_modules`, `dist`, `.next`, etc. |
-
-**Critical exclusion patterns for `fs.globSync`:**
-```javascript
-const EXCLUDE_DIRS = ['node_modules', '.next', '.nuxt', 'dist', 'build', '.git', 'coverage', '__tests__', '*.test.*', '*.spec.*', '*.stories.*'];
-```
-
----
-
-## Integration Points with Existing Motif
-
-| Existing System | Integration Approach |
-|----------------|---------------------|
-| `install.js` installer | Scanner scripts ship in `scripts/` directory, installed to `.claude/get-motif/scripts/` |
-| Hook architecture | No new hooks needed. Scanner is on-demand (run by agent), not PostToolUse. |
-| `.planning/` convention | Scan output writes to `.planning/design/scan/PROJECT-SCAN.md` |
-| Markdown-first architecture | All scan results are markdown tables/reports |
-| `{MOTIF_ROOT}` resolution | Scanner paths use same `$CLAUDE_PROJECT_DIR` pattern as hooks |
-| Agent workflows (`/motif:init`) | New `/motif:scan` command triggers the scanner before design system generation |
-| Token system (`tokens.css`) | Scanner detects existing tokens and maps them to Motif token categories |
-
----
-
-## Version Compatibility
-
-| API | Minimum Node.js | Status in Node 22 | Notes |
-|-----|-----------------|-------------------|-------|
-| `fs.globSync` | 22.0.0 | Available (stability status needs runtime verification) | Core to file discovery. If experimental, fallback is `readdirSync({ recursive: true })` + `path.matchesGlob` filter. |
-| `path.matchesGlob` | 22.5.0 | Stable since v22.20.0 | Confirmed via official docs (WebFetch 2026-03-04). Safe to use. |
-| `fs.readdirSync({ recursive: true })` | 18.17.0 | Stable | Fallback if `globSync` is experimental. Already used by existing codebase (manual recursive walk in `install.js`). |
-| `fs.readFileSync` | Always | Stable | Core file reading, no concerns. |
-| `crypto.createHash` | Always | Stable | Already used in `install.js` for manifest hashing. |
-
-**Fallback strategy:** If `fs.globSync` is experimental in Node 22 and emits warnings, use `fs.readdirSync(dir, { withFileTypes: true, recursive: true })` combined with `path.matchesGlob(filePath, pattern)` to replicate glob behavior. Both are confirmed stable.
-
----
-
-## New Scripts to Create
-
-| Script | Location | Purpose | Invocation |
-|--------|----------|---------|------------|
-| `scripts/project-scanner.js` | Ships in npm package | Detect framework, folder conventions, file counts | `node .claude/get-motif/scripts/project-scanner.js [project-root]` |
-| `scripts/component-cataloger.js` | Ships in npm package | Extract component names, props, styling approach | `node .claude/get-motif/scripts/component-cataloger.js [project-root]` |
-| `scripts/token-extractor.js` | Ships in npm package | Extract existing CSS custom properties, theme tokens | `node .claude/get-motif/scripts/token-extractor.js [project-root]` |
-
-Each script follows the existing pattern: zero deps, shebang, `'use strict'`, reads from filesystem, outputs to stdout or writes to `.planning/`. No stdin JSON needed (unlike hooks) because these are invoked directly by the agent, not triggered by PostToolUse events.
+| Category | Recommended | Alternative | Why Not |
+|----------|-------------|-------------|---------|
+| State recovery | CLAUDE.md directive + STATE.md read | SessionStart compact hook stdout injection | Hook stdout injection is buggy ([#15174](https://github.com/anthropics/claude-code/issues/15174), [#13650](https://github.com/anthropics/claude-code/issues/13650)). Not fixed as of March 2026. |
+| State location | Per-project `.planning/design/STATE.md` | Global `~/.motif/state/{project-hash}.json` | Per-project state is simpler, no cross-project contamination, no path-hashing logic needed. |
+| CLI framework | `node:util.parseArgs` (built-in) | commander, yargs, meow | Zero-dependency constraint. parseArgs handles `--version`, `--help`, `--force`, `--dry-run`, `--runtime`, `--uninstall` -- all current and planned flags. |
+| Hook scope | Project `.claude/settings.json` | Global `~/.claude/settings.json` | Hooks should only fire in Motif-enabled projects. Global hooks would error on non-Motif projects. |
+| Global config | None (not needed) | `~/.motif/config.json` for preferences | No global preferences exist. Everything is per-project. Adding global config is premature abstraction. |
+| Context recovery display | Enhanced statusLine showing phase | Separate notification hook | statusLine is always visible. Notification hooks are interruptive and don't persist on screen. |
 
 ---
 
 ## Sources
 
-- [Node.js 22.x fs documentation](https://nodejs.org/docs/latest-v22.x/api/fs.html) -- `fs.globSync`, `fs.readdirSync({ recursive })`, `fs.cpSync`. Verified via WebFetch 2026-03-04.
-- [Node.js 22.x path documentation](https://nodejs.org/docs/latest-v22.x/api/path.html) -- `path.matchesGlob` confirmed stable since v22.20.0. Verified via WebFetch 2026-03-04.
-- Existing Motif codebase (`install.js`, `motif-token-check.js`, `motif-font-check.js`, `motif-aria-check.js`) -- Proven regex-based parsing patterns. Reviewed 2026-03-04.
-- Previous STACK.md (2026-03-01) -- Baseline Node.js 22+ stdlib decisions, zero-dep constraint rationale.
+- [npm package.json `bin` field](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/) -- HIGH confidence
+- [npm install documentation](https://docs.npmjs.com/cli/v11/commands/npm-install/) -- HIGH confidence
+- [Claude Code Settings documentation](https://code.claude.com/docs/en/settings) -- HIGH confidence
+- [Claude Code Hooks reference](https://code.claude.com/docs/en/hooks) -- HIGH confidence
+- [Claude Code Hooks guide (re-inject context after compaction)](https://code.claude.com/docs/en/hooks-guide) -- HIGH confidence
+- [SessionStart compact hook bug #15174](https://github.com/anthropics/claude-code/issues/15174) -- HIGH confidence (verified closed as duplicate, not fixed)
+- [SessionStart stdout dropped bug #13650](https://github.com/anthropics/claude-code/issues/13650) -- MEDIUM confidence (referenced but not directly inspected)
+- Existing Motif codebase: `bin/install.js`, `motif-context-monitor.js`, `package.json`, `.motif-manifest.json` -- reviewed 2026-03-09
 
 ---
-*Stack research for: Brownfield intelligence features (project scanning, component cataloging, decomposition)*
-*Researched: 2026-03-04*
+*Stack research for: Global CLI install, context resilience, new verticals*
+*Researched: 2026-03-09*

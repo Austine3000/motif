@@ -1,426 +1,232 @@
-# Feature Landscape: Brownfield Intelligence
+# Feature Landscape: Global Install, Context Resilience, and New Verticals
 
-**Domain:** Brownfield project scanning, component decomposition, and convention-adaptive output for AI design engineering system (Motif v1.2)
-**Researched:** 2026-03-04
-**Overall confidence:** MEDIUM (training data only; no web verification available)
+**Domain:** Global CLI distribution, state persistence across AI context resets, and domain-specific design intelligence for Social, Education, Marketplace, and DevTools verticals
+**Researched:** 2026-03-09
+**Overall confidence:** MEDIUM-HIGH (web research verified against ecosystem patterns; vertical design patterns based on multiple sources)
 
 ## Context
 
-Motif v1.1 generates design systems and composes screens into monolithic HTML files that ignore existing project structure. When a user has a React/Next.js/Vue project with established component patterns, file organization conventions, and existing UI components, Motif drops a single large file into `.planning/design/screens/` with no awareness of what already exists. This creates three problems:
+Motif v0.2.2 installs per-project via `npx motif-design@latest`, copying files into `.claude/get-motif/`. Three gaps block adoption:
 
-1. **Wasted existing work**: Users have components (`Button.tsx`, `Card.tsx`) that Motif ignores and recreates inline.
-2. **Convention mismatch**: Output uses `kebab-case` files when the project uses `PascalCase`; outputs a single file when the project uses `components/` + `pages/` + `hooks/` patterns.
-3. **Integration friction**: Users must manually decompose monolithic output into proper project structure, defeating the purpose of automation.
+1. **No global install**: Users must re-run `npx motif-design@latest` in every project. Power users expect `npm install -g motif-design` then `motif init` from any directory.
+2. **State breaks on /clear**: The state machine relies on STATE.md being read back by the AI agent. When a user runs `/clear` (which wipes agent context), the agent loses awareness of the current phase. STATE.md exists on disk but the agent does not automatically re-read it on the next message.
+3. **Only 4 verticals**: E-commerce, fintech, health, and SaaS cover B2B/B2C basics but miss major categories -- social apps, education platforms, marketplaces, and developer tools each have dramatically different design vocabularies.
 
-v1.2 addresses this with a scan-present-decide-execute flow: the system scans the project, presents findings to the user, the user makes decisions, and then agents execute within those constraints.
+This research maps what features are expected (table stakes), what would differentiate Motif (differentiators), and what to explicitly avoid (anti-features) across all three domains.
 
 ---
 
 ## Table Stakes
 
-Features users expect when any AI tool claims brownfield awareness. Missing any of these means the tool feels "greenfield-only" and users revert to manual integration.
+Features users expect. Missing = product feels incomplete or broken.
+
+### A. Global CLI UX
 
 | Feature | Why Expected | Complexity | Dependencies | Notes |
 |---------|--------------|------------|--------------|-------|
-| **Project structure scanning** | Every AI coding assistant that touches existing code (Cursor, Copilot Workspaces, Bolt, Claude Code itself) reads project structure before acting. Users will immediately ask "do you know what's already in my project?" and expect yes. Without scanning, Motif operates blind. | MEDIUM | Modifies: `/motif:init` workflow, adds new scan step | Scan must detect: framework (React/Next/Vue/Svelte/HTML), directory layout (`src/` vs flat, `components/` location, `pages/` vs `app/` routing), CSS approach (Tailwind, CSS Modules, styled-components, plain CSS), and package manager. The init workflow already asks for stack; scanning CONFIRMS rather than asks. |
-| **Existing component catalog** | Users with 10+ components will not accept Motif recreating a `Button` or `Card` from scratch. GitHub Copilot, Cursor, and v0 all attempt to reuse what exists. Users expect "I already have a Button, use mine." | HIGH | Requires: project scanning, modifies: composer agent context profile, modifies: COMPONENT-SPECS.md format | Must detect existing component files, extract their names and locations, and present to user. Does NOT need to parse component internals — just catalog file paths + export names. Deep prop analysis is v1.3+. |
-| **File output convention matching** | When a project uses `src/components/ui/button.tsx` with barrel exports in `index.ts`, Motif output must follow the same pattern. Tools like Cursor and Claude Code already do this implicitly by reading surrounding files. Users do NOT expect to manually rename/move files after generation. | MEDIUM | Requires: project scanning (file naming patterns), modifies: composer output path logic | Detect: file naming convention (PascalCase vs kebab-case vs camelCase), component directory structure, barrel export patterns, file extension (.tsx vs .jsx vs .vue). Composer then writes to the correct location with the correct naming. |
-| **Scan results presentation (user decides)** | The core v1.2 contract: "scan, present, user decides." No AI tool should silently make structural decisions about an existing project. v0 and Bolt both show what they found and let users approve before generating. Users expect transparency about what was detected. | LOW | Requires: project scanning, produces: PROJECT-SCAN.md artifact | After scanning, write findings to a structured file and present a summary to the user. User confirms or corrects before any generation happens. This is the trust-building step — "I found 23 components in src/components/, your CSS approach is Tailwind, your naming convention is kebab-case. Correct?" |
-| **Composer output to project directories** | Currently all output goes to `.planning/design/screens/`. In a brownfield project, the composed screen must be written to where the project actually expects it — `src/app/dashboard/page.tsx`, not `.planning/design/screens/dashboard.html`. Without this, every compose requires manual file moving. | MEDIUM | Requires: project scanning, scan results confirmation, modifies: compose-screen.md workflow, modifies: composer agent | The composer needs a target directory from the scan results. For Next.js App Router: `src/app/{route}/page.tsx`. For Pages Router: `pages/{route}.tsx`. For plain React: `src/pages/` or `src/views/`. For HTML: project root or `public/`. The orchestrator resolves the path before spawning the composer. |
-| **Import existing design tokens** | If a project already has CSS custom properties, Tailwind config colors, or a theme file, Motif should detect and import them rather than generating from scratch. This is the design-system equivalent of scanning components. Overwriting a team's established color palette is unacceptable. | HIGH | Modifies: `/motif:system` workflow, adds token extraction logic | Detect: existing `tailwind.config.*` (colors, spacing, fonts), CSS files with custom properties, theme files. Extract values. Present to user: "I found your existing tokens. Use these as the base?" If yes, Motif wraps them in its token format rather than generating new ones. If no, proceed with fresh generation. |
+| **`npm install -g motif-design`** | Every major CLI tool (ESLint, TypeScript, Angular CLI, Create React App) supports global install. Users expect `motif` to be available as a system command after one install. The current `npx` flow requires users to remember the package name every time. | MEDIUM | Modifies: `package.json` bin field (already has `"motif": "bin/install.js"`), adds: new CLI entry point for global mode | The `bin` field already maps `motif` to `bin/install.js`. Global install already works mechanically -- `npm install -g motif-design` links the binary. The issue is that `install.js` currently runs the full per-project copy flow. Global mode needs a different entry point that detects whether it is running as a global tool vs npx one-shot. |
+| **`motif init` command (global mode)** | When installed globally, users expect `motif init` in any directory to scaffold Motif into that project. This is the Angular CLI / Create React App pattern -- one global install, per-project initialization. Without this, global install has no value. | MEDIUM | Requires: global install, modifies: `install.js` or adds new entry point | Global `motif init` should: (1) detect the runtime (Claude Code, etc.), (2) copy files to the current project (same as current npx flow), (3) write `.motif-manifest.json`. The key difference from npx: global mode should NOT re-download on every run. |
+| **`motif update` command** | Users who install globally expect a way to check for and apply updates without reinstalling. `npm update -g motif-design` handles the package itself, but Motif also has per-project installed files that need updating. Users expect `motif update` to re-sync project files from the updated global package. | LOW | Requires: global install, uses: existing manifest hash comparison | Already partially built -- `check-version.js` exists. `motif update` in global mode should: (1) compare global package version against `.motif-manifest.json` version, (2) re-run the file copy for changed files, (3) backup user-modified files (existing behavior). |
+| **`motif status` command** | Users expect to quickly check: "Is Motif installed in this project? What version? What phase am I in?" This is table stakes for any CLI tool with per-project state. `git status`, `npm ls`, `docker ps` all follow this pattern. | LOW | Requires: reads `.motif-manifest.json` + `STATE.md` | Print: version installed, current phase, screens composed, last activity date. This is the global CLI's equivalent of `git status` -- quick orientation. |
+| **Dual-mode support (global + npx)** | Both `npx motif-design@latest` (current) and `npm install -g motif-design && motif init` (new) must work. Dropping npx support would break existing users and documentation. Modern npm tools universally support both modes. | LOW | Modifies: CLI entry point to detect execution mode | Detect mode via: if `process.argv` includes `init`/`status`/`update`, run as global CLI subcommand. If no subcommand (bare `motif` / `npx motif-design`), run current install flow. This preserves backward compatibility. |
+
+### B. Context-Resilient State Machine
+
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Auto-read STATE.md on every command** | When a user runs `/clear` then `/motif:compose`, the agent starts fresh with no memory. The compose command MUST read STATE.md as its FIRST action before gate checks. Currently, commands check state but may not consistently re-read from disk after context loss. Users expect the tool to "just work" after /clear -- they should not need to manually tell the agent to read state. | MEDIUM | Modifies: every command markdown file (init, research, system, compose, review, fix, evolve, quick), modifies: state-machine.md reference | Every command's first instruction must be: "Read `.planning/design/STATE.md`. If it does not exist, check if `.planning/design/PROJECT.md` exists to infer phase. Parse the Phase field and validate before proceeding." This is a documentation/instruction change, not a code change -- Motif runs inside AI agents, so "code" means prompt instructions. |
+| **Artifact-based state inference** | If STATE.md is missing or corrupted, the system should infer state from what artifacts exist on disk. `tokens.css` exists? Phase >= SYSTEM_GENERATED. Screen files exist? Phase >= COMPOSING. Review files exist? Phase >= REVIEWING. This is defense-in-depth for state recovery. | MEDIUM | Modifies: state-machine.md, adds: state inference rules to each command | Inference order: (1) Read STATE.md if present, (2) If absent/corrupt, scan `.planning/design/` for artifacts, (3) Infer highest valid phase from artifacts, (4) Create/recreate STATE.md with inferred state, (5) Inform user: "STATE.md was missing. Inferred phase: SYSTEM_GENERATED based on existing artifacts. Continuing." |
+| **STATE.md as structured, parseable format** | The current STATE.md uses markdown tables and headings that an AI agent must interpret. If the format is ambiguous, the agent may misread state after /clear. A stricter format (e.g., YAML frontmatter or well-defined markdown with exact field names) reduces parsing errors. | LOW | Modifies: STATE-TEMPLATE.md, modifies: state update protocol in state-machine.md | Add YAML frontmatter to STATE.md: `---\nphase: SYSTEM_GENERATED\nvertical: fintech\nstack: Next.js + Tailwind\n---` followed by markdown body for screens table and decisions log. YAML frontmatter is trivially parseable and survives agent context loss better than "read the heading after ## Phase". |
+| **Context restoration prompt** | After /clear, the next user message triggers a fresh agent context. The agent needs a "boot sequence" that reads project state and restores awareness. This should happen automatically via the command prompt, not require user action. | LOW | Modifies: all command `.md` files in `.claude/commands/motif/` | Each command file already has instructions. Add a preamble block to every command: "CONTEXT RESTORATION: Read the following files in order: (1) `.planning/design/STATE.md`, (2) `.planning/design/PROJECT.md`, (3) `.planning/design/DESIGN-BRIEF.md`. Extract: current phase, vertical, stack, screens status. Do NOT proceed until you have confirmed the current phase." |
+
+### C. Vertical Design Patterns (Shared Requirements)
+
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Complete vertical reference file per domain** | Each existing vertical (saas.md, fintech.md, etc.) provides ~300 lines of design intelligence: palettes, typography pairings, spacing, component specs, icon vocabulary, accessibility rules. New verticals MUST match this depth. Shallow verticals that say "use bright colors for social" are useless -- the system architect agent needs exact hex values, font names, and component XML specs to generate a real design system. | HIGH | Uses: VERTICAL-TEMPLATE.md as skeleton, produces: 4 new files in `core/references/verticals/` | Each vertical file must contain: Core Design Principle, Navigation Patterns, 2-3 Color Palettes with full token tables, 2-3 Typography Pairings with specific Google Fonts names, Type Scale, Spacing & Density values, 3-5 Component Specifications in XML format, Interaction Patterns, Accessibility rules, Border Radius, Shadow Style, and Icon Vocabulary mapped across all 4 icon libraries. |
+| **Icon vocabulary per vertical** | Every existing vertical maps ~25 semantic icon roles to specific icon names across Lucide, Phosphor, Material Symbols, and Tabler. New verticals need the same. The composer agents use these tables to select contextually appropriate icons. | MEDIUM | Uses: icon-libraries.md for cross-reference, integrates into each vertical file | Social needs: heart/like, comment, share, repost, story-ring, live-indicator, follow, message, group, trending. Education needs: book, graduation-cap, video, quiz/clipboard, certificate, streak/flame, progress-circle, lecture, assignment. Marketplace needs: shopping-cart, listing, bid/gavel, seller-badge, star-rating, shipping-truck, filter, compare, wishlist. DevTools needs: terminal, git-branch, bug, deploy/rocket, log/scroll, api/plug, pipeline, container, monitoring/activity. |
 
 ---
 
 ## Differentiators
 
-Features that make Motif's brownfield intelligence notably better than competitors. These leverage Motif's unique position as a design-system-first tool, not just a code generator.
+Features that set Motif apart. Not expected, but valued.
+
+### A. Global CLI UX
 
 | Feature | Value Proposition | Complexity | Dependencies | Notes |
 |---------|-------------------|------------|--------------|-------|
-| **Component gap analysis** | Motif knows what components a vertical NEEDS (from COMPONENT-SPECS.md) and can diff that against what EXISTS (from the scan). "You have Button, Card, and Input. You're missing: TransactionRow, BalanceCard, StatusChip (fintech-specific). I'll generate only the missing ones." No other tool maps domain-required components against existing inventory. This is Motif's domain intelligence applied to brownfield awareness. | MEDIUM | Requires: existing component catalog + vertical component specs, produces: GAP-ANALYSIS.md | The gap analysis compares the scan catalog against COMPONENT-SPECS.md and vertical reference components. Three categories: (1) EXISTS — reuse as-is, (2) EXISTS-PARTIAL — exists but needs variant/state additions, (3) MISSING — must be generated. User approves the categorization before compose runs. |
-| **Convention extraction (not just detection)** | Beyond detecting "this project uses Tailwind" — extract the SPECIFIC conventions. "Your buttons use `rounded-lg` not `rounded-md`. Your spacing uses `p-4` and `p-6` never `p-5`. Your cards always have `shadow-sm border border-gray-200`." Then teach the composer to follow these exact patterns. This is convention learning, not just framework detection. | HIGH | Requires: project scanning, pattern analysis of existing component files, modifies: composer instructions | Analyze 3-5 existing components to extract recurring patterns: border-radius choices, spacing preferences, shadow usage, color variable naming. Store as CONVENTIONS.md. Composer loads this alongside tokens.css. This is the hardest feature technically but the highest user-value differentiator. |
-| **Component decomposition planner** | When Motif composes a complex screen, instead of one monolithic file, plan the decomposition: "This dashboard screen decomposes into: DashboardLayout (new), MetricsGrid (new, uses existing Card), TransactionList (new, uses existing Table), and QuickActions (new). I'll create 4 component files + 1 page file." Present the plan, user approves, then execute. | MEDIUM | Requires: project scanning (to know file structure conventions), modifies: compose-screen.md, modifies: composer agent output format | The composer currently writes one file. With decomposition: (1) composer plans the component tree, (2) writes an extraction plan to DECOMPOSITION-PLAN.md, (3) user approves, (4) composer writes individual files. The plan includes file paths following detected conventions. |
-| **Selective token overlay** | When a project has SOME tokens (e.g., colors from Tailwind) but lacks others (e.g., no icon sizes, no motion tokens, no vertical-specific semantic tokens), Motif fills the gaps without overwriting existing values. "I'll add --icon-sm through --icon-2xl and --shadow-sm/md/lg. Your existing color tokens are preserved." | MEDIUM | Requires: token import (table stakes), modifies: generate-system.md token output | Instead of generating a complete tokens.css that conflicts with existing tokens, generate a motif-extensions.css that ONLY contains tokens the project lacks. Import it alongside the existing system. No conflicts, additive only. |
-| **Reuse directive in COMPONENT-SPECS.md** | When a component EXISTS in the project, COMPONENT-SPECS.md should reference it with an import path rather than specifying it from scratch. "Button: USE EXISTING at src/components/ui/button.tsx" tells the composer to import, not recreate. This bridges the gap between Motif's specs and the real codebase. | LOW | Requires: existing component catalog, modifies: COMPONENT-SPECS.md format | Add a `<source>` element to component XML specs: `<source type="existing" path="src/components/ui/button.tsx" />` vs `<source type="generate" />`. The composer reads this and either imports or creates. |
-| **Multi-file commit with atomic rollback** | When the composer outputs 5+ files (page + components + styles), commit them atomically. If validation fails, roll back the entire batch. Current single-file output doesn't need this; multi-file decomposition does. | LOW | Requires: component decomposition, uses: existing git commit patterns | The composer already commits. Change from single commit to staged multi-file commit. Validation hook runs before commit; if it fails, unstage all files. |
+| **`motif doctor` diagnostic command** | Validate the Motif installation: check file integrity against manifest hashes, verify CLAUDE.md sentinel markers, confirm hooks are registered in settings.json, check for version mismatches. No competitor CLI tool for AI assistants offers installation diagnostics. This builds trust -- "something feels wrong" has a concrete answer. | LOW | Requires: global install, reads: `.motif-manifest.json`, `.claude/settings.json`, `CLAUDE.md` | Run all checks from the existing `verify()` function in `install.js`, plus: check STATE.md parse-ability, check that referenced vertical files exist, check that token file paths in state are valid. Output a checklist: "7/7 checks passed" or "FAIL: motif-token-check.js missing (re-run motif init to fix)". |
+| **`motif list` available verticals** | Show all available verticals with descriptions. When Motif has 8+ verticals, users need discoverability. "Which vertical should I pick for my dating app?" -- `motif list` shows: "social: Feed-centric apps with engagement loops, stories, and messaging." | LOW | Reads: vertical files from global package directory | Simple feature, high UX value. Reads vertical file headers and prints a formatted list. Helps users who are unsure which vertical matches their project. |
+| **Offline-first global mode** | Global install means all files are already on disk -- no network needed for `motif init`. Unlike `npx motif-design@latest` which downloads every time, global mode works on planes, in restricted networks, and in CI environments. This is an inherent advantage of global install worth marketing. | FREE | Already true once global install works | No implementation needed -- just communicate the benefit. Global install bundles all verticals, templates, and agents locally. |
+
+### B. Context-Resilient State Machine
+
+| Feature | Value Proposition | Complexity | Dependencies | Notes |
+|---------|-------------------|------------|--------------|-------|
+| **State continuity score in status line** | The existing context monitor shows context window percentage. Enhance it to also show state health: "Motif: COMPOSING | 3 screens | ctx 42%". After /clear, the status line immediately shows where the project stands without the user asking. This is unique -- no AI coding tool shows project workflow state in its status line. | LOW | Modifies: `motif-context-monitor.js` to also read STATE.md | The hook already runs on every message. Add: read STATE.md, extract phase and screen count, append to status line output. The agent sees this on every turn, reinforcing state awareness even without explicit re-reading instructions. |
+| **Checkpoint commits with state tags** | After each phase transition (INITIALIZED, RESEARCHED, SYSTEM_GENERATED, etc.), create a git commit with a known tag format: `motif/phase/SYSTEM_GENERATED`. After /clear, the agent can `git log --grep="motif/phase"` to find the last state transition even if STATE.md is corrupted. Git becomes the backup state store. | MEDIUM | Modifies: state update protocol, uses: existing git commit patterns | Commit message format: `design(state): RESEARCHED -> SYSTEM_GENERATED`. The agent can grep commit history to reconstruct the phase timeline. This is defense-in-depth -- not the primary state mechanism, but a recovery path. |
+| **Cross-session decision memory** | STATE.md already has a Decisions Log section. Enhance it to capture WHY decisions were made, not just WHAT. "Chose dark mode primary because client brand is midnight blue" survives /clear and informs future agents. Current log entries are terse. Richer entries prevent agents from re-asking settled questions. | LOW | Modifies: state update protocol, modifies: command instructions to log reasoning | Each decision log entry becomes: `- [ISO date] [DECISION]: [what] | [REASON]: [why] | [SOURCE]: [user input / research / vertical default]`. After /clear, the agent reads this and knows not to re-ask "should we support dark mode?" |
+
+### C. Vertical Design Patterns
+
+| Feature | Value Proposition | Complexity | Dependencies | Notes |
+|---------|-------------------|------------|--------------|-------|
+| **Cross-vertical composition** | Some apps span verticals: an EdTech marketplace (Education + Marketplace), a developer community (DevTools + Social). Motif could detect multi-vertical projects and blend design patterns intelligently. "Your project combines Education content delivery with Marketplace trust signals. Blending palettes and component sets." No other design tool handles cross-vertical intelligence. | HIGH | Requires: all verticals complete, modifies: system architect agent, modifies: init workflow | DEFER to future milestone. Document the concept now but do not build. The vertical blending logic is complex (which vertical's palette wins? how do conflicting spacing values resolve?) and needs dedicated research. For now, users pick ONE primary vertical. |
+| **Vertical-specific empty/error/loading states** | Each vertical has domain-appropriate empty states. Social: "No posts yet. Follow people to see their updates." Education: "No courses enrolled. Browse the catalog to start learning." Marketplace: "No listings match your filters. Try broadening your search." Generic empty states feel lazy -- vertical-specific ones feel intentional. | LOW | Integrates into each vertical reference file | Add an "Empty & Error States" section to each vertical file with 3-5 contextual messages and recommended visual treatments. The composer uses these when generating screens with empty/loading/error states. |
+| **Vertical migration path** | When a user realizes they picked the wrong vertical (started with SaaS but it is really a Marketplace), provide a path to switch without losing composed screens. Re-run `/motif:system` with the new vertical, regenerate tokens, but preserve screen compositions and just flag token mismatches for review. | MEDIUM | Requires: state machine resilience, modifies: `/motif:system` and `/motif:evolve` workflows | The evolve command already supports design system iteration. Vertical migration is a special case: regenerate tokens.css and COMPONENT-SPECS.md from new vertical, run token-check hooks against existing screens to flag mismatches, present a migration report. User decides what to update. |
 
 ---
 
 ## Anti-Features
 
-Features that seem like they belong in brownfield intelligence but create problems for Motif specifically. Deliberately NOT building these.
+Features to explicitly NOT build. Each seems useful but creates problems for Motif specifically.
+
+### A. Global CLI UX
 
 | Anti-Feature | Why It Seems Useful | Why It Is Problematic for Motif | What to Do Instead |
 |--------------|---------------------|--------------------------------|-------------------|
-| **Full AST parsing of existing components** | "Parse every component's props, state, and render tree to understand it completely" | AST parsing requires framework-specific parsers (TypeScript compiler API for TSX, Vue SFC parser for .vue, Svelte compiler for .svelte). Each parser is a significant dependency. More critically, AI agents are unreliable at interpreting parsed ASTs — they work better reading source files directly. The context cost of loading parsed component trees is enormous (easily 5-10K tokens per component) and crowds out the actual composition work. | Catalog components by file path and export name. Let the composer READ the source file at compose time if it needs to understand props. Shallow scan, deep read on demand. |
-| **Automatic code migration/refactoring** | "Automatically refactor existing components to match Motif's design system" | Touching existing code that works is the fastest way to destroy user trust. If a user's Button.tsx works and their team knows it, rewriting it to use Motif tokens breaks their mental model and potentially their tests. Motif is additive — it generates NEW things, not refactors OLD things. | Generate NEW components that complement existing ones. If the user wants to migrate existing components to Motif tokens, that's a manual decision with explicit user direction — never automatic. |
-| **Runtime component discovery** | "Use a dev server to dynamically discover rendered components via browser inspection" | Requires a running dev server, browser automation (Puppeteer/Playwright), and framework-specific rendering. This is an entirely different tool category (Storybook, Chromatic). Motif operates at design-time via file analysis, not runtime inspection. Adding a runtime dependency makes the tool unusable for projects that aren't currently runnable. | Static file scanning is sufficient. Read `package.json`, read directory structure, read component files. No server required. |
-| **Design system migration assistant** | "Detect their current design system (Material UI, Chakra, Ant Design) and migrate to Motif tokens" | Migration implies replacing. Users of Material UI chose it deliberately and have hundreds of component instances. Migrating is a multi-sprint project, not a tool feature. Motif should COEXIST with existing design systems, not replace them. | Detect existing design systems and note them in the scan. If Material UI is present, the composer generates components that work alongside it (shared spacing, complementary colors) rather than conflicting. Co-existence, not replacement. |
-| **Intelligent merge conflict resolution** | "When Motif output conflicts with existing files, automatically resolve the merge" | Automatic merge resolution is wrong as often as it's right. When it's wrong in a design system context, the result is visual inconsistency that's hard to debug ("why is this button 2px off?"). Design decisions require human judgment on conflicts. | Never overwrite existing files without explicit user confirmation. The decomposition planner shows what will be created/modified BEFORE it happens. New files are safe; modified files require approval. |
-| **Cross-project design system sharing** | "Share design tokens across multiple projects in a monorepo" | Monorepo support is a distribution concern, not a brownfield concern. It requires package management, versioning, and multi-project coordination. Motif is a single-project tool. | Generate tokens for ONE project. If the user wants to share tokens across a monorepo, they copy tokens.css or publish it as a package manually. |
-| **Storybook/docs generation for existing components** | "Generate Storybook stories for components found during scanning" | Documentation generation is a separate tool category. It requires understanding component APIs deeply (props, variants, states), which conflicts with the "shallow scan" principle. Tools like Storybook auto-docs, Docgen, and react-docgen already do this better. | Include existing components in the scan catalog with their file paths. Users can use dedicated documentation tools for existing component docs. |
+| **Global config file (~/.motifrc)** | "Store user preferences globally: default vertical, preferred font pairings, color preferences." | Motif generates design systems per-project based on domain research and user input. Global preferences would override project-specific decisions, leading to cookie-cutter designs across unrelated projects. A healthcare app and a social app should NOT share default preferences. Global state also creates a debugging nightmare: "why does my project look like this?" -- "because ~/.motifrc set your palette 6 months ago and you forgot." | Keep all configuration per-project in `.planning/design/`. If a user wants consistent preferences, they copy their STATE.md or tokens.css between projects explicitly. |
+| **Auto-update on npx run** | "When running `npx motif-design@latest`, automatically update per-project files if a new version is available." | npx already fetches the latest version. The issue is silently overwriting per-project files. If a user customized their COMPONENT-SPECS.md (allowed and expected), an auto-update could destroy their customizations without warning. The current backup-then-overwrite behavior in install.js is correct. | Keep current behavior: npx always runs latest, install.js backs up modified files, user sees what changed. Add a `motif update --dry-run` to preview changes before applying. |
+| **Daemon/background process** | "Run a Motif daemon that watches for file changes and auto-validates token usage." | Motif runs inside AI agent context, not as a standalone process. Adding a daemon creates a dependency on a running process that users must manage, adds system resource usage, and creates "is the daemon running?" debugging problems. The hook-based architecture (PostToolUse hooks) is the right pattern -- it runs only when the agent writes files. | Continue using Claude Code hooks for validation. Hooks are zero-overhead when the agent is not writing files and require no daemon management. |
+| **Plugin/extension system** | "Let community members create Motif plugins for custom verticals, hooks, or generators." | Motif is in early adoption (v0.2.x). A plugin system before the core is stable means: (1) plugins break on every version, (2) support burden for third-party code, (3) architecture locked by plugin API compatibility. Premature abstraction. | Focus on built-in verticals until v1.0 stability. The vertical template already provides a standardized format -- community verticals can be contributed as PRs and vetted before inclusion. Plugin system is a v2.0 consideration. |
+
+### B. Context-Resilient State Machine
+
+| Anti-Feature | Why It Seems Useful | Why It Is Problematic for Motif | What to Do Instead |
+|--------------|---------------------|--------------------------------|-------------------|
+| **Database-backed state (SQLite, JSON DB)** | "Use a proper database for state persistence instead of a markdown file." | STATE.md must be readable by AI agents. AI agents read files -- they do not query databases. Markdown is the native format AI agents understand. A database adds: a dependency, a query layer, a schema, migration concerns, and debugging complexity ("why is the DB saying COMPOSING when the screens are reviewed?"). The entire value of file-based state is that it is human-readable AND agent-readable. | Keep STATE.md as the source of truth. Add YAML frontmatter for machine-parseable fields. The markdown body remains human-readable narrative. |
+| **Real-time state sync across terminals** | "If two terminal sessions have Motif running, sync state between them." | Motif runs inside a single Claude Code session per project. Multi-session is an edge case that introduces file locking, merge conflicts on STATE.md, and race conditions on git commits. The complexity is enormous for a scenario that barely exists. | Document that Motif is single-session per project. If a user opens two terminals, the second one reads STATE.md fresh and sees the latest state -- eventual consistency via filesystem is sufficient. |
+| **Undo/rollback state transitions** | "Allow users to go back to a previous phase, e.g., from COMPOSING back to RESEARCHED." | The state machine already allows re-running earlier phases (evolve loops back). But arbitrary rollback implies reverting artifacts: deleting tokens.css to go from SYSTEM_GENERATED back to RESEARCHED. This is destructive and confusing. Users who want to redo research can run `/motif:research` again -- the command is idempotent by design. | Make commands idempotent: running `/motif:research` when already in SYSTEM_GENERATED should re-run research and update DESIGN-RESEARCH.md. The phase stays at the higher level unless the user explicitly deletes artifacts. |
+
+### C. Vertical Design Patterns
+
+| Anti-Feature | Why It Seems Useful | Why It Is Problematic for Motif | What to Do Instead |
+|--------------|---------------------|--------------------------------|-------------------|
+| **Auto-detect vertical from codebase** | "Scan package.json dependencies and file structure to automatically determine the vertical." | Verticals are about user INTENT, not technology. A Next.js app could be social, education, marketplace, or SaaS. Package dependencies tell you the framework, not the domain. Auto-detection would frequently guess wrong, and a wrong vertical means wrong palettes, wrong component specs, wrong icon vocabulary -- the entire design system is misaligned. | Keep vertical selection as an explicit user choice during `/motif:init`. The user knows their domain better than any heuristic. Present the vertical list with descriptions and let them pick. |
+| **Exhaustive vertical coverage (20+ verticals)** | "Cover every possible app category: music, travel, fitness, food, real estate, legal, automotive..." | Each vertical requires ~300 lines of carefully researched, opinionated design intelligence with exact hex values, font names, component XML specs, and icon mappings. Maintaining 20+ verticals means updating 20+ files for every template change. Quality drops as quantity increases. Better to have 8 excellent verticals that cover 80% of use cases than 20 shallow ones. | Ship 8 verticals (current 4 + new 4) that cover the major categories. Projects that do not fit a vertical perfectly can use the closest match and customize via `/motif:evolve`. |
+| **Vertical-specific code generation templates** | "Generate React/Vue/Svelte component code specific to each vertical." | Verticals define DESIGN patterns (colors, typography, spacing, components), not CODE patterns. Mixing design intelligence with framework-specific code generation doubles the maintenance surface and creates a combinatorial explosion (8 verticals x 5 frameworks = 40 template sets). Motif's value is design intelligence; code generation is the AI agent's job. | Verticals provide design specs. The AI agent (composer) translates specs into code for whatever framework the project uses. The vertical file never contains framework-specific code. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-PROJECT SCANNING (during /motif:init or /motif:scan)
-    |
-    +---> Scan results presentation (PROJECT-SCAN.md)
-    |         |
-    |         +---> User confirms/corrects findings
-    |                   |
-    |                   +---> Existing component catalog
-    |                   |         |
-    |                   |         +---> Component gap analysis (vs COMPONENT-SPECS.md)
-    |                   |         |         |
-    |                   |         |         +---> Reuse directives in COMPONENT-SPECS.md
-    |                   |         |
-    |                   |         +---> Composer knows what to import vs generate
-    |                   |
-    |                   +---> File output convention matching
-    |                   |         |
-    |                   |         +---> Composer writes to correct paths
-    |                   |         |
-    |                   |         +---> Component decomposition planner
-    |                   |                   |
-    |                   |                   +---> Multi-file commit with atomic rollback
-    |                   |
-    |                   +---> Existing token import
-    |                             |
-    |                             +---> Selective token overlay (fill gaps only)
-    |
-    +---> Convention extraction (reads existing component source)
-              |
-              +---> CONVENTIONS.md
-                        |
-                        +---> Composer follows project conventions
+Global Install
+  motif init (global mode) --> motif status --> motif update
+  motif init (global mode) --> motif doctor
+  Dual-mode detection --> all global subcommands
+
+Context Resilience
+  YAML frontmatter in STATE.md --> Auto-read on every command
+  Auto-read on every command --> Artifact-based state inference (fallback)
+  Context restoration prompt --> All command .md file updates
+  State continuity in status line --> motif-context-monitor.js update
+
+New Verticals (each independent, can be parallelized)
+  social.md --> Icon vocabulary (social-specific)
+  education.md --> Icon vocabulary (education-specific)
+  marketplace.md --> Icon vocabulary (marketplace-specific)
+  devtools.md --> Icon vocabulary (devtools-specific)
+  All verticals complete --> Cross-vertical composition (DEFERRED)
 ```
-
-The critical dependency chain is: **project scanning MUST happen before** any brownfield-aware feature can function. Scanning produces the data that every downstream feature consumes. The scan results MUST be confirmed by the user before agents act on them — this is the trust contract.
-
-Secondary chain: **convention extraction depends on scanning AND on having existing components to analyze**. If the project has fewer than 3 components, convention extraction provides too little signal and should be skipped.
 
 ---
 
-## Scan Detail Specification
+## Vertical-Specific Feature Details
 
-### What the scanner detects (Phase 1 — required)
+### Social Vertical
 
-| Category | Detection Method | Output |
-|----------|-----------------|--------|
-| **Framework** | Read `package.json` dependencies for react, next, vue, svelte, @angular/core. Check for `vite.config.*`, `next.config.*`, `nuxt.config.*`. | Framework name + version |
-| **Directory layout** | Check for `src/`, `app/`, `pages/`, `components/`, `lib/`, `utils/`, `hooks/`, `styles/`. | Directory tree summary |
-| **Component locations** | Glob for `*.tsx`, `*.jsx`, `*.vue`, `*.svelte` in likely component directories. Filter out test files, stories, configs. | Component file list with paths |
-| **CSS approach** | Check for `tailwind.config.*`, `postcss.config.*`, `*.module.css`, `styled-components` in deps, `@emotion` in deps, `.css` files with custom properties. | CSS strategy name |
-| **Naming conventions** | Sample 5-10 component filenames. Detect pattern: PascalCase (`Button.tsx`), kebab-case (`button.tsx`), index pattern (`button/index.tsx`). | Convention name + examples |
-| **Package manager** | Check for `package-lock.json` (npm), `yarn.lock` (yarn), `pnpm-lock.yaml` (pnpm), `bun.lockb` (bun). | Package manager name |
-| **Existing tokens/theme** | Check for CSS custom properties in `*.css` files, Tailwind config colors/spacing, theme files (`theme.ts`, `theme.js`). | Token source + sample values |
-| **Routing pattern** | Next.js: `app/` (App Router) vs `pages/` (Pages Router). Vue: check for `vue-router`. React: check for `react-router-dom`. | Router type + route directory |
+| Feature Category | Key Patterns | Confidence |
+|-----------------|-------------|------------|
+| **Navigation** | Bottom tab bar (Home/Feed, Search/Explore, Create/+, Activity, Profile). Stories bar at top of feed. Swipe between tabs on mobile. | HIGH -- universal pattern across Instagram, TikTok, Twitter/X, Threads |
+| **Core Components** | FeedCard (post with author avatar, media, engagement bar), StoryRing (circular avatar with gradient ring for unread), MessageBubble (left/right aligned with tail), EngagementBar (like/comment/share/save row), UserProfileHeader (avatar + stats + follow CTA) | HIGH |
+| **Color System** | Vibrant accent on neutral base. Primary: gradient or saturated accent (pink-red for engagement, blue for trust). Surfaces: near-white or true-dark. Engagement metrics use warm colors (heart = red, not green). Dark mode is not optional -- social apps are used at night. | HIGH |
+| **Typography** | Compact, high-density. Body at 14-15px for comment threads. Display font with personality (not corporate). Mono for timestamps only. | MEDIUM |
+| **Density** | COMPACT. Social feeds optimize for content-per-scroll. Card padding 12px, avatar size 40px in lists / 80-120px on profiles, comment thread indentation 32px. | HIGH |
+| **Key Interaction** | Pull-to-refresh, infinite scroll, double-tap to like, swipe to reply, long-press for options menu. Stories auto-advance with tap-to-pause. | HIGH |
+| **Accessibility** | Alt text on all media (critical for social). Reduced motion preference must disable auto-play. Screen reader announcements for engagement counts. High contrast mode for outdoor use. | MEDIUM |
 
-### What the scanner does NOT detect (out of scope)
+### Education Vertical
 
-- Component prop signatures (too deep for shallow scan)
-- Component internal state logic
-- API endpoints or data fetching patterns
-- Test coverage or test framework
-- CI/CD configuration
-- Deployment target
+| Feature Category | Key Patterns | Confidence |
+|-----------------|-------------|------------|
+| **Navigation** | Left sidebar with course catalog + enrolled courses + progress. Top bar for search + notifications + profile. Course detail pages use tabbed navigation (Overview, Curriculum, Discussion, Notes). Mobile: bottom tabs (Home, My Courses, Search, Profile). | HIGH -- consistent across Coursera, Udemy, Duolingo, Khan Academy |
+| **Core Components** | CourseCard (thumbnail + title + instructor + progress bar + rating), LessonPlayer (video with transcript sidebar), ProgressTracker (linear or circular progress indicator with milestone markers), QuizCard (question + answer options with feedback states), StreakCounter (flame icon + day count + calendar view) | HIGH |
+| **Color System** | Warm, encouraging tones. Primary: deep blue or teal (trust + focus). Accent: warm orange or green (achievement + progress). Success states are prominent (celebrations for completion). Avoid clinical/cold palettes -- learning should feel inviting, not sterile. | MEDIUM |
+| **Typography** | Readable at extended viewing. Body at 16-18px for lesson content (users read for minutes, not seconds). Display font that feels approachable but not childish. Mono for code lessons only. Strong hierarchy: lesson title > section heading > body > caption. | HIGH |
+| **Density** | COMFORTABLE. Users spend 15-30 minutes per session reading and watching. Card padding 16-20px, generous line height (1.6-1.7 for body text), clear section breaks. Content breathes. | HIGH |
+| **Key Interaction** | Video player with speed controls (0.5x-2x), keyboard shortcuts for play/pause/skip. Progress auto-saves on every meaningful action. Quiz answers show immediate feedback with explanation. Certificate generation on completion. | HIGH |
+| **Accessibility** | WCAG 2.1 AA minimum (education serves diverse populations). Closed captions on all video. Adjustable text size. Dyslexia-friendly font option. Keyboard navigation through lessons. Screen reader support for quizzes. | HIGH -- regulatory requirements in educational contexts |
 
----
+### Marketplace Vertical
 
-## Scan Output: PROJECT-SCAN.md Format
+| Feature Category | Key Patterns | Confidence |
+|-----------------|-------------|------------|
+| **Navigation** | Two-sided: BUYER side has category browsing + search + cart + orders. SELLER side has dashboard + listings + orders + earnings. Top bar: search (prominent, 40-60% width), category dropdown, cart icon with badge, user menu. Mobile: bottom tabs (Home, Categories, Sell, Messages, Account). | HIGH -- consistent across Etsy, Amazon, eBay, Airbnb, Uber |
+| **Core Components** | ProductCard (image + price + rating + seller badge + quick-action), FilterPanel (sidebar or modal with faceted filters: price range slider, category checkboxes, rating stars, location), ListingForm (multi-step: photos > details > pricing > shipping), SellerDashboard (earnings chart + recent orders + listing stats), TrustBadge (verified seller, top-rated, money-back guarantee), ReviewCard (star rating + text + author + date + helpful count) | HIGH |
+| **Color System** | Trust-first palette. Primary: blue or teal (trust, reliability). Accent: warm action color for CTAs (orange/amber for "Buy Now", green for "Add to Cart"). Seller-side uses distinct accent to differentiate from buyer experience. Price displays: bold, dark, never colored (color implies sale/discount). Sale/discount: red. | HIGH |
+| **Typography** | Price is king -- prices must be the most scannable element. Price font: bold, slightly larger than surrounding text, tabular-nums. Body at 14-15px for listings. Display font that feels trustworthy (not playful). | HIGH |
+| **Density** | MODERATE. Product grids need breathing room for images but listings need scannability. Card padding 12-16px, image aspect ratio 4:3 or 1:1 for grid uniformity, 8-12px gap between cards. Filter sidebar 240-280px. | HIGH |
+| **Key Interaction** | Faceted filtering with active filter chips above results. Sort by: relevance, price low/high, rating, newest. Image gallery with zoom on hover/tap. Add-to-cart with quantity without leaving page. Wishlist/save for later. Compare mode (side-by-side). | HIGH |
+| **Accessibility** | Product images need descriptive alt text (not just "product photo"). Price screen reader formatting ("$49.99" not "dollar sign four nine period nine nine"). Filter state announced via aria-live. Focus management in modals (checkout, image gallery). | MEDIUM |
 
-```markdown
-# Project Scan Results
+### DevTools Vertical
 
-**Scanned:** [date]
-**Confidence:** [HIGH if package.json found, MEDIUM if inferred from files, LOW if minimal project]
-
-## Framework
-[Name] [version] — detected from [source]
-
-## Directory Layout
-\`\`\`
-src/
-  app/          ← Next.js App Router pages
-  components/
-    ui/         ← Reusable UI components (14 files)
-    features/   ← Feature-specific components (8 files)
-  lib/          ← Utilities
-  hooks/        ← Custom hooks (3 files)
-  styles/       ← Global styles
-\`\`\`
-
-## CSS Approach
-[Tailwind CSS v3.4 | CSS Modules | styled-components | plain CSS + custom properties]
-
-## Naming Conventions
-- Components: [PascalCase] (e.g., Button.tsx, UserCard.tsx)
-- Directories: [kebab-case] (e.g., components/user-profile/)
-- Barrel exports: [yes/no] (index.ts re-exports)
-
-## Existing Components (N found)
-| Component | Path | Category |
-|-----------|------|----------|
-| Button | src/components/ui/button.tsx | UI primitive |
-| Card | src/components/ui/card.tsx | UI primitive |
-| UserAvatar | src/components/ui/user-avatar.tsx | UI primitive |
-| DashboardHeader | src/components/features/dashboard-header.tsx | Feature |
-| ... | ... | ... |
-
-## Existing Design Tokens
-| Source | Type | Sample Values |
-|--------|------|---------------|
-| tailwind.config.ts | Colors | primary: #2563EB, secondary: #7C3AED |
-| tailwind.config.ts | Spacing | Uses default Tailwind scale |
-| globals.css | Custom Properties | --background: #fff, --foreground: #000 |
-
-## Routing
-[Next.js App Router] — pages in src/app/
-
-## Package Manager
-[pnpm] — detected from pnpm-lock.yaml
-```
+| Feature Category | Key Patterns | Confidence |
+|-----------------|-------------|------------|
+| **Navigation** | Persistent left sidebar with resizable panels. Command palette (Cmd+K) as primary navigation accelerator. Tab-based workspace for multi-context viewing. Top bar minimal: breadcrumbs + status indicators. Mobile: NOT a priority -- DevTools are desktop-first. | HIGH -- consistent across VS Code, GitHub, Vercel, Linear, Raycast |
+| **Core Components** | CodeBlock (syntax-highlighted with copy button + language badge), LogViewer (timestamped scrolling log with severity filters), PipelineStatus (multi-stage horizontal pipeline with pass/fail/running per stage), MetricCard (large number + trend arrow + sparkline), TerminalEmbed (dark-background inline terminal output), DiffViewer (side-by-side or unified diff with line numbers) | HIGH |
+| **Color System** | Dark mode is the DEFAULT (developers overwhelmingly prefer dark). Light mode is secondary. Primary: cool blue or violet (VS Code influence). Syntax highlighting colors are part of the palette -- not an afterthought. Semantic colors are critical: green=pass, red=fail, yellow=warning, blue=info must be instantly recognizable. Surfaces: near-black with subtle elevation differences (GitHub dark, Linear, Vercel). | HIGH |
+| **Typography** | Mono font is a FIRST-CLASS citizen, not an afterthought. Body in a technical sans-serif. Code at 13-14px with 1.5 line height. JetBrains Mono or Fira Code with ligatures for code. UI text at 13-14px (developers prefer dense). Display headings are rare -- most DevTools interfaces are flat hierarchy. | HIGH |
+| **Density** | DENSE. Developers want maximum information per pixel. Card padding 12px, table row height 32-36px, sidebar items 28-32px tall, minimal decorative spacing. Information density is a feature, not a compromise. Whitespace is used for grouping, not aesthetics. | HIGH |
+| **Key Interaction** | Keyboard-first: every action has a shortcut. Command palette for search + actions. Copy-to-clipboard on code blocks and terminal output. Expandable/collapsible panels. Real-time updates for logs, builds, deployments (WebSocket-style streaming). Tooltip-revealed keyboard shortcuts. | HIGH |
+| **Accessibility** | Syntax highlighting must maintain contrast ratios (common failure point). Focus indicators visible against dark backgrounds. Screen reader support for status changes (build passed/failed). Reduced motion for real-time log streaming. Color-blind-safe status indicators (use icons + color, not color alone). | MEDIUM |
 
 ---
 
 ## MVP Recommendation
 
-### Must Ship (Table Stakes) — brownfield is non-functional without these
+### Must Ship Together (Atomic Release)
+1. **Context-resilient state machine** -- Fixes a CURRENT user pain point (/clear breaks workflow). Ship this first or simultaneously with everything else, because it improves the experience for existing users immediately.
+2. **YAML frontmatter in STATE.md** -- Required foundation for reliable state restoration.
+3. **Auto-read + artifact inference** -- The two mechanisms that make /clear non-destructive.
 
-1. **Project structure scanning** — the foundation everything else depends on. Detect framework, directory layout, CSS approach, naming conventions, routing, existing components, existing tokens. Write to PROJECT-SCAN.md.
+### Ship Next (Global CLI)
+4. **Global install with `motif init`** -- Requires the state resilience work to be done first, otherwise global users will hit the same /clear problem.
+5. **`motif status`** -- Trivial to add once global CLI structure exists.
+6. **`motif update`** -- Builds on existing version check infrastructure.
 
-2. **Scan results presentation** — present findings to user, get confirmation. This is the trust contract. Without this, users don't trust brownfield features.
+### Ship After (Verticals -- Parallelizable)
+7. **Social vertical** -- Highest demand; most consumer apps are social-adjacent.
+8. **Marketplace vertical** -- Second highest demand; two-sided platforms are common.
+9. **Education vertical** -- Growing EdTech market; clear differentiation from SaaS vertical.
+10. **DevTools vertical** -- Meta-relevant (Motif IS a dev tool); validates that the vertical system handles developer-audience products.
 
-3. **File output convention matching** — composer writes files to correct project directories with correct naming. This is the minimum viable "it fits my project."
-
-4. **Composer output to project directories** — composed screens go to `src/app/dashboard/page.tsx`, not `.planning/design/screens/dashboard.html`. This is the single change that makes Motif feel brownfield-aware.
-
-5. **Existing component catalog** — detect and list existing components so the composer knows what to import rather than recreate. The catalog is a file list, not deep analysis.
-
-6. **Import existing design tokens** — detect existing CSS custom properties and Tailwind colors. Present to user: "Use these?" If yes, wrap in Motif format. If no, generate fresh.
-
-### Should Ship (Differentiators) — makes Motif notably better than alternatives
-
-7. **Component gap analysis** — diff existing components against vertical-required components. Show what's missing. Generate only what's needed.
-
-8. **Reuse directive in COMPONENT-SPECS.md** — `<source type="existing" path="..." />` tells the composer to import, not recreate.
-
-9. **Component decomposition planner** — plan multi-file output before writing. User approves the file plan.
-
-10. **Selective token overlay** — generate `motif-extensions.css` for missing tokens only, preserving existing ones.
-
-### Defer to v1.3+
-
-- **Convention extraction** — analyzing existing component patterns to teach the composer. HIGH complexity, needs multiple analysis passes. High value but not blocking for v1.2.
-- **Multi-file commit with atomic rollback** — nice-to-have safety net. Can use standard git patterns initially.
-- **Cross-framework component bridge** — adapting output between React/Vue/Svelte. Currently each framework is a separate concern.
-
----
-
-## Integration with Existing Pipeline
-
-### How brownfield features modify each pipeline step
-
-```
-/motif:init (MODIFIED)
-  NEW STEP: After interview, run project scanner
-  NEW STEP: Present scan results, get user confirmation
-  NEW OUTPUT: .planning/design/PROJECT-SCAN.md
-  MODIFIED: PROJECT.md now includes "Existing Components" and "Existing Tokens" sections
-  MODIFIED: STATE.md gets new field: "Scan Status: [scanned|unscanned|skipped]"
-
-/motif:research (UNCHANGED)
-  Research is about domain patterns, not project structure.
-  No brownfield modifications needed.
-
-/motif:system (MODIFIED)
-  NEW STEP: Check PROJECT-SCAN.md for existing tokens
-  IF existing tokens found AND user approved reuse:
-    → EXTRACT mode: wrap existing tokens in Motif format
-    → OVERLAY mode: generate only missing tokens into motif-extensions.css
-  IF no existing tokens OR user chose fresh:
-    → Normal generation (unchanged)
-  MODIFIED: COMPONENT-SPECS.md gets <source> directives for existing components
-  NEW OUTPUT: GAP-ANALYSIS.md (what components exist vs what's needed)
-
-/motif:compose (MODIFIED — most changes here)
-  MODIFIED: Orchestrator resolves target file path from scan results + screen name
-  MODIFIED: Composer agent loads PROJECT-SCAN.md (conventions, existing components)
-  MODIFIED: Composer imports existing components instead of recreating
-  MODIFIED: Composer writes to project directory, not .planning/design/screens/
-  NEW STEP: Decomposition plan presented to user before writing (differentiator)
-  MODIFIED: Commit includes all decomposed files atomically
-
-/motif:review (MINOR MODIFICATION)
-  MODIFIED: Reviewer checks import correctness (did composer use existing Button?)
-  MODIFIED: Reviewer checks convention compliance (correct file naming?)
-  No other changes.
-
-/motif:fix (UNCHANGED)
-  Fix agent reads review file and fixes. Brownfield awareness is inherited
-  from the composed output — no additional brownfield logic needed.
-```
-
-### New command: /motif:scan (optional)
-
-For users who want to re-scan after project changes, or who skipped scanning during init:
-
-```
-/motif:scan — Re-scan project structure
-  Reads: project files, package.json, directory structure
-  Writes: .planning/design/PROJECT-SCAN.md (overwrites previous)
-  Presents: updated findings to user
-  Updates: STATE.md scan status
-```
-
-This is optional — scanning during `/motif:init` is the primary path. `/motif:scan` is for re-scanning when the project changes.
-
----
-
-## Context Engine Updates
-
-### New context profile: Scanner
-
-```xml
-<context_profile name="scanner">
-  <always_load>
-    package.json
-    tsconfig.json (if exists)
-  </always_load>
-  <scan_directories>
-    src/
-    app/
-    pages/
-    components/
-    lib/
-    styles/
-    public/
-  </scan_directories>
-  <scan_files>
-    tailwind.config.*
-    postcss.config.*
-    next.config.*
-    vite.config.*
-    nuxt.config.*
-    *.css (in styles/ or root, first 5 only)
-  </scan_files>
-  <never_load>
-    node_modules/
-    .git/
-    dist/
-    build/
-    .next/
-    .nuxt/
-    coverage/
-  </never_load>
-</context_profile>
-```
-
-### Modified context profile: Composer (brownfield additions)
-
-```xml
-<context_profile name="composer">
-  <always_load>
-    .planning/design/PROJECT.md
-    .planning/design/system/tokens.css
-    .planning/design/system/COMPONENT-SPECS.md
-    .planning/design/system/ICON-CATALOG.md
-    .planning/design/PROJECT-SCAN.md          <!-- NEW: brownfield scan results -->
-  </always_load>
-  <load_if_exists>
-    .planning/design/DESIGN-RESEARCH.md
-    .planning/design/screens/{previous-screen}-SUMMARY.md
-    .planning/design/system/GAP-ANALYSIS.md   <!-- NEW: component gap analysis -->
-  </load_if_exists>
-  <!-- Composer may also read individual existing component files
-       referenced in COMPONENT-SPECS.md <source> directives,
-       but ONLY the ones it needs to import for the current screen -->
-</context_profile>
-```
-
-### New context budget additions
-
-| File | Max Tokens | Purpose |
-|------|-----------|---------|
-| PROJECT-SCAN.md | 1,500 | Scan results: framework, directories, components, tokens, conventions |
-| GAP-ANALYSIS.md | 800 | Component gap analysis: exists/partial/missing |
-| CONVENTIONS.md | 1,000 | Extracted project conventions (v1.3 differentiator) |
-
-**Updated total context budget for brownfield-aware composer**: ~18,300 tokens (from ~15,000), leaving ~181,700 tokens for composition work. This is well within budget.
-
----
-
-## State Machine Updates
-
-### New state field
-
-```markdown
-## Scan Status
-[unscanned | scanned | skipped]
-```
-
-### Modified phase flow
-
-```
-UNINITIALIZED → INITIALIZED (+ optionally SCANNED) → RESEARCHED → SYSTEM_GENERATED → COMPOSING → ...
-```
-
-Scanning is NOT a separate phase — it's a sub-step of INITIALIZED. The scan happens during `/motif:init` or via `/motif:scan`. The state tracks whether scanning occurred so downstream steps know whether brownfield features are available.
-
-### Gate check modifications
-
-```xml
-<gate_check>
-  <command>/motif:compose</command>
-  <requires_phase>SYSTEM_GENERATED or COMPOSING or ITERATING</requires_phase>
-  <warns_if>Scan Status is "unscanned" AND project has package.json.
-    "Your project appears to have existing code, but hasn't been scanned.
-     Run /motif:scan first for better integration, or continue for greenfield-style output."
-  </warns_if>
-</gate_check>
-```
-
----
-
-## Competitive Landscape Context
-
-How the broader ecosystem handles brownfield:
-
-### What AI coding assistants currently do (MEDIUM confidence — training data)
-
-| Tool | Scanning | Component Reuse | Convention Matching | Decomposition |
-|------|----------|----------------|--------------------|--------------|
-| **Cursor** | Reads entire codebase into context. No structured scan. | Implicitly reuses via codebase context. No explicit catalog. | Matches conventions via example (sees existing code). | Generates into existing file structure naturally. |
-| **Claude Code** | Reads files on demand. Tree/glob for structure. | Implicit — reads existing files when told to. | Matches conventions when shown examples. | User directs file placement. |
-| **v0 (Vercel)** | No project scanning. Generates standalone components. | No reuse — generates fresh every time. | Generates shadcn/ui convention by default. | Single component output, user integrates. |
-| **Bolt.new** | Reads project structure for full-app generation. | Limited — regenerates most things. | Framework-specific conventions (Next.js, Vite). | Multi-file output built-in for full apps. |
-| **Lovable** | Full project context in browser IDE. | Modifies existing files in place. | Inherits conventions from existing code. | Operates on existing file structure. |
-
-### Where Motif differentiates
-
-None of these tools do **design-system-aware brownfield scanning**. They read code but don't understand design tokens, component specifications, or vertical-domain requirements. Motif's gap analysis ("you have Button and Card but you're missing TransactionRow for fintech") is unique. The closest comparison is Storybook's component catalog, but that requires runtime rendering — Motif does it via static file analysis.
-
----
-
-## Confidence Assessment
-
-| Area | Confidence | Reason |
-|------|------------|--------|
-| Table stakes features | HIGH | These are observable patterns in every AI coding tool. Training data is consistent across multiple sources and aligns with direct analysis of Motif's current pipeline gaps. |
-| Differentiators | MEDIUM | Component gap analysis and reuse directives are novel features without direct competitors to reference. Confidence comes from analysis of Motif's existing architecture (vertical references, COMPONENT-SPECS.md format) which supports these features naturally. |
-| Anti-features | HIGH | Each anti-feature is justified by Motif's specific architecture constraints (context-engine budgets, subagent pattern, file-based agent communication). These are architecture-driven exclusions, not opinion. |
-| Competitive landscape | LOW | Based on training data only. No web verification available. Tool capabilities may have changed since training cutoff. Specific claims about v0, Bolt, Lovable, and Cursor should be validated. |
-| Pipeline integration points | HIGH | Based on direct analysis of current workflow files (init.md, generate-system.md, compose-screen.md, context-engine.md, state-machine.md). Integration points are precisely identified from existing code. |
-| Context budget impact | HIGH | Calculated from existing context-engine.md budgets. The +3,300 token increase for brownfield files is well within the 200K token window. |
+### Defer
+- Cross-vertical composition (v0.4+)
+- Vertical migration path (v0.4+)
+- Plugin system (v2.0)
 
 ---
 
 ## Sources
 
-- Direct codebase analysis: `/motif:init` workflow, `/motif:compose` workflow, `/motif:system` workflow, `context-engine.md`, `state-machine.md`, `design-inputs.md`, `motif-screen-composer.md` agent
-- Existing v1.1 research: `.planning/research/FEATURES.md` (icon integration), `.planning/research/ARCHITECTURE.md`, `.planning/research/SUMMARY.md`
-- Training data (MEDIUM confidence): Cursor, Claude Code, v0, Bolt.new, Lovable brownfield behavior patterns
-- Training data (HIGH confidence): React/Next.js/Vue project structure conventions, Tailwind CSS configuration patterns, CSS custom property detection methods
+### Global CLI & npm Patterns
+- [npm docs: Global installation](https://docs.npmjs.com/downloading-and-installing-packages-globally/) -- HIGH confidence
+- [Jim Nielsen: Local CLI tools in Node](https://blog.jim-nielsen.com/2025/local-cli-tools-in-node/) -- MEDIUM confidence
+- [Global vs Local packages best practices](https://medium.com/@ruben.alapont/global-vs-local-packages-in-npm-best-practices-and-use-cases-ae0489c9e52e) -- MEDIUM confidence
+
+### State Persistence
+- [egghead.io: Conf library for CLI state](https://egghead.io/lessons/javascript-store-state-on-filesystem-in-node-js-clis-with-conf) -- MEDIUM confidence
+- [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir/latest/) -- HIGH confidence
+- [Node.js CLI best practices (lirantal)](https://github.com/lirantal/nodejs-cli-apps-best-practices) -- HIGH confidence
+
+### Vertical Design Research
+- [Evil Martians: Designing for developer tools](https://evilmartians.com/chronicles/devs-in-mind-how-to-design-interfaces-for-developer-tools) -- HIGH confidence
+- [Rigby: Marketplace UX feature guide](https://www.rigbyjs.com/blog/marketplace-ux) -- MEDIUM confidence
+- [Viartisan: eLearning UI/UX design guide 2025](https://viartisan.com/2025/05/27/elearning-ui-ux-design/) -- MEDIUM confidence
+- [Techstack: Social media app guide 2026](https://tech-stack.com/blog/how-to-make-a-social-media-app-complete-guide-for-2025/) -- MEDIUM confidence
+- [BricxLabs: Chat UI design patterns 2025](https://bricxlabs.com/blogs/message-screen-ui-deisgn) -- MEDIUM confidence
+- [Riseapps: LMS UI/UX design 2025](https://riseapps.co/lms-ui-ux-design/) -- MEDIUM confidence
+- [Excited Agency: Marketplace UX best practices](https://excited.agency/blog/marketplace-ux-design) -- MEDIUM confidence
