@@ -103,12 +103,12 @@ Plans:
   3. User runs `/motif:compose` and gets real Next.js page components (proper imports, next/font, next/image, "use client" where needed, App Router file conventions) instead of raw HTML files
   4. Composed components use Tailwind utility classes (bg-primary, text-lg) and shadcn/ui primitives (Button, Card, Input) rather than inline styles or raw HTML elements
   5. A tailwind.config.ts file extends Tailwind's theme with all Motif design tokens (colors, spacing, typography, radii, shadows) as semantic classes
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 23-01: Framework recommendation logic in init, Next.js scaffolding via create-next-app
-- [ ] 23-02: shadcn/ui installation, Tailwind config generation with Motif tokens (PLAT-05)
-- [ ] 23-03: Composer platform overlay (composer-nextjs.md), JSX component output, COMP-05 orchestrator injection
+- [ ] 23-01-PLAN.md — Framework recommendation logic in init, registry shadcn config
+- [ ] 23-02-PLAN.md — Tailwind config generator script (tokens.css to globals.css bridge)
+- [ ] 23-03-PLAN.md — Composer platform overlay (composer-nextjs.md), orchestrator injection
 
 ### Phase 24: Vite, Static, and Brownfield
 **Goal**: Users building lightweight web apps or landing pages get the same scaffolding and composition quality as Next.js, and users with existing framework projects skip scaffolding entirely
@@ -188,7 +188,7 @@ Phases execute in numeric order: 22 → 23 → 24 → 25 → 26
 | 20. CLI Commands and Vertical Discovery | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 21. Package Source Sync | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 22. Platform Foundation | v1.4 | 2/2 | Complete | 2026-03-09 |
-| 23. Next.js Scaffolding and Web Composition | v1.4 | 0/TBD | Not started | - |
+| 23. Next.js Scaffolding and Web Composition | v1.4 | 0/3 | Not started | - |
 | 24. Vite, Static, and Brownfield | v1.4 | 0/TBD | Not started | - |
 | 25. Auto-Run | v1.4 | 0/TBD | Not started | - |
 | 26. Expo and React Native | v1.4 | 0/TBD | Not started | - |
