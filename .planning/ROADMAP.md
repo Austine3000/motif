@@ -58,7 +58,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 
 **Milestone Goal:** Make Motif installable once and usable everywhere — resilient state that survives context clears, global CLI for zero-friction setup, and complete vertical coverage across 8 domains.
 
-- [ ] Phase 17: Context Resilience — Every Motif workflow survives /clear and context compaction without losing state
+- [x] Phase 17: Context Resilience — Every Motif workflow survives /clear and context compaction without losing state (completed 2026-03-09)
 - [ ] Phase 18: New Verticals — Users can generate domain-intelligent designs for Social, Education, Marketplace, and DevTools projects
 - [ ] Phase 19: Global CLI Core — Users can install Motif globally and scaffold it into any project with a single command
 - [ ] Phase 20: CLI Commands and Vertical Discovery — Users can inspect, diagnose, update, and browse their Motif installation from the command line
@@ -77,9 +77,9 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 **Plans:** 3 plans
 
 Plans:
-- [ ] 17-01-PLAN.md — State infrastructure (motif-state.js utility, YAML template, state-machine docs)
-- [ ] 17-02-PLAN.md — SessionStart hook and CLAUDE.md state rule (three-layer defense)
-- [ ] 17-03-PLAN.md — Status line upgrade and workflow gate check updates
+- [x] 17-01-PLAN.md — State infrastructure (motif-state.js utility, YAML template, state-machine docs)
+- [x] 17-02-PLAN.md — SessionStart hook and CLAUDE.md state rule (three-layer defense)
+- [x] 17-03-PLAN.md — Status line upgrade and workflow gate check updates
 
 ### Phase 18: New Verticals
 **Goal**: Users can generate domain-intelligent designs for Social, Education, Marketplace, and DevTools projects with the same quality and completeness as existing verticals
@@ -152,7 +152,7 @@ Phases execute in numeric order: 17 → 18 → 19 → 20
 | 14. Token and System Integration | v1.2 | 3/3 | Complete | 2026-03-05 |
 | 15. Compose Integration | v1.2 | 2/2 | Complete | 2026-03-06 |
 | 16. Validation and Hardening | v1.2 | 2/2 | Complete | 2026-03-06 |
-| 17. Context Resilience | v1.3 | 0/3 | Not started | - |
+| 17. Context Resilience | v1.3 | 3/3 | Complete | 2026-03-09 |
 | 18. New Verticals | v1.3 | 0/TBD | Not started | - |
 | 19. Global CLI Core | v1.3 | 0/TBD | Not started | - |
 | 20. CLI Commands and Vertical Discovery | v1.3 | 0/TBD | Not started | - |
