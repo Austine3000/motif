@@ -91,11 +91,12 @@ Plans:
   3. User can see icon vocabulary entries for each new vertical mapped across all 4 icon libraries (Lucide, Phosphor, Material Symbols, Tabler) in the generated ICON-CATALOG.md
   4. User can receive domain-specific empty states, error states, and loading state patterns appropriate to each vertical (e.g., "no messages yet" for Social, "no courses enrolled" for Education)
   5. Each new vertical file validates against the same template structure as existing verticals (consistent section headings, token naming, palette tables, component specs)
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 18-01: TBD
-- [ ] 18-02: TBD
+- [ ] 18-01-PLAN.md — Social and Education vertical reference files
+- [ ] 18-02-PLAN.md — Marketplace and DevTools vertical reference files
+- [ ] 18-03-PLAN.md — Integration point updates (icon-libraries.md, gap-analyzer.js, init.md)
 
 ### Phase 19: Global CLI Core
 **Goal**: Users can install Motif once globally and scaffold it into any project without needing npx or per-project npm install
@@ -153,6 +154,6 @@ Phases execute in numeric order: 17 → 18 → 19 → 20
 | 15. Compose Integration | v1.2 | 2/2 | Complete | 2026-03-06 |
 | 16. Validation and Hardening | v1.2 | 2/2 | Complete | 2026-03-06 |
 | 17. Context Resilience | v1.3 | 3/3 | Complete | 2026-03-09 |
-| 18. New Verticals | v1.3 | 0/TBD | Not started | - |
+| 18. New Verticals | v1.3 | 0/3 | Not started | - |
 | 19. Global CLI Core | v1.3 | 0/TBD | Not started | - |
 | 20. CLI Commands and Vertical Discovery | v1.3 | 0/TBD | Not started | - |
