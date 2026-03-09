@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 19 complete — ready for Phase 20 (Global CLI Commands)
+**Current focus:** Phase 20 in progress — CLI Commands and Vertical Discovery
 
 ## Current Position
 
-Phase: 19 of 20 (Global CLI Core) -- COMPLETE
-Plan: 2 of 2 in current phase (all done)
-Status: Phase complete
-Last activity: 2026-03-09 — Plan 19-02 complete (e2e tests + package verification)
+Phase: 20 of 20 (CLI Commands and Vertical Discovery)
+Plan: 1 of 2 in current phase (Plan 01 complete)
+Status: In progress
+Last activity: 2026-03-09 — Plan 20-01 complete (vertical sync + status/list commands)
 
-Progress: [========================================....] ~96% (48/~50 plans estimated)
+Progress: [=========================================...] ~98% (49/~50 plans estimated)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 48 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 8)
+- Total plans completed: 49 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 9)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -37,6 +37,7 @@ Progress: [========================================....] ~96% (48/~50 plans esti
 | Phase 18 P03 | 2min | 2 tasks | 3 files |
 | Phase 19 P01 | 4min | 2 tasks | 5 files |
 | Phase 19 P02 | 2min | 2 tasks | 1 files |
+| Phase 20 P01 | 3min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,9 @@ Recent decisions affecting current work:
 - [19-01]: findProjectRoot checks .git (file or directory) and package.json as root indicators
 - [19-02]: Added .git/ directory to e2e test setup for root detection compatibility
 - [19-02]: New CLI-level test sections placed before existing install flow tests
+- [20-01]: Extracted hashFile and compareVersions into shared manifest.js for cross-command reuse
+- [20-01]: Status command shells out to motif-state.js for design state (centralized state logic)
+- [20-01]: List command reads from package source, works without installation
 
 ### Pending Todos
 
@@ -79,5 +83,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-09
-Stopped at: Completed 19-02-PLAN.md -- Phase 19 complete, ready for Phase 20
+Stopped at: Completed 20-01-PLAN.md -- vertical sync + status/list commands done, ready for Plan 02
 Resume file: None
