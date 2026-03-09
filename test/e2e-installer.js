@@ -7,7 +7,8 @@ const { execSync } = require('node:child_process');
 const { createHash } = require('node:crypto');
 
 const PROJECT_ROOT = path.resolve(__dirname, '..');
-const INSTALLER = path.join(PROJECT_ROOT, 'bin', 'install.js');
+const INSTALLER = path.join(PROJECT_ROOT, 'bin', 'cli.js');
+const LEGACY_INSTALLER = path.join(PROJECT_ROOT, 'bin', 'install.js');
 
 let totalPass = 0;
 let totalFail = 0;
@@ -27,6 +28,14 @@ function assert(condition, label) {
 
 function runInstaller(tmpDir, args = '') {
   return execSync(`node ${INSTALLER} ${args}`, {
+    cwd: tmpDir,
+    encoding: 'utf8',
+    timeout: 30000,
+  });
+}
+
+function runLegacyInstaller(tmpDir, args = '') {
+  return execSync(`node ${LEGACY_INSTALLER} ${args}`, {
     cwd: tmpDir,
     encoding: 'utf8',
     timeout: 30000,
@@ -75,14 +84,139 @@ let keepTmpDir = false;
 
 try {
   // ═══════════════════════════════════════════════════════════════
+  // CLI ROUTER TESTS
+  // ═══════════════════════════════════════════════════════════════
+  console.log('━'.repeat(60));
+  console.log('CLI ROUTER TESTS');
+  console.log('━'.repeat(60));
+
+  const cliRouterStartIdx = testResults.length;
+
+  // Test: --help flag
+  {
+    const helpOutput = execSync(`node ${INSTALLER} --help`, { encoding: 'utf8', timeout: 10000 });
+    assert(helpOutput.includes('motif'), '--help output contains "motif"');
+    assert(helpOutput.includes('init'), '--help output contains "init"');
+  }
+
+  // Test: --version flag
+  {
+    const versionOutput = execSync(`node ${INSTALLER} --version`, { encoding: 'utf8', timeout: 10000 }).trim();
+    assert(/^\d+\.\d+\.\d+/.test(versionOutput), `--version output matches semver pattern (got: ${versionOutput})`);
+  }
+
+  // Test: explicit init subcommand with --dry-run
+  {
+    const initTmp = fs.mkdtempSync(path.join('/tmp', 'motif-cli-init-'));
+    fs.mkdirSync(path.join(initTmp, '.claude'), { recursive: true });
+    fs.mkdirSync(path.join(initTmp, '.git'), { recursive: true });
+    try {
+      const initOutput = execSync(`node ${INSTALLER} init --dry-run --runtime claude-code`, {
+        cwd: initTmp, encoding: 'utf8', timeout: 30000,
+      });
+      assert(initOutput.includes('Would copy:') || initOutput.includes('Dry run'), 'explicit init subcommand succeeds with dry-run output');
+    } finally {
+      fs.rmSync(initTmp, { recursive: true, force: true });
+    }
+  }
+
+  // Test: legacy no-subcommand mode (backward compat)
+  {
+    const legacyTmp = fs.mkdtempSync(path.join('/tmp', 'motif-cli-legacy-'));
+    fs.mkdirSync(path.join(legacyTmp, '.claude'), { recursive: true });
+    fs.mkdirSync(path.join(legacyTmp, '.git'), { recursive: true });
+    try {
+      const legacyOutput = execSync(`node ${INSTALLER} --dry-run --runtime claude-code`, {
+        cwd: legacyTmp, encoding: 'utf8', timeout: 30000,
+      });
+      assert(legacyOutput.includes('Would copy:') || legacyOutput.includes('Dry run'), 'no-subcommand mode succeeds (backward compat)');
+    } finally {
+      fs.rmSync(legacyTmp, { recursive: true, force: true });
+    }
+  }
+
+  const cliRouterPass = testResults.slice(cliRouterStartIdx).every(r => r.result === 'PASS');
+  console.log(`\n  CLI Router Tests result: ${cliRouterPass ? 'PASS' : 'FAIL'}\n`);
+
+  // ═══════════════════════════════════════════════════════════════
+  // PROJECT ROOT DETECTION TESTS
+  // ═══════════════════════════════════════════════════════════════
+  console.log('━'.repeat(60));
+  console.log('PROJECT ROOT DETECTION TESTS');
+  console.log('━'.repeat(60));
+
+  const rootDetectStartIdx = testResults.length;
+
+  // Test: non-project directory rejection
+  {
+    const emptyTmp = fs.mkdtempSync(path.join('/tmp', 'motif-noproject-'));
+    try {
+      execSync(`node ${INSTALLER} init --runtime claude-code`, {
+        cwd: emptyTmp, encoding: 'utf8', timeout: 10000,
+      });
+      assert(false, 'non-project directory should have thrown an error');
+    } catch (err) {
+      const output = (err.stderr || '') + (err.stdout || '');
+      assert(output.includes('Not inside a project directory'), 'non-project directory rejected with correct message');
+    } finally {
+      fs.rmSync(emptyTmp, { recursive: true, force: true });
+    }
+  }
+
+  // Test: subdirectory install
+  {
+    const subdirTmp = fs.mkdtempSync(path.join('/tmp', 'motif-subdir-'));
+    fs.mkdirSync(path.join(subdirTmp, '.git'), { recursive: true });
+    fs.mkdirSync(path.join(subdirTmp, '.claude'), { recursive: true });
+    fs.mkdirSync(path.join(subdirTmp, 'src'), { recursive: true });
+    try {
+      const subdirOutput = execSync(`node ${INSTALLER} init --dry-run --runtime claude-code`, {
+        cwd: path.join(subdirTmp, 'src'), encoding: 'utf8', timeout: 30000,
+      });
+      assert(subdirOutput.includes('Installing to project root'), 'subdirectory install shows "Installing to project root" message');
+      assert(subdirOutput.includes(subdirTmp) || subdirOutput.includes(path.basename(subdirTmp)), 'subdirectory install references parent dir path');
+    } finally {
+      fs.rmSync(subdirTmp, { recursive: true, force: true });
+    }
+  }
+
+  const rootDetectPass = testResults.slice(rootDetectStartIdx).every(r => r.result === 'PASS');
+  console.log(`\n  Project Root Detection Tests result: ${rootDetectPass ? 'PASS' : 'FAIL'}\n`);
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEGACY SHIM TEST
+  // ═══════════════════════════════════════════════════════════════
+  console.log('━'.repeat(60));
+  console.log('LEGACY SHIM TEST');
+  console.log('━'.repeat(60));
+
+  const legacyShimStartIdx = testResults.length;
+
+  {
+    const shimTmp = fs.mkdtempSync(path.join('/tmp', 'motif-shim-'));
+    fs.mkdirSync(path.join(shimTmp, '.claude'), { recursive: true });
+    fs.mkdirSync(path.join(shimTmp, '.git'), { recursive: true });
+    try {
+      const shimOutput = runLegacyInstaller(shimTmp, '--dry-run --runtime claude-code');
+      assert(shimOutput.includes('Would copy:') || shimOutput.includes('Dry run'), 'install.js shim works with --dry-run');
+    } finally {
+      fs.rmSync(shimTmp, { recursive: true, force: true });
+    }
+  }
+
+  const legacyShimPass = testResults.slice(legacyShimStartIdx).every(r => r.result === 'PASS');
+  console.log(`\n  Legacy Shim Test result: ${legacyShimPass ? 'PASS' : 'FAIL'}\n`);
+
+  // ═══════════════════════════════════════════════════════════════
   // TEST 1: Fresh install
   // ═══════════════════════════════════════════════════════════════
   console.log('━'.repeat(60));
   console.log('TEST 1: Fresh install');
   console.log('━'.repeat(60));
 
-  // Create .claude/ subdirectory (simulates Claude Code project)
+  // Create .claude/ and .git/ subdirectories (simulates Claude Code project with git repo)
   fs.mkdirSync(path.join(tmpBase, '.claude'), { recursive: true });
+  fs.mkdirSync(path.join(tmpBase, '.git'), { recursive: true });
 
   // Run installer
   const installOutput = runInstaller(tmpBase);
@@ -353,8 +487,8 @@ try {
   // FINAL SUMMARY
   // ═══════════════════════════════════════════════════════════════
   console.log('═'.repeat(60));
-  const testCount = 7;
-  const testsPassed = [test1Pass, test2Pass, test3Pass, test4Pass, test5Pass, test6Pass, test7Pass].filter(Boolean).length;
+  const testCount = 10;
+  const testsPassed = [cliRouterPass, rootDetectPass, legacyShimPass, test1Pass, test2Pass, test3Pass, test4Pass, test5Pass, test6Pass, test7Pass].filter(Boolean).length;
   console.log(`\n${testsPassed}/${testCount} tests passed\n`);
 
   if (testsPassed < testCount) {
