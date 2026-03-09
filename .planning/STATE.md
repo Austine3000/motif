@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 23 of 26 (Next.js Scaffolding and Web Composition)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-09 — Phase 22 complete (Platform Foundation)
+Plan: 1 of 3 in current phase
+Status: Executing
+Last activity: 2026-03-10 — Plan 23-01 complete (Framework Recommendation)
 
 Progress: [██░░░░░░░░] 20% (v1.4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 54 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 12, v1.4: 2)
+- Total plans completed: 55 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 12, v1.4: 3)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -34,6 +34,7 @@ Progress: [██░░░░░░░░] 20% (v1.4)
 | 21. Package Source Sync | 2/2 | 4min | 2.0min |
 | Phase 22 P01 | 3min | 2 tasks | 3 files |
 | Phase 22 P02 | 3min | 2 tasks | 2 files |
+| Phase 23 P01 | 1min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -53,6 +54,9 @@ Recent decisions affecting current work:
 - [Phase 22]: Colors category preserves text-/surface-/border- prefixes in token keys; only color- prefix stripped
 - [Phase 22]: text-* disambiguation: suffix pattern matching (size suffixes = typography, all else = colors)
 - [Phase 22]: Token transformer is non-blocking in pipeline; failure warns but does not stop design system generation
+- [Phase 23]: Brownfield detection takes priority over keyword framework recommendation
+- [Phase 23]: web-nextjs is default recommendation for ambiguous project descriptions
+- [Phase 23]: Scaffold sequence: create-next-app -> shadcn init -> shadcn add -> Motif globals.css (order matters)
 
 ### Pending Todos
 
@@ -67,5 +71,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-10
-Stopped at: Phase 22 complete — ready to plan Phase 23
+Stopped at: Completed 23-01-PLAN.md
 Resume file: None
