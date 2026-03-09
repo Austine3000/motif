@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 17 of 20 (Context Resilience)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: Executing
-Last activity: 2026-03-09 — Completed 17-01 (State Infrastructure)
+Last activity: 2026-03-09 — Completed 17-02 (SessionStart Hook and State Rules)
 
-Progress: [=================================.........] ~82% (41/~48 plans estimated)
+Progress: [==================================........] ~84% (42/~48 plans estimated)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 41 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 1)
+- Total plans completed: 42 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 2)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -31,7 +31,7 @@ Progress: [=================================.........] ~82% (41/~48 plans estima
 | 14. Token and System Integration | 3/3 | 9min | 3.0min |
 | 15. Compose Integration | 2/2 | 3min | 1.5min |
 | 16. Validation and Hardening | 2/2 | 3min | 1.5min |
-| 17. Context Resilience | 1/3 | 3min | 3.0min |
+| 17. Context Resilience | 2/3 | 5min | 2.5min |
 
 ## Accumulated Context
 
@@ -47,6 +47,8 @@ Recent decisions affecting current work:
 - [17-01]: YAML frontmatter over markdown-only state format for machine-readable parsing
 - [17-01]: Atomic write-then-rename for crash-safe state updates
 - [17-01]: warn-then-obey gates instead of blocking gates for subagent compatibility
+- [Phase 17]: Silent exit on non-Motif projects — hook must never block Claude Code
+- [Phase 17]: Three-layer defense: CLAUDE.md rule + SessionStart hook + statusLine
 
 ### Pending Todos
 
@@ -61,5 +63,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-09
-Stopped at: Completed 17-01-PLAN.md (State Infrastructure)
+Stopped at: Completed 17-02-PLAN.md (SessionStart Hook and State Rules)
 Resume file: None
