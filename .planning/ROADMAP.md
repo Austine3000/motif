@@ -60,7 +60,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 
 - [x] Phase 17: Context Resilience — Every Motif workflow survives /clear and context compaction without losing state (completed 2026-03-09)
 - [x] Phase 18: New Verticals — Users can generate domain-intelligent designs for Social, Education, Marketplace, and DevTools projects (completed 2026-03-09)
-- [ ] Phase 19: Global CLI Core — Users can install Motif globally and scaffold it into any project with a single command
+- [x] Phase 19: Global CLI Core — Users can install Motif globally and scaffold it into any project with a single command (completed 2026-03-09)
 - [ ] Phase 20: CLI Commands and Vertical Discovery — Users can inspect, diagnose, update, and browse their Motif installation from the command line
 
 ## Phase Details
@@ -110,8 +110,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 19-01-PLAN.md — CLI router, init command extraction, project root detection
-- [ ] 19-02-PLAN.md — E2E test updates and package publishing verification
+- [x] 19-01-PLAN.md — CLI router, init command extraction, project root detection
+- [x] 19-02-PLAN.md — E2E test updates and package publishing verification
 
 ### Phase 20: CLI Commands and Vertical Discovery
 **Goal**: Users can inspect, diagnose, update, and browse their Motif installation entirely from the command line
@@ -155,5 +155,5 @@ Phases execute in numeric order: 17 → 18 → 19 → 20
 | 16. Validation and Hardening | v1.2 | 2/2 | Complete | 2026-03-06 |
 | 17. Context Resilience | v1.3 | 3/3 | Complete | 2026-03-09 |
 | 18. New Verticals | v1.3 | 3/3 | Complete | 2026-03-09 |
-| 19. Global CLI Core | v1.3 | 0/2 | Not started | - |
+| 19. Global CLI Core | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 20. CLI Commands and Vertical Discovery | v1.3 | 0/TBD | Not started | - |
