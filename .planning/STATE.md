@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 ## Current Position
 
 Phase: 22 of 26 (Platform Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-09 — Roadmap created for v1.4 (Phases 22-26)
+Plan: 1 of 2 in current phase
+Status: Executing
+Last activity: 2026-03-09 — Completed 22-01 (Platform Foundation)
 
-Progress: [░░░░░░░░░░] 0% (v1.4)
+Progress: [█░░░░░░░░░] 10% (v1.4)
 
 ## Performance Metrics
 
@@ -32,6 +32,7 @@ Progress: [░░░░░░░░░░] 0% (v1.4)
 | 19. Global CLI Core | 2/2 | 6min | 3.0min |
 | 20. CLI Commands | 2/2 | 6min | 3.0min |
 | 21. Package Source Sync | 2/2 | 4min | 2.0min |
+| Phase 22 P01 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -47,6 +48,7 @@ Recent decisions affecting current work:
 - [v1.4 roadmap]: Vite grouped with static HTML and brownfield — reuses web-react infrastructure from Phase 23
 - [v1.4 roadmap]: SCAF-01 (framework recommendation) in Phase 23 with Next.js — first user-facing scaffolding experience
 - [v1.4 roadmap]: COMP-06 (cross-platform consistency) in Phase 26 — cannot verify until both web and mobile exist
+- [Phase 22]: Framework registry is static JSON; platform enum: web-nextjs, web-vite, web-static, mobile-expo
 
 ### Pending Todos
 
@@ -61,5 +63,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-09
-Stopped at: Roadmap created for v1.4 — ready to plan Phase 22
+Stopped at: Completed 22-01-PLAN.md — Platform foundation (registry + init + state)
 Resume file: None
