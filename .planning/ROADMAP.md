@@ -74,11 +74,12 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
   2. User can open STATE.md and see machine-parseable YAML frontmatter with phase, vertical, and stack fields that any script or hook can read reliably
   3. User can delete or corrupt STATE.md, run a `/motif:*` command, and have the system infer minimum progress from existing artifacts (tokens.css, COMPONENT-SPECS.md, screen files) rather than failing
   4. User sees a status line on every agent turn showing the current Motif phase and screen count (e.g., "Motif: COMPOSING | 3/5 screens")
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 17-01: TBD
-- [ ] 17-02: TBD
+- [ ] 17-01-PLAN.md — State infrastructure (motif-state.js utility, YAML template, state-machine docs)
+- [ ] 17-02-PLAN.md — SessionStart hook and CLAUDE.md state rule (three-layer defense)
+- [ ] 17-03-PLAN.md — Status line upgrade and workflow gate check updates
 
 ### Phase 18: New Verticals
 **Goal**: Users can generate domain-intelligent designs for Social, Education, Marketplace, and DevTools projects with the same quality and completeness as existing verticals
@@ -151,7 +152,7 @@ Phases execute in numeric order: 17 → 18 → 19 → 20
 | 14. Token and System Integration | v1.2 | 3/3 | Complete | 2026-03-05 |
 | 15. Compose Integration | v1.2 | 2/2 | Complete | 2026-03-06 |
 | 16. Validation and Hardening | v1.2 | 2/2 | Complete | 2026-03-06 |
-| 17. Context Resilience | v1.3 | 0/TBD | Not started | - |
+| 17. Context Resilience | v1.3 | 0/3 | Not started | - |
 | 18. New Verticals | v1.3 | 0/TBD | Not started | - |
 | 19. Global CLI Core | v1.3 | 0/TBD | Not started | - |
 | 20. CLI Commands and Vertical Discovery | v1.3 | 0/TBD | Not started | - |
