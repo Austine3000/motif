@@ -5,21 +5,21 @@
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** Phase 19 — Global CLI Core
+**Current focus:** Phase 19 complete — ready for Phase 20 (Global CLI Commands)
 
 ## Current Position
 
-Phase: 19 of 20 (Global CLI Core)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-03-09 — Plan 19-01 complete (CLI router + init extraction)
+Phase: 19 of 20 (Global CLI Core) -- COMPLETE
+Plan: 2 of 2 in current phase (all done)
+Status: Phase complete
+Last activity: 2026-03-09 — Plan 19-02 complete (e2e tests + package verification)
 
-Progress: [=======================================.....] ~94% (47/~50 plans estimated)
+Progress: [========================================....] ~96% (48/~50 plans estimated)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 47 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 7)
+- Total plans completed: 48 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 8)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -36,6 +36,7 @@ Progress: [=======================================.....] ~94% (47/~50 plans esti
 | Phase 18 P02 | 5min | 2 tasks | 2 files |
 | Phase 18 P03 | 2min | 2 tasks | 3 files |
 | Phase 19 P01 | 4min | 2 tasks | 5 files |
+| Phase 19 P02 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,8 @@ Recent decisions affecting current work:
 - [19-01]: Backward-compat shim in bin/install.js delegates to commands/init.js for seamless transition
 - [19-01]: Unrecognized subcommands fall through to init for npx backward compatibility
 - [19-01]: findProjectRoot checks .git (file or directory) and package.json as root indicators
+- [19-02]: Added .git/ directory to e2e test setup for root detection compatibility
+- [19-02]: New CLI-level test sections placed before existing install flow tests
 
 ### Pending Todos
 
@@ -76,5 +79,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-09
-Stopped at: Completed 19-01-PLAN.md -- CLI router and init extraction done, ready for 19-02
+Stopped at: Completed 19-02-PLAN.md -- Phase 19 complete, ready for Phase 20
 Resume file: None
