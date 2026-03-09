@@ -87,7 +87,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
   2. After design system generation, user finds platform-specific token files (tokens.ts for React web, tokens.native.ts for React Native) alongside tokens.css, with values matching exactly
   3. User can inspect the framework registry and see complete mappings for each platform: scaffolding commands, file conventions, component patterns, and dev server commands
   4. Token files are deterministically generated from tokens.css by a script — never LLM-generated, never drifting from the source of truth
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 22-01: Platform field in STATE.md, init flow updates, framework registry reference
@@ -103,7 +103,7 @@ Plans:
   3. User runs `/motif:compose` and gets real Next.js page components (proper imports, next/font, next/image, "use client" where needed, App Router file conventions) instead of raw HTML files
   4. Composed components use Tailwind utility classes (bg-primary, text-lg) and shadcn/ui primitives (Button, Card, Input) rather than inline styles or raw HTML elements
   5. A tailwind.config.ts file extends Tailwind's theme with all Motif design tokens (colors, spacing, typography, radii, shadows) as semantic classes
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 23-01: Framework recommendation logic in init, Next.js scaffolding via create-next-app
@@ -119,7 +119,7 @@ Plans:
   2. User runs `/motif:compose` on a Vite project and gets React components with proper imports and React Router conventions (not Next.js App Router conventions)
   3. User scaffolds a static HTML landing page project and gets a minimal structure with design tokens linked, openable directly in a browser
   4. User runs `/motif:init` in a directory with an existing Next.js/Vite/Expo project and Motif detects the framework, skips scaffolding, and adopts the existing platform automatically
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 24-01: Vite scaffolding, composer-vite.md overlay, Vite-specific JSX output
@@ -134,7 +134,7 @@ Plans:
   2. Browser opens automatically only after the dev server is ready (detected via stdout parsing for framework-specific ready messages like "Ready on http://localhost:3000")
   3. User can see tracked dev server PIDs, and zombie processes are cleaned up on exit, SIGINT, and SIGTERM — no orphaned servers locking ports
   4. Browser/simulator opening works on macOS (open), Linux (xdg-open), and Windows (cmd start) with zero npm dependencies
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 25-01: Auto-run script (dev server launch, stdout ready detection, browser opening)
@@ -149,7 +149,7 @@ Plans:
   2. User runs `/motif:compose` on an Expo project and gets React Native components using View, Text, ScrollView, StyleSheet.create — no CSS, no div/span, no className
   3. Composed mobile screens produce visually consistent results with their web counterparts — same color palette, same typography scale, same spacing rhythm, same component patterns adapted to native primitives
   4. Unsupported CSS properties (grid, box-shadow, pseudo-elements, position:fixed) are handled explicitly with inline TODO comments — never silently dropped
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 26-01: Expo scaffolding via create-expo-app, tokens.native.ts verification
