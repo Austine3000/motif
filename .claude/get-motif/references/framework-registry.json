@@ -54,8 +54,19 @@
     "scaffold": {
       "command": "npm",
       "args": ["create", "vite@latest", "{name}", "--", "--template", "react-ts"],
-      "postInstall": ["npm install"]
+      "postInstall": [
+        "npm install",
+        "npm install react-router-dom",
+        "npm install -D tailwindcss @tailwindcss/vite"
+      ]
     },
+    "scaffoldSequence": [
+      "create-vite scaffold (scaffold.command + scaffold.args)",
+      "install baseline dependencies (scaffold.postInstall[0])",
+      "install React Router bootstrap runtime (scaffold.postInstall[1])",
+      "install Tailwind tooling for shadcn-ready utility workflow (scaffold.postInstall[2])",
+      "materialize Motif runtime artifacts from design-system output (materialization.designArtifacts + materialization.templates)"
+    ],
     "devServer": {
       "command": "npx",
       "args": ["vite"],
@@ -66,13 +77,57 @@
     "tokens": {
       "formats": ["css", "ts"],
       "cssImportPath": "./tokens.css",
-      "tsImportPath": "./tokens"
+      "tsImportPath": "./tokens",
+      "designSystemSource": ".planning/design/system",
+      "runtimeDestinations": {
+        "tokensTs": "src/theme/tokens.ts",
+        "globalsCss": "src/styles/globals.css",
+        "cssEntry": "src/index.css"
+      }
     },
     "conventions": {
       "srcDir": "src",
-      "pagesPattern": "src/pages/{route}.tsx",
+      "mainEntry": "src/main.tsx",
+      "routerFile": "src/app/router.tsx",
+      "appShellFile": "src/app/AppShell.tsx",
+      "homePageFile": "src/pages/HomePage.tsx",
+      "pagesPattern": "src/pages/{RouteName}Page.tsx",
       "componentDir": "src/components",
+      "routerStyle": "react-router-dom",
       "styleApproach": "tailwind+css-vars"
+    },
+    "materialization": {
+      "ownership": "contract-owned",
+      "preserveUserFiles": true,
+      "conflictPolicy": "skip-non-owned",
+      "ownedFiles": [
+        "src/main.tsx",
+        "src/index.css",
+        "src/app/router.tsx",
+        "src/app/AppShell.tsx",
+        "src/pages/HomePage.tsx",
+        "src/components/.gitkeep",
+        "src/theme/tokens.ts",
+        "src/styles/globals.css"
+      ],
+      "designArtifacts": {
+        "tokensTs": {
+          "source": "tokens.ts",
+          "destination": "src/theme/tokens.ts"
+        },
+        "globalsCss": {
+          "source": "globals.css",
+          "destination": "src/styles/globals.css"
+        }
+      },
+      "templates": {
+        "src/main.tsx": "import React from 'react';\nimport ReactDOM from 'react-dom/client';\nimport { RouterProvider } from 'react-router-dom';\nimport { appRouter } from './app/router';\nimport './index.css';\n\nReactDOM.createRoot(document.getElementById('root')!).render(\n  <React.StrictMode>\n    <RouterProvider router={appRouter} />\n  </React.StrictMode>\n);\n",
+        "src/index.css": "@import './styles/globals.css';\n\n:root {\n  color-scheme: light;\n}\n\nbody {\n  margin: 0;\n  min-height: 100vh;\n  background: var(--surface-primary);\n  color: var(--text-primary);\n  font-family: var(--font-body, sans-serif);\n}\n",
+        "src/app/router.tsx": "import { createBrowserRouter } from 'react-router-dom';\nimport { AppShell } from './AppShell';\nimport { HomePage } from '../pages/HomePage';\n\nexport const appRouter = createBrowserRouter([\n  {\n    path: '/',\n    element: <AppShell />,\n    children: [\n      {\n        index: true,\n        element: <HomePage />,\n      },\n    ],\n  },\n]);\n",
+        "src/app/AppShell.tsx": "import { NavLink, Outlet } from 'react-router-dom';\n\nconst links = [\n  { to: '/', label: 'Home' },\n];\n\nexport function AppShell() {\n  return (\n    <div className=\"min-h-screen bg-surface-primary text-text-primary\">\n      <header className=\"border-b border-border-primary bg-surface-elevated\">\n        <nav className=\"mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4\">\n          <span className=\"text-lg font-semibold\">{projectName}</span>\n          <ul className=\"flex items-center gap-4\">\n            {links.map((link) => (\n              <li key={link.to}>\n                <NavLink to={link.to} className=\"text-sm font-medium text-text-secondary hover:text-text-primary\">\n                  {link.label}\n                </NavLink>\n              </li>\n            ))}\n          </ul>\n        </nav>\n      </header>\n      <main className=\"mx-auto w-full max-w-6xl px-6 py-10\">\n        <Outlet />\n      </main>\n    </div>\n  );\n}\n",
+        "src/pages/HomePage.tsx": "export function HomePage() {\n  return (\n    <section className=\"space-y-3\">\n      <p className=\"inline-flex rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-primary-700\">\n        Motif Vite Starter\n      </p>\n      <h1 className=\"text-3xl font-semibold tracking-tight text-text-primary\">Design-forward Vite foundation</h1>\n      <p className=\"max-w-2xl text-base text-text-secondary\">\n        Compose route screens into src/pages, keep shared UI in src/components, and consume project-localized tokens from src/theme/tokens.ts.\n      </p>\n    </section>\n  );\n}\n",
+        "src/components/.gitkeep": ""
+      }
     },
     "composition": {
       "overlay": "composer-vite.md",
