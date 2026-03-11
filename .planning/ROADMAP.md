@@ -72,7 +72,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 
 - [x] Phase 22: Platform Foundation (2/2 plans) — completed 2026-03-09
 - [x] Phase 23: Next.js Scaffolding and Web Composition (3/3 plans) — completed 2026-03-10
-- [ ] Phase 24: Vite, Static, and Brownfield — Vite/React scaffolding, static HTML preservation, and brownfield framework detection for web projects
+- [x] Phase 24: Vite, Static, and Brownfield — Vite/React scaffolding, static HTML preservation, and brownfield framework detection for web projects (completed 2026-03-11)
 - [ ] Phase 25: Auto-Run — Dev server launch, ready detection, browser opening, and process cleanup after composition
 - [ ] Phase 26: Expo and React Native — Mobile scaffolding, React Native component output, and cross-platform design consistency
 
@@ -122,8 +122,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 24-01: Vite scaffolding, composer-vite.md overlay, Vite-specific JSX output
-- [ ] 24-02: Static HTML scaffolding, brownfield detection logic (SCAF-06)
+- [x] 24-01: Vite scaffolding, composer-vite.md overlay, Vite-specific JSX output
+- [x] 24-02: Static HTML scaffolding, brownfield detection logic (SCAF-06)
 
 ### Phase 25: Auto-Run
 **Goal**: After composition, users see their app running in the browser with a single command — Motif handles dev server launch, ready detection, and cleanup
@@ -189,6 +189,6 @@ Phases execute in numeric order: 22 → 23 → 24 → 25 → 26
 | 21. Package Source Sync | v1.3 | 2/2 | Complete | 2026-03-09 |
 | 22. Platform Foundation | v1.4 | 2/2 | Complete | 2026-03-09 |
 | 23. Next.js Scaffolding and Web Composition | v1.4 | 3/3 | Complete | 2026-03-10 |
-| 24. Vite, Static, and Brownfield | 1/2 | In Progress|  | - |
+| 24. Vite, Static, and Brownfield | v1.4 | 2/2 | Complete | 2026-03-11 |
 | 25. Auto-Run | v1.4 | 0/TBD | Not started | - |
 | 26. Expo and React Native | v1.4 | 0/TBD | Not started | - |

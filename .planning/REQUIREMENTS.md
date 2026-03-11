@@ -29,8 +29,8 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 - [ ] **SCAF-02**: User can scaffold a Next.js project with `create-next-app` — correct App Router structure, dependencies installed, ready to run
 - [x] **SCAF-03**: User can scaffold a Vite/React project with `create-vite` — React template, dependencies installed, ready to run
 - [ ] **SCAF-04**: User can scaffold an Expo/React Native project with `create-expo-app` — Expo SDK, dependencies installed, ready to run
-- [ ] **SCAF-05**: User can scaffold a static HTML landing page — minimal structure with design tokens linked, ready to open in browser
-- [ ] **SCAF-06**: Brownfield detection — if an existing framework project is detected (package.json with next/vite/expo), skip scaffolding and adopt the existing framework
+- [x] **SCAF-05**: User can scaffold a static HTML landing page — minimal structure with design tokens linked, ready to open in browser
+- [x] **SCAF-06**: Brownfield detection — if an existing framework project is detected (package.json with next/vite/expo), skip scaffolding and adopt the existing framework
 - [ ] **SCAF-07**: Scaffolded Next.js and Vite/React projects get shadcn/ui installed and configured with Motif's design tokens mapped to the shadcn theme
 
 ### Composition
@@ -38,7 +38,7 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 - [ ] **COMP-01**: Screen composition outputs real JSX components for Next.js projects (proper imports, App Router file conventions, next/font, next/image)
 - [x] **COMP-02**: Screen composition outputs real JSX components for Vite/React projects (proper imports, React Router conventions)
 - [ ] **COMP-03**: Screen composition outputs React Native Views/StyleSheet for Expo projects (no CSS, Flexbox-only layout, platform-appropriate primitives)
-- [ ] **COMP-04**: Screen composition outputs static HTML/CSS for landing page projects (current behavior preserved)
+- [x] **COMP-04**: Screen composition outputs static HTML/CSS for landing page projects (current behavior preserved)
 - [ ] **COMP-05**: Composer agent receives platform-specific overlay instructions (composer-nextjs.md, composer-vite.md, composer-rn.md) injected by orchestrator based on platform field
 - [ ] **COMP-07**: Web composition uses Tailwind utility classes and shadcn/ui primitives where appropriate — composed components import from shadcn and use Tailwind for styling
 - [ ] **COMP-06**: Cross-platform design consistency — shared design values (colors, typography scale, spacing scale, component patterns) produce visually consistent results across web and mobile
@@ -147,13 +147,13 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 | SCAF-02 | Phase 23 | Satisfied |
 | SCAF-03 | Phase 24 | Complete |
 | SCAF-04 | Phase 26 | Pending |
-| SCAF-05 | Phase 24 | Pending |
-| SCAF-06 | Phase 24 | Pending |
+| SCAF-05 | Phase 24 | Complete |
+| SCAF-06 | Phase 24 | Complete |
 | SCAF-07 | Phase 23 | Satisfied |
 | COMP-01 | Phase 23 | Satisfied |
 | COMP-02 | Phase 24 | Complete |
 | COMP-03 | Phase 26 | Pending |
-| COMP-04 | Phase 24 | Pending |
+| COMP-04 | Phase 24 | Complete |
 | COMP-05 | Phase 23 | Satisfied |
 | COMP-06 | Phase 26 | Pending |
 | COMP-07 | Phase 23 | Satisfied |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Cross-Platform App Builder
 status: executing
-stopped_at: Completed 24-vite-static-and-brownfield-01-PLAN.md
-last_updated: "2026-03-11T22:06:00.111Z"
-last_activity: 2026-03-11 — Phase 24 Plan 01 complete (Vite scaffolding and overlay)
+stopped_at: Completed 24-vite-static-and-brownfield-02-PLAN.md
+last_updated: "2026-03-11T22:17:55.079Z"
+last_activity: 2026-03-11 — Phase 24 Plan 02 complete (brownfield adoption + static runtime path)
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
-  percent: 98
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** v1.4 Cross-Platform App Builder — Phase 24 (Vite, Static, and Brownfield)
+**Current focus:** v1.4 Cross-Platform App Builder — Phase 25 (Auto-Run)
 
 ## Current Position
 
-Phase: 24 of 26 (Vite, Static, and Brownfield)
-Plan: 1 of 2 in current phase
-Status: In progress (24-02 remaining)
-Last activity: 2026-03-11 — Phase 24 Plan 01 complete (Vite scaffolding and overlay)
+Phase: 25 of 26 (Auto-Run)
+Plan: 1 of 2
+Status: Ready to execute (25-01 next)
+Last activity: 2026-03-11 — Phase 24 Plan 02 complete (brownfield adoption + static runtime path)
 
-Progress: [██████████] 98% (all plans)
+Progress: [██████████] 100% (all currently planned work)
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [██████████] 98% (all plans)
 | Phase 23 P02 | 3min | 2 tasks | 2 files |
 | Phase 23 P03 | 3min | 2 tasks | 2 files |
 | Phase 24-vite-static-and-brownfield P01 | 5 min | 3 tasks | 11 files |
+| Phase 24-vite-static-and-brownfield P02 | 7 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [Phase 23]: Server Component by default -- push use client to child components
 - [Phase 24-vite-static-and-brownfield]: Scaffold execution centralized in scaffold-project.js with registry-driven contracts
 - [Phase 24-vite-static-and-brownfield]: web-vite now materializes project-local router/bootstrap and token bridge runtime files
+- [Phase 24-vite-static-and-brownfield]: Treat generic or conflicting React signatures as confirmation-required instead of auto-adopt.
+- [Phase 24-vite-static-and-brownfield]: Expose scanner adoption intent directly in PROJECT-SCAN.md so init can consume one explicit decision surface.
+- [Phase 24-vite-static-and-brownfield]: Route web-static composition to root HTML + shared css/js files while preserving non-static fallback behavior.
 
 ### Pending Todos
 
@@ -96,6 +100,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-11T22:06:00.108Z
-Stopped at: Completed 24-vite-static-and-brownfield-01-PLAN.md
+Last session: 2026-03-11T22:17:55.076Z
+Stopped at: Completed 24-vite-static-and-brownfield-02-PLAN.md
 Resume file: None
