@@ -14,28 +14,41 @@ If `.planning/design/PROJECT.md` already exists, stop: "Project already initiali
 
 ## Brownfield Detection
 
-Before starting the interview, check if this is an existing project with code to scan.
+Before starting the interview, classify the workspace as brownfield or greenfield using framework signatures, not just `package.json` plus source folders.
 
-1. Check if `package.json` exists AND at least one source directory exists (`src/`, `app/`, `lib/`, `pages/`)
-2. If BOTH conditions are true:
-   - This is a brownfield project. Auto-scan without prompting.
+1. Check for brownfield framework signals:
+   - Next.js signals: `next` dependency and/or `next.config.*`
+   - Vite signals: `vite` dependency, `@vitejs/plugin-react`, and/or `vite.config.*`
+   - Expo signals: `expo` or `react-native` dependency plus `app.json`/`app.config.js`/`app.config.ts` (including root-level Expo apps)
+   - React-only signal: React exists but no clear supported framework signature
+2. If at least one signal exists:
    - Run `node scripts/project-scanner.js [projectRoot]`
-   - Read the generated `.planning/design/PROJECT-SCAN.md` and `.planning/design/CONVENTIONS.md`
-   - Present scan summary to user (follow the presentation flow from `core/workflows/scan.md` Steps 3-5)
-   - Handle any user corrections
-   - Continue to interview with scan context loaded
-3. If EITHER condition is false:
-   - This is a greenfield project. Skip scanning entirely.
-   - Continue to interview as before (no behavior change from v1.1)
+   - Read `.planning/design/PROJECT-SCAN.md` and `.planning/design/CONVENTIONS.md`
+   - Use the scanner's `## Brownfield Adoption Signal` section to drive behavior:
+     - `Action: auto-adopt` + `Platform: web-nextjs|web-vite|mobile-expo` -> adopt existing project automatically
+     - `Action: confirm` -> ask for confirmation before adopting (ambiguous React or conflicting signatures)
+     - `Action: greenfield` -> continue as greenfield
+3. If no framework signals exist:
+   - Treat as greenfield and skip brownfield scan/adoption.
 
-When scan results exist, adapt the interview:
+When scan results exist, adapt the interview and decision flow:
 - Pre-fill detected vertical from project type (e.g., fintech if financial dependencies detected)
 - Pre-fill detected stack from framework detection
-- Pre-fill detected platform from framework detection (e.g., Next.js detected -> web-nextjs, Vite detected -> web-vite, Expo detected -> mobile-expo). Skip the platform question in Round 4 if detected.
-- Tell user: "I scanned your existing project. Here's what I found: [summary]. I'll use these findings to tailor the design system."
-- In Round 4 (Scope & Stack), pre-populate the technical stack from scan findings instead of asking
+- If `Action: auto-adopt`:
+  - Map detected platform exactly: Next.js -> `web-nextjs`, Vite -> `web-vite`, Expo -> `mobile-expo`
+  - Tell the user Motif detected the platform and will adopt the existing project
+  - Skip platform recommendation and skip greenfield scaffolding later in the workflow
+- If `Action: confirm`:
+  - Present a confirmation prompt instead of guessing
+  - If scan data is stale or unclear, tell the user to run `/motif:scan` again before adopting
+  - Continue as greenfield only if user declines adoption
+- If user explicitly overrides a clear auto-adopt result:
+  - Ask for confirmation with a warning that overriding may ignore existing project structure
+  - Continue only after explicit confirmation
 
-When scan results do NOT exist (greenfield), the interview runs identically to v1.1. No scan artifacts are created, no scan references appear, and all downstream commands work exactly as before.
+Persistence rule:
+- The selected/adopted platform must be written to project outputs exactly like greenfield mode so downstream workflows use one source of truth.
+- `init` decides adopt vs scaffold; scaffold execution still happens in `generate-system`.
 
 ## Auto Mode
 
@@ -135,7 +148,7 @@ Then show the platform options (a/b/c/d) so the user can accept or override.
 - If the user accepts the recommendation, skip the platform question -- the answer is already determined.
 - If the user says they want something else, show the full platform options and use their explicit choice.
 
-**Brownfield override:** If brownfield detection already identified a platform (e.g., Next.js detected in package.json), that detection takes priority over keyword matching. The brownfield-detected platform is pre-filled and the recommendation step is skipped (as documented in the Brownfield Detection section above).
+**Brownfield override:** If brownfield detection already identified a clear platform from scan adoption signals, that detection takes priority over keyword matching. The brownfield-detected platform is pre-filled and the recommendation step is skipped. If the user insists on a different platform, warn about override risk and require explicit confirmation before continuing.
 
 ### Round 4 Post-Platform Note
 
