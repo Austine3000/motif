@@ -496,6 +496,37 @@ If the generator fails (exit code 1), warn the user but do NOT block: "Tailwind 
 
 If platform is `web-static` or `mobile-expo`: skip this step (no Tailwind on those platforms).
 
+## Step 3d: Scaffold/Materialize Greenfield Runtime
+
+After token-transformer and globals generation finish, run scaffold/materialization as a post-generation step.
+
+1. Read `.planning/design/STATE.md` to resolve `platform`.
+2. Check for `.planning/design/PROJECT-SCAN.md`:
+   - If scan exists and the workflow does not explicitly know this run is greenfield, treat as brownfield adoption and skip scaffold materialization.
+   - If scan does not exist, or state explicitly marks greenfield intent, continue with scaffold materialization.
+3. Only continue if `platform` exists in `.claude/get-motif/references/framework-registry.json` and has scaffold/materialization metadata.
+4. Invoke the shared scaffold runner (do not re-implement scaffold logic in this workflow):
+
+```bash
+node .claude/get-motif/scripts/scaffold-project.js \
+  --platform {platform} \
+  --project-root {cwd-or-parent} \
+  --project-name {project-name} \
+  --design-system-dir .planning/design/system
+```
+
+5. Skip unsupported platforms or adopted brownfield projects with a clear note to the user:
+   - "Scaffold skipped: unsupported platform {platform}."
+   - "Scaffold skipped: brownfield scan detected in .planning/design/PROJECT-SCAN.md."
+
+For `web-vite`, verify scaffold/materialization outputs:
+- `src/main.tsx` mounts React Router (`RouterProvider`) from the scaffold contract.
+- Router/bootstrap files live under `src/app/` (for example `src/app/router.tsx`, `src/app/AppShell.tsx`).
+- Runtime CSS entry imports project-localized bridge output (for example `src/index.css` importing `src/styles/globals.css`).
+- `tokens.ts` materializes into a project-local path (for example `src/theme/tokens.ts`) when declared in the Vite contract.
+
+Keep this step additive: token-transformer and tailwind-config-generator remain mandatory and unchanged.
+
 ## Step 4: Update State
 
 Update STATE.md:
