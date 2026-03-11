@@ -91,7 +91,7 @@ If platform is set and is NOT `web-static`:
 5. Set HAS_OVERLAY = true
 
 If platform is `web-static` or not set:
-- Set HAS_OVERLAY = false (no overlay needed; compose as before with HTML output)
+- Set HAS_OVERLAY = false (no overlay needed; use static/file-output rules below)
 
 ## Step 3: Spawn Composer Agent
 
@@ -202,9 +202,18 @@ Place files according to the platform overlay's File Output Rules.
 The scaffolded project directory is the current working directory (or its parent if .planning/ is the cwd).
 Use the overlay's conventions for page vs component placement.
 {ELSE:}
-Place all files in: `.planning/design/screens/{SCREEN_NAME}/`
-Create a barrel export (index.ts or index.js) for the directory.
-Use sensible defaults: TypeScript (.tsx), named exports, single quotes, semicolons, inline styles with CSS custom properties from tokens.css.
+If platform is `web-static`, use this Static compose destination behavior:
+- Write the primary/landing screen to `index.html` in the scaffolded site root.
+- Write additional screens to slugged HTML files in the same root (for example `pricing.html`, `contact.html`).
+- Write shared styling updates to `css/styles.css` (do not scatter per-page CSS files unless explicitly requested).
+- Write enhancement-only JavaScript to `js/main.js` only when needed.
+- Keep output HTML/CSS-native (no React, no Tailwind dependency, no SPA router).
+- Do not route primary composed output only to `.planning/design/screens/{SCREEN_NAME}/`.
+
+If platform is NOT `web-static` and no overlay exists:
+- Place all files in `.planning/design/screens/{SCREEN_NAME}/` (legacy fallback behavior).
+- Create a barrel export (`index.ts` or `index.js`) for that directory.
+- Use sensible defaults: TypeScript (.tsx), named exports, single quotes, semicolons, inline styles with CSS custom properties from tokens.css.
 {ENDIF}
 
 ### B3. Existing Component Reuse

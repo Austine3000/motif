@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Motif Static Starter</title>
+    <meta
+      name="description"
+      content="Starter for Motif static projects with token-linked CSS and enhancement-only JavaScript."
+    />
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="index.html">Motif Site</a>
+        <nav aria-label="Primary">
+          <ul class="nav-list">
+            <li><a data-nav-link href="index.html">Home</a></li>
+            <li><a data-nav-link href="about.html">About</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="content" class="container">
+      <section class="hero">
+        <p class="eyebrow">Static Starter</p>
+        <h1>Build multi-page HTML with real project files</h1>
+        <p>
+          This starter is designed for direct browser opening via <code>file://</code>, with shared
+          token-driven styles and progressive enhancement from <code>js/main.js</code>.
+        </p>
+        <a class="button-link" href="about.html">Open About Page</a>
+      </section>
+
+      <section class="panel-grid" aria-label="Starter highlights">
+        <article class="panel">
+          <h2>Token-linked styles</h2>
+          <p>Keep visual consistency by importing <code>css/tokens.css</code> before shared styles.</p>
+        </article>
+        <article class="panel">
+          <h2>Future-friendly structure</h2>
+          <p>Add new pages next to <code>index.html</code> and <code>about.html</code> in the site root.</p>
+        </article>
+        <article class="panel">
+          <h2>No framework lock-in</h2>
+          <p>Pure HTML/CSS/JS output keeps static composition simple and portable.</p>
+        </article>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container site-footer__inner">
+        <p>Motif static starter</p>
+        <p><span id="current-year"></span></p>
+      </div>
+    </footer>
+
+    <script src="js/main.js" defer></script>
+  </body>
+</html>
