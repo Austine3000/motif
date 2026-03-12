@@ -22,9 +22,18 @@
       "generate globals.css with token bridge (tailwind-config-generator.js)"
     ],
     "devServer": {
+      "mode": "daemon",
       "command": "npx",
       "args": ["next", "dev", "--turbopack"],
-      "readyPattern": "Ready in",
+      "cwdPolicy": "project-root",
+      "readyMatchers": [
+        "Ready in",
+        "Local:\\\\s+http://localhost:\\\\d+",
+        "started server on"
+      ],
+      "urlPattern": "https?:\\\\/\\\\/localhost:\\\\d+",
+      "defaultUrl": "http://localhost:3000",
+      "openStrategy": "browser",
       "defaultPort": 3000,
       "portFlag": "--port"
     },
@@ -68,9 +77,17 @@
       "materialize Motif runtime artifacts from design-system output (materialization.designArtifacts + materialization.templates)"
     ],
     "devServer": {
+      "mode": "daemon",
       "command": "npx",
       "args": ["vite"],
-      "readyPattern": "Local:",
+      "cwdPolicy": "project-root",
+      "readyMatchers": [
+        "Local:\\\\s+http://localhost:\\\\d+",
+        "ready in"
+      ],
+      "urlPattern": "http://localhost:\\d+/?",
+      "defaultUrl": "http://localhost:5173",
+      "openStrategy": "browser",
       "defaultPort": 5173,
       "portFlag": "--port"
     },
@@ -145,9 +162,13 @@
       "generatedStructure": ["index.html", "about.html", "css/tokens.css", "css/styles.css", "js/main.js", "assets/"]
     },
     "devServer": {
-      "command": "npx",
-      "args": ["serve", "."],
-      "readyPattern": "Accepting connections",
+      "mode": "static-preview",
+      "command": null,
+      "args": [],
+      "cwdPolicy": "project-root",
+      "readyMatchers": [],
+      "previewTarget": "index.html",
+      "openStrategy": "file",
       "defaultPort": 3000,
       "portFlag": "-l"
     },
