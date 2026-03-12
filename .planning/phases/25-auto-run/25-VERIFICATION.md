@@ -1,7 +1,8 @@
 ---
-status: human_needed
+status: passed
 phase: 25-auto-run
 verified_on: 2026-03-12
+approved_on: 2026-03-12
 requirement_ids:
   - ARUN-01
   - ARUN-02
@@ -39,4 +40,4 @@ The codebase now provides a reusable runtime launcher, registry-driven ready det
 
 ## Approval
 
-Pending manual verification.
+Manual verification approved by the user on 2026-03-12.
