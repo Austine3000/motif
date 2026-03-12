@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] Phase 1: Agent Definitions (3/3 plans) — completed 2026-03-01
 - [x] Phase 2: Templates (2/2 plans) — completed 2026-03-01
-- [x] Phase 3: Installer (3/3 plans) — completed 2026-03-02
+- [x] Phase 3: Installer (3/4 plans) — completed 2026-03-02; gap-closure plan 03-04 added 2026-03-12
 - [x] Phase 4: Rebrand and Distribution (4/4 plans) — completed 2026-03-02
 - [x] Phase 5: Verticals (3/3 plans) — completed 2026-03-02
 - [x] Phase 6: Hooks and Scripts (3/3 plans) — completed 2026-03-02
@@ -167,7 +167,7 @@ Phases execute in numeric order: 22 → 23 → 24 → 25 → 26
 |-------|-----------|----------------|--------|-----------|
 | 1. Agent Definitions | v1.0 | 3/3 | Complete | 2026-03-01 |
 | 2. Templates | v1.0 | 2/2 | Complete | 2026-03-01 |
-| 3. Installer | v1.0 | 3/3 | Complete | 2026-03-02 |
+| 3. Installer | v1.0 | 3/4 | Gap Closure Planned | 2026-03-02 |
 | 4. Rebrand and Distribution | v1.0 | 4/4 | Complete | 2026-03-02 |
 | 5. Verticals | v1.0 | 3/3 | Complete | 2026-03-02 |
 | 6. Hooks and Scripts | v1.0 | 3/3 | Complete | 2026-03-02 |
