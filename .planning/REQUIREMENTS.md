@@ -28,7 +28,7 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 - [ ] **SCAF-01**: `motif init` asks what the user is building and recommends a framework (Next.js, Vite/React, Expo, static HTML) based on project type and vertical
 - [ ] **SCAF-02**: User can scaffold a Next.js project with `create-next-app` — correct App Router structure, dependencies installed, ready to run
 - [x] **SCAF-03**: User can scaffold a Vite/React project with `create-vite` — React template, dependencies installed, ready to run
-- [ ] **SCAF-04**: User can scaffold an Expo/React Native project with `create-expo-app` — Expo SDK, dependencies installed, ready to run
+- [x] **SCAF-04**: User can scaffold an Expo/React Native project with `create-expo-app` — Expo SDK, dependencies installed, ready to run
 - [x] **SCAF-05**: User can scaffold a static HTML landing page — minimal structure with design tokens linked, ready to open in browser
 - [x] **SCAF-06**: Brownfield detection — if an existing framework project is detected (package.json with next/vite/expo), skip scaffolding and adopt the existing framework
 - [ ] **SCAF-07**: Scaffolded Next.js and Vite/React projects get shadcn/ui installed and configured with Motif's design tokens mapped to the shadcn theme
@@ -146,7 +146,7 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 | SCAF-01 | Phase 23 | Satisfied |
 | SCAF-02 | Phase 23 | Satisfied |
 | SCAF-03 | Phase 24 | Complete |
-| SCAF-04 | Phase 26 | Pending |
+| SCAF-04 | Phase 26 | Complete |
 | SCAF-05 | Phase 24 | Complete |
 | SCAF-06 | Phase 24 | Complete |
 | SCAF-07 | Phase 23 | Satisfied |
