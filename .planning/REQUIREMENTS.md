@@ -37,7 +37,7 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 
 - [ ] **COMP-01**: Screen composition outputs real JSX components for Next.js projects (proper imports, App Router file conventions, next/font, next/image)
 - [x] **COMP-02**: Screen composition outputs real JSX components for Vite/React projects (proper imports, React Router conventions)
-- [ ] **COMP-03**: Screen composition outputs React Native Views/StyleSheet for Expo projects (no CSS, Flexbox-only layout, platform-appropriate primitives)
+- [x] **COMP-03**: Screen composition outputs React Native Views/StyleSheet for Expo projects (no CSS, Flexbox-only layout, platform-appropriate primitives)
 - [x] **COMP-04**: Screen composition outputs static HTML/CSS for landing page projects (current behavior preserved)
 - [ ] **COMP-05**: Composer agent receives platform-specific overlay instructions (composer-nextjs.md, composer-vite.md, composer-rn.md) injected by orchestrator based on platform field
 - [ ] **COMP-07**: Web composition uses Tailwind utility classes and shadcn/ui primitives where appropriate — composed components import from shadcn and use Tailwind for styling
@@ -152,7 +152,7 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 | SCAF-07 | Phase 23 | Satisfied |
 | COMP-01 | Phase 23 | Satisfied |
 | COMP-02 | Phase 24 | Complete |
-| COMP-03 | Phase 26 | Pending |
+| COMP-03 | Phase 26 | Complete |
 | COMP-04 | Phase 24 | Complete |
 | COMP-05 | Phase 23 | Satisfied |
 | COMP-06 | Phase 26 | Pending |
