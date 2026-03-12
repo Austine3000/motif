@@ -364,6 +364,40 @@ Check:
 - Did the agent create the summary? If not, something went wrong — report to user.
 - Did the agent create screen files? Check with `git log --oneline -5`.
 
+## Step 4b: Optional Auto-Run (Post-Compose)
+
+If composition succeeded and the summary exists, you may offer a post-compose auto-run preview.
+
+**Eligibility checks (must pass before offering):**
+- Determine `platform` from `.planning/STATE.md`.
+- Read `.claude/get-motif/references/framework-registry.json` and locate the platform entry.
+- Confirm the entry has `devServer` metadata with `mode` set to `daemon` or `static-preview`.
+- If any of the above are missing, skip auto-run and continue to Step 5.
+
+**Prompt (user-facing):**
+“Composition complete. Do you want me to auto-run the preview now? (yes/no)”
+
+**If user says yes:**
+1. Resolve the project root:
+   - Prefer `findProjectRoot(process.cwd())` from `bin/lib/find-root.js` if available.
+   - If it returns null, fall back to `process.cwd()` and WARN.
+2. Set `PROJECT_NAME` to `path.basename(PROJECT_ROOT)` (or the directory name if a parent root was detected).
+3. Run the shared launcher (do NOT inline spawn logic here):
+   `node .claude/get-motif/scripts/runtime-launcher.js --platform {platform} --project-root {PROJECT_ROOT} --project-name {PROJECT_NAME} --source compose`
+4. If the launcher succeeds, report:
+   - For daemon runtimes: the preview URL and the PID (as printed by the launcher).
+   - For static previews: the opened file target path.
+
+**Failure handling:**
+- If the launcher fails, WARN with the error message.
+- Do NOT treat auto-run failure as a compose failure.
+- Continue to Step 5 regardless.
+
+**Guardrails:**
+- Do NOT offer auto-run for unsupported platforms.
+- Do NOT block static preview behind daemon-only logic.
+- Do NOT change the brownfield/overlay composition flow.
+
 ## Step 5: Update State
 
 Update `.planning/design/STATE.md`:
