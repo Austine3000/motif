@@ -41,7 +41,7 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 - [x] **COMP-04**: Screen composition outputs static HTML/CSS for landing page projects (current behavior preserved)
 - [ ] **COMP-05**: Composer agent receives platform-specific overlay instructions (composer-nextjs.md, composer-vite.md, composer-rn.md) injected by orchestrator based on platform field
 - [ ] **COMP-07**: Web composition uses Tailwind utility classes and shadcn/ui primitives where appropriate — composed components import from shadcn and use Tailwind for styling
-- [ ] **COMP-06**: Cross-platform design consistency — shared design values (colors, typography scale, spacing scale, component patterns) produce visually consistent results across web and mobile
+- [x] **COMP-06**: Cross-platform design consistency — shared design values (colors, typography scale, spacing scale, component patterns) produce visually consistent results across web and mobile
 
 ### Auto-Run
 
@@ -155,7 +155,7 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 | COMP-03 | Phase 26 | Complete |
 | COMP-04 | Phase 24 | Complete |
 | COMP-05 | Phase 23 | Satisfied |
-| COMP-06 | Phase 26 | Pending |
+| COMP-06 | Phase 26 | Complete |
 | COMP-07 | Phase 23 | Satisfied |
 | ARUN-01 | Phase 25 | Complete |
 | ARUN-02 | Phase 25 | Complete |
