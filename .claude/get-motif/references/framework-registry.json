@@ -203,21 +203,61 @@
       "args": ["create-expo-app@latest", "{name}", "--template", "blank-typescript", "--yes"],
       "postInstall": []
     },
+    "scaffoldSequence": [
+      "create-expo-app scaffold (scaffold.command + scaffold.args)",
+      "materialize Motif runtime artifacts from design-system output (materialization.designArtifacts + materialization.templates)"
+    ],
     "devServer": {
+      "mode": "daemon",
       "command": "npx",
       "args": ["expo", "start", "--web"],
-      "readyPattern": "Metro waiting on",
-      "defaultPort": 8081,
+      "cwdPolicy": "project-root",
+      "readyMatchers": [
+        "Metro waiting on",
+        "Web is waiting on",
+        "Starting Metro",
+        "Bundling complete"
+      ],
+      "urlPattern": "http://localhost:\\\\d+/?",
+      "defaultUrl": "http://localhost:19006",
+      "openStrategy": "browser",
+      "defaultPort": 19006,
       "portFlag": "--port"
     },
     "tokens": {
       "formats": ["css", "native-ts"],
-      "nativeTsImportPath": "./tokens.native"
+      "nativeTsImportPath": "./theme/tokens.native",
+      "designSystemSource": ".planning/design/system",
+      "runtimeDestinations": {
+        "tokensNativeTs": "theme/tokens.native.ts"
+      }
     },
     "conventions": {
       "srcDir": ".",
       "componentDir": "components",
       "styleApproach": "stylesheet-create"
+    },
+    "materialization": {
+      "ownership": "contract-owned",
+      "preserveUserFiles": true,
+      "conflictPolicy": "skip-non-owned",
+      "ownedFiles": [
+        "theme/tokens.native.ts",
+        "theme/index.ts",
+        "components/.gitkeep",
+        "screens/.gitkeep"
+      ],
+      "designArtifacts": {
+        "tokensNativeTs": {
+          "source": "tokens.native.ts",
+          "destination": "theme/tokens.native.ts"
+        }
+      },
+      "templates": {
+        "theme/index.ts": "export * from './tokens.native';\n",
+        "components/.gitkeep": "",
+        "screens/.gitkeep": ""
+      }
     },
     "composition": {
       "overlay": "composer-rn.md",
