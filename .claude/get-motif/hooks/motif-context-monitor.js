@@ -37,6 +37,7 @@ process.stdin.on('end', () => {
 
   // Attempt to read Motif STATE.md from disk
   let motifState = null;
+  let runtimeSession = null;
   try {
     const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
     const statePath = path.join(projectDir, '.planning', 'design', 'STATE.md');
@@ -100,6 +101,21 @@ process.stdin.on('end', () => {
     // STATE.md missing or unreadable -- fall back to context-only display
   }
 
+  try {
+    const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+    const sessionPath = path.join(projectDir, '.planning', 'runtime', 'active-session.json');
+    const sessionRaw = fs.readFileSync(sessionPath, 'utf8');
+    const session = JSON.parse(sessionRaw);
+    if (session && typeof session === 'object') {
+      const terminalStatuses = ['stopped', 'cleanup-failed', 'stale'];
+      if (!terminalStatuses.includes(session.status)) {
+        runtimeSession = session;
+      }
+    }
+  } catch (e) {
+    // Runtime session missing or unreadable -- ignore
+  }
+
   // Build output
   let output = '';
 
@@ -110,6 +126,20 @@ process.stdin.on('end', () => {
   } else {
     // Context-only display (no Motif project)
     output = `${ctxColor}Motif context: ${pct}%${RESET}`;
+  }
+
+  if (runtimeSession) {
+    const sessionBits = [];
+    if (runtimeSession.platform) sessionBits.push(runtimeSession.platform);
+    if (runtimeSession.mode === 'static-preview') {
+      sessionBits.push('static');
+    }
+    if (runtimeSession.mode === 'daemon' && runtimeSession.pid) {
+      sessionBits.push(`pid ${runtimeSession.pid}`);
+    }
+    const target = runtimeSession.url || runtimeSession.previewTarget;
+    if (target) sessionBits.push(target);
+    output += ` ${DIM}|${RESET} preview: ${sessionBits.join(' ')}`;
   }
 
   // Append context warnings for high usage

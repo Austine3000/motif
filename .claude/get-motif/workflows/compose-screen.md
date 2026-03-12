@@ -385,8 +385,11 @@ If composition succeeded and the summary exists, you may offer a post-compose au
 3. Run the shared launcher (do NOT inline spawn logic here):
    `node .claude/get-motif/scripts/runtime-launcher.js --platform {platform} --project-root {PROJECT_ROOT} --project-name {PROJECT_NAME} --source compose`
 4. If the launcher succeeds, report:
-   - For daemon runtimes: the preview URL and the PID (as printed by the launcher).
-   - For static previews: the opened file target path.
+   - Read `.planning/runtime/active-session.json` (if present) to surface tracked runtime details.
+   - For daemon runtimes: the preview URL, tracked PID, and whether Motif reused or restarted a prior session.
+   - For static previews: the opened file target path and any reuse notice.
+   - Always mention the session artifact path so users can debug (`.planning/runtime/active-session.json`).
+   - If a `portConflict` is recorded, warn that an external process held the default port and Motif left it untouched.
 
 **Failure handling:**
 - If the launcher fails, WARN with the error message.
