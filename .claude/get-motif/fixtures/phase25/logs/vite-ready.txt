@@ -1,0 +1,6 @@
+VITE v5.1.0  ready in 412 ms
+
+  Local:   http://localhost:5173/
+  Network: use --host to expose
+
+  press h + enter to show help

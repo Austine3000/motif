@@ -1,0 +1,11 @@
+{
+  "projectRoot": "/tmp/motif/phase25-project",
+  "platform": "web-nextjs",
+  "pid": 12345,
+  "status": "ready",
+  "port": 3000,
+  "url": "http://localhost:3000",
+  "startedAt": "2026-03-11T22:30:00Z",
+  "source": "motif-compose",
+  "mode": "daemon"
+}

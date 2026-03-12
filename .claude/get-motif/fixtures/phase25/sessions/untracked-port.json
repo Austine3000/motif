@@ -1,0 +1,8 @@
+{
+  "port": 3000,
+  "pid": 54321,
+  "owner": "external",
+  "status": "busy",
+  "decision": "block",
+  "reason": "untracked-port"
+}
