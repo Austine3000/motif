@@ -83,3 +83,13 @@
 
 ---
 *Last updated: 2026-03-04*
+
+## v1.5 Batch Compose (Shipped: 2026-03-24)
+
+**Phases completed:** 33 phases, 75 plans, 0 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+

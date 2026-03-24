@@ -12,17 +12,18 @@ Domain-intelligent design delivered through fresh context — a fintech app must
 
 ## Current State
 
-**Shipped:** v1.4 (2026-03-24)
+**Shipped:** v1.5 (2026-03-24)
 **Published:** motif-design@0.2.3 on npm
 
-Five milestones delivered:
+Six milestones delivered:
 - **v1.0 Core Design System** — Full pipeline (research → system → compose → review → fix), 4 verticals, installer, hooks, CI/CD, npm publishing
 - **v1.1 Icon Library Integration** — 4 curated icon libraries, per-vertical vocabularies, ICON-CATALOG.md generation, composer anti-slop enforcement, reviewer icon checks, aria-check icon detection
 - **v1.2 Brownfield Intelligence** — Project scanning, token extraction, brownfield compose/review integration
 - **v1.3 Global Reach** — Context resilience (SessionStart hooks, 3-layer defense), 4 new verticals (8 total), global CLI (init/status/update/doctor/list), package source sync
 - **v1.4 Cross-Platform App Builder** — Smart framework scaffolding (Next.js, Vite, Expo, static HTML), platform-aware composition, cross-platform token bridge, auto-run with PID cleanup
+- **v1.5 Batch Compose** — Parallel multi-screen composition with wave-based dispatch, progress reporting, automatic design review, batch resume after /clear, smart screen ordering
 
-**Stats:** 28 phases, 58 plans executed across 5 milestones
+**Stats:** 32 phases, 65 plans executed across 6 milestones
 
 ## Requirements
 
@@ -56,18 +57,17 @@ Five milestones delivered:
 - ✓ Platform-aware composition (JSX, React Native Views/StyleSheet) — v1.4
 - ✓ Cross-platform token bridge (CSS vars, TypeScript, React Native StyleSheet) — v1.4
 - ✓ Auto-run with PID tracking and cleanup — v1.4
+- ✓ Batch compose by name and --all flag with wave-based parallel dispatch — v1.5
+- ✓ Orchestrator-owned commits with failure isolation — v1.5
+- ✓ Progress reporting with timing, batch summary, and BATCH-RESULT.md manifest — v1.5
+- ✓ Automatic design review after batch completion — v1.5
+- ✓ Auto-run gated on review pass with override — v1.5
+- ✓ Batch resume after /clear with skip reporting and stale file warnings — v1.5
+- ✓ Smart screen ordering (foundational screens first, foundation summary injection) — v1.5
 
 ### Active
 
-**Current Milestone: v1.5 Batch Compose**
-
-**Goal:** Compose multiple screens in a single command with parallel execution and automatic review — eliminating the tedium of running `/motif:compose` once per screen.
-
-**Target features:**
-- Batch compose by name: `/motif:compose login dashboard settings` composes listed screens in parallel
-- Batch compose all pending: `/motif:compose --all` composes every screen defined in STATE.md that hasn't been composed yet
-- Progress tracking as screens complete (wave-style reporting)
-- Automatic `/motif:review` across all composed screens after the batch finishes
+(None — planning next milestone)
 
 ### Out of Scope
 
@@ -122,7 +122,11 @@ Five milestones delivered:
 | Icon size as system invariant | Fixed 8px-multiple scale, not project-adjustable | ✓ Good |
 
 | v1.4 cross-platform scope | Web (Next.js, Vite/React, static HTML) + Mobile (React Native/Expo). Desktop deferred. | ✓ Good |
-| v1.5 batch compose scope | Parallel multi-screen composition + auto-review. No architecture changes to per-screen agents. | — Pending |
+| v1.5 batch compose scope | Parallel multi-screen composition + auto-review. No architecture changes to per-screen agents. | ✓ Good |
+| Orchestrator owns all commits | Subagents write files only, orchestrator commits sequentially — resolves git index.lock races | ✓ Good |
+| Wave-based dispatch with concurrency cap | Default 3, configurable via --concurrency. Simple, effective parallelism. | ✓ Good |
+| Name-based screen classification | Heuristic for foundational screen detection — no schema changes needed | ✓ Good |
+| Foundation summary injection capped at 3 | Prevents context bloat in feature wave agents while enabling cross-screen consistency | ✓ Good |
 
 ---
-*Last updated: 2026-03-24 after v1.5 milestone start*
+*Last updated: 2026-03-24 after v1.5 milestone completion*

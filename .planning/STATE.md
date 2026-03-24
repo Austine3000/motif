@@ -4,7 +4,7 @@ milestone: v1.5
 milestone_name: Batch Compose
 current_plan: 2
 status: complete
-stopped_at: Completed 32-02-PLAN.md
+stopped_at: v1.5 Batch Compose milestone complete
 last_updated: "2026-03-24T10:37:03Z"
 last_activity: 2026-03-24
 progress:
@@ -22,7 +22,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** v1.5 Batch Compose — All phases complete, ready for milestone completion
+**Current focus:** v1.5 shipped — planning next milestone
 
 ## Current Position
 
