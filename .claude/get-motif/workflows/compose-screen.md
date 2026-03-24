@@ -28,13 +28,63 @@ If `.planning/design/system/COMPONENT-SPECS.md` does not exist:
   (Do NOT block. Proceed with the command.)
 </gate_check>
 
-## Step 1: Determine Screen
+## Step 1: Determine Screen(s)
 
-If `$ARGUMENTS` is provided, use it as the screen name.
-If not, read STATE.md's Screens table and find the next screen with status `planned`.
+Parse `$ARGUMENTS` to determine single-screen or batch mode:
+
+**Case A -- No arguments:**
+Single-screen mode. Read STATE.md's Screens table and find the next screen with status `planned`.
 If no planned screens remain, tell the user all screens are composed and suggest `/motif:review all`.
+Set BATCH_MODE = false. Set SCREEN_NAME to the found screen.
 
-**Screen name:** `{SCREEN_NAME}`
+**Case B -- Single screen name (one word, no `--all` flag, no other screen names):**
+Single-screen mode for that screen name.
+Set BATCH_MODE = false. Set SCREEN_NAME to the provided name.
+(If `--concurrency` is present with a single screen name, ignore it silently.)
+
+**Case C -- Multiple space-separated screen names (no `--all`):**
+- Split `$ARGUMENTS` on spaces
+- Filter out `--concurrency` and the number immediately following it
+- Filter out any flags (words starting with `--`)
+- Remaining words are screen names
+- If only one screen name remains after filtering: treat as Case B
+- Otherwise: set BATCH_MODE = true, SCREEN_LIST = [remaining names]
+
+**Case D -- `--all` flag present:**
+- Run `node .claude/get-motif/scripts/motif-state.js read` to get STATE.md JSON
+- Collect all screens with status `planned` or `failed`
+- If none found: print "No screens with status 'planned' or 'failed'. Nothing to compose." and STOP
+- Set BATCH_MODE = true, SCREEN_LIST = [collected screen names]
+
+**Concurrency parsing (Cases C and D only):**
+- If `$ARGUMENTS` contains `--concurrency`, extract the integer immediately after it
+- Default: 3. Max: 5. Min: 1.
+- If the value is missing, not an integer, or out of range: WARN "Invalid concurrency value. Using default (3)." and set CONCURRENCY = 3
+- If the value is > 5: WARN "Concurrency capped at 5 to avoid rate limiting." and set CONCURRENCY = 5
+- Store as CONCURRENCY
+
+If BATCH_MODE is false: proceed to Step 2 (single-screen flow -- Steps 2 through 6 and Final Step).
+If BATCH_MODE is true: proceed to Step 1b (batch validation).
+
+## Step 1b: Batch Validation (BATCH MODE only)
+
+This step runs only when BATCH_MODE is true.
+
+1. **Validate screen names.** Run `node .claude/get-motif/scripts/motif-state.js read` to get STATE.md JSON. For each name in SCREEN_LIST:
+   - Check if the name exists in STATE.md's `screens` array (match on `name` field)
+   - If a name is NOT found: report it. Check for close matches (e.g., "dashbord" vs "dashboard") using simple string similarity (shared prefix/suffix, edit distance of 1-2). If a close match exists, suggest it: "Screen 'dashbord' not found. Did you mean 'dashboard'?"
+   - Remove unrecognized names from SCREEN_LIST
+
+2. **Check for empty list.** If SCREEN_LIST is empty after removing unrecognized names: STOP with error "No valid screen names to compose."
+
+3. **Calculate waves.**
+   - WAVE_COUNT = ceil(SCREEN_LIST.length / CONCURRENCY)
+   - WAVES = split SCREEN_LIST into chunks of CONCURRENCY size
+
+4. **Display batch plan:**
+   "Composing {N} screens in {WAVE_COUNT} wave(s) (concurrency: {CONCURRENCY}): {comma-separated screen names}"
+
+Proceed to Step 3b (batch wave dispatch). Skip Steps 2, 2b, 2c, 2d, and 3 -- these are single-screen only. In batch mode, context assembly happens inside Step 3b before the wave loop.
 
 ## Step 2: Assemble Context Profile
 
