@@ -50,6 +50,35 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 - [x] **ARUN-03**: PID tracking for launched dev servers — Motif records PIDs and cleans up zombie processes on exit
 - [x] **ARUN-04**: Browser/simulator opening uses OS-native commands (open/xdg-open/cmd start) — zero npm dependencies
 
+## v1.5 Requirements
+
+Requirements for Batch Compose milestone. Each maps to roadmap phases.
+
+### Batch Orchestration
+
+- [ ] **BATCH-01**: User can compose multiple named screens in one command (`/motif:compose login dashboard settings`)
+- [ ] **BATCH-02**: User can compose all pending screens with `--all` flag (`/motif:compose --all`)
+- [ ] **BATCH-03**: Screens compose in parallel via wave-based dispatch with a concurrency cap (default 3)
+- [ ] **BATCH-04**: Orchestrator owns all git commits — subagents write files, orchestrator commits atomically per screen after collection
+- [ ] **BATCH-05**: User can configure concurrency cap via command argument or config
+
+### Progress & Reporting
+
+- [ ] **PROG-01**: User sees per-screen status output as each agent completes (screen name, success/fail, duration)
+- [ ] **PROG-02**: Batch result summary displayed after all screens complete (total, succeeded, failed, duration)
+- [ ] **PROG-03**: BATCH-RESULT.md manifest written to `.planning/design/` for cross-session reference
+
+### Reliability
+
+- [ ] **REL-01**: Partial failure is isolated — if 2/5 screens fail, the 3 that succeeded are committed and reported
+- [ ] **REL-02**: Batch state persists in STATE.md so `/motif:compose --all` after `/clear` resumes from incomplete screens
+- [ ] **REL-03**: Smart screen ordering places foundational screens (layout, nav) in earlier waves before feature screens
+
+### Auto-Review
+
+- [ ] **REV-01**: After batch compose completes, Motif automatically runs `/motif:review` across all composed screens
+- [ ] **REV-02**: Auto-run is gated on review — dev server only launches if review passes or user overrides
+
 ## Future Requirements
 
 ### Cross-Vertical (v1.5+)
@@ -167,6 +196,29 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 - Mapped to phases: 23/23
 - Unmapped: 0
 
+### v1.5
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| BATCH-01 | TBD | Pending |
+| BATCH-02 | TBD | Pending |
+| BATCH-03 | TBD | Pending |
+| BATCH-04 | TBD | Pending |
+| BATCH-05 | TBD | Pending |
+| PROG-01 | TBD | Pending |
+| PROG-02 | TBD | Pending |
+| PROG-03 | TBD | Pending |
+| REL-01 | TBD | Pending |
+| REL-02 | TBD | Pending |
+| REL-03 | TBD | Pending |
+| REV-01 | TBD | Pending |
+| REV-02 | TBD | Pending |
+
+**Coverage:**
+- v1.5 requirements: 13 total
+- Mapped to phases: 0
+- Unmapped: 13 ⚠️
+
 ---
 *Requirements defined: 2026-03-04*
-*Last updated: 2026-03-09 after v1.4 roadmap created*
+*Last updated: 2026-03-24 after v1.5 requirements defined*
