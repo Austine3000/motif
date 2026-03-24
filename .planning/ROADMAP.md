@@ -127,10 +127,11 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. After a batch compose completes successfully, Motif automatically triggers `/motif:review` across all screens that were just composed — the user does not need to run review manually
   2. Auto-run (dev server launch) is only offered if the review passes or the user explicitly overrides — a failed review blocks auto-run with a clear explanation of what failed
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 31-01: TBD
+- [ ] 31-01-PLAN.md — Auto-review dispatch and result collection (Steps 3b.8c, 3b.8d)
+- [ ] 31-02-PLAN.md — Review gate and review-aware auto-run/next steps (Steps 3b.8e, 3b.9, 3b.10)
 
 ### Phase 32: Reliability Enhancements
 **Goal**: Users can resume interrupted batches and get better composition quality through smart screen ordering
@@ -139,7 +140,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. After a `/clear` mid-batch, running `/motif:compose --all` reads STATE.md and resumes from only the incomplete screens — already-composed screens are not re-composed
   2. Foundational screens (layout, navigation, shared components) are automatically placed in earlier waves, and feature screens that depend on them compose in later waves with access to the foundation screen summaries
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 32-01: TBD
