@@ -503,6 +503,7 @@ For each screen with PASSED or WARNED status, in order:
    ```bash
    git commit -m “design(compose): implement {SCREEN_NAME} screen”
    ```
+4b. Capture the commit hash: after `git commit`, run `git rev-parse --short HEAD` and store as the screen's `commit_hash`. For FAILED/CRASHED screens, set commit_hash to “--”.
 
 For FAILED or CRASHED screens: do NOT commit. If FAILED, the subagent already unstaged the files. Warn: “Screen '{SCREEN_NAME}' failed validation. Files remain on disk at [paths listed in SUMMARY.md] for inspection. They will NOT be committed.”
 
@@ -548,17 +549,60 @@ Duration source: use the `duration` field parsed in Step 3b.4 from each screen's
 
 ### 3b.8: Batch summary
 
-Print a results table:
+Print a formatted summary table:
 
-```
-Batch complete: {TOTAL_SUCCEEDED}/{SCREEN_LIST.length} screens composed
+"Batch complete: {TOTAL_SUCCEEDED}/{SCREEN_LIST.length} screens | {total_duration}
 
-- login: OK (committed)
-- dashboard: OK (committed)
-- settings: FAILED (validation failure)
-- profile: OK (committed)
-- transactions: CRASHED (agent did not produce summary)
+| Screen | Status | Duration | Wave |
+|--------|--------|----------|------|
+| login | OK | 1m 12s | 1/2 |
+| dashboard | OK | 1m 45s | 1/2 |
+| settings | FAILED | 0m 58s | 1/2 |
+| profile | OK | 1m 22s | 2/2 |
+
+{IF any FAILED or CRASHED screens:}
+Failed: {screen_name} ({reason from SUMMARY.md validation section})
+Retry: /motif:compose {space-separated failed screen names}"
+
+Duration values come from ALL_RESULTS[].duration (parsed in Step 3b.4).
+Total duration: sum all wave wall-clock durations (time from first Task() spawn in wave to last result collected).
+Wave column format: {wave_index + 1}/{WAVE_COUNT}.
+
+### 3b.8b: Write batch manifest
+
+Write `.planning/design/BATCH-RESULT.md` with the complete batch result data:
+
+```markdown
+# Batch Composition Result
+
+**Date:** {current ISO timestamp}
+**Screens:** {SCREEN_LIST.length} total | {TOTAL_SUCCEEDED} succeeded | {TOTAL_FAILED} failed
+**Duration:** {total_duration}
+**Concurrency:** {CONCURRENCY}
+
+## Results
+
+| Screen | Status | Duration | Wave | Commit |
+|--------|--------|----------|------|--------|
+| {for each screen in ALL_RESULTS: name | OK/FAILED/CRASHED | duration | wave_index+1/WAVE_COUNT | commit_hash or "--"} |
+
+{IF any FAILED or CRASHED screens:}
+## Failed Screens
+
+### {screen_name}
+- **Reason:** {reason from SUMMARY.md validation section, or "Agent crashed -- no SUMMARY.md produced" for CRASHED}
+- **Files on disk:** .planning/design/screens/{screen_name}/
+- **Retry:** `/motif:compose {screen_name}`
+{ENDIF}
 ```
+
+Then commit the manifest:
+```bash
+git add .planning/design/BATCH-RESULT.md
+git commit -m "design(compose): batch result manifest"
+```
+
+This file overwrites any previous BATCH-RESULT.md. Previous runs are preserved in git history.
 
 ### 3b.9: Offer auto-run ONCE
 
