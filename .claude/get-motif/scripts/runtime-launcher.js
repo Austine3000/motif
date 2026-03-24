@@ -17,6 +17,8 @@ const {
   nowIso,
 } = require('./runtime-session');
 
+const sessionStore = require('./auto-run-session-store');
+
 const REGISTRY_PATH = path.resolve(__dirname, '..', 'references', 'framework-registry.json');
 
 function printHelp() {
@@ -32,6 +34,7 @@ function printHelp() {
   console.log('  --project-name <name>      Project directory name (default: basename(project-root))');
   console.log('  --source <name>            Launch source label (default: compose)');
   console.log('  --dry-run                  Print launch/open actions without spawning processes');
+  console.log('  --signal <SIG>             Simulate a signal for cleanup testing (dry-run only)');
   console.log('  --help, -h                 Show this help message');
 }
 
@@ -48,6 +51,7 @@ function parseArgs(argv) {
     projectName: null,
     source: 'compose',
     dryRun: false,
+    signal: null,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -62,6 +66,8 @@ function parseArgs(argv) {
       options.source = args[++i];
     } else if (arg === '--dry-run') {
       options.dryRun = true;
+    } else if (arg === '--signal' && args[i + 1]) {
+      options.signal = args[++i];
     }
   }
 
@@ -319,7 +325,17 @@ function runStaticPreview(runtime, projectDir, options, portConflict) {
   logSessionHeader(sessionPath);
 
   if (options.dryRun) {
+    // Record a dry-run entry in the session store for verification
+    sessionStore.recordProcess(projectDir, {
+      pid: process.pid,
+      platform: options.platform,
+      role: 'preview',
+      url: previewTarget,
+      port: null,
+      source: options.source,
+    });
     openPreview(previewTarget, runtime, true);
+    console.log('[dry-run] Session metadata written to store');
     return;
   }
 
@@ -337,6 +353,16 @@ function runStaticPreview(runtime, projectDir, options, portConflict) {
   });
 
   openPreview(previewTarget, runtime, false);
+
+  // Record in session store for cleanup tracking
+  sessionStore.recordProcess(projectDir, {
+    pid: process.pid,
+    platform: options.platform,
+    role: 'preview',
+    url: previewTarget,
+    port: null,
+    source: options.source,
+  });
 
   updateSession(projectDir, {
     status: 'ready',
@@ -361,7 +387,28 @@ async function runDaemon(runtime, projectDir, options, portConflict) {
   if (options.dryRun) {
     console.log(`[dry-run] (${cwd}) ${command} ${args.join(' ')}`);
     const previewUrl = runtime.defaultUrl || 'http://localhost';
+    // Record a dry-run entry in the session store for verification
+    sessionStore.recordProcess(projectDir, {
+      pid: process.pid,
+      platform: options.platform,
+      role: 'dev-server',
+      url: previewUrl,
+      port: runtime.defaultPort || null,
+      source: options.source,
+    });
     openPreview(previewUrl, runtime, true);
+    console.log('[dry-run] Session metadata written to store');
+
+    // If --signal was passed, simulate cleanup of tracked PIDs
+    if (options.signal) {
+      console.log(`[dry-run] Simulating ${options.signal} cleanup`);
+      const active = sessionStore.getActiveSessions(projectDir);
+      for (const s of active) {
+        sessionStore.markStopped(projectDir, s.pid, `simulated-${options.signal}`, null);
+        console.log(`[dry-run] Cleaned up PID ${s.pid} (${s.role})`);
+      }
+      console.log(`[dry-run] Cleanup complete: ${active.length} session(s) stopped`);
+    }
     return;
   }
 
@@ -397,6 +444,16 @@ async function runDaemon(runtime, projectDir, options, portConflict) {
     lastSeen: nowIso(),
   });
 
+  // Record in session store for multi-PID cleanup tracking
+  sessionStore.recordProcess(projectDir, {
+    pid: child.pid,
+    platform: options.platform,
+    role: 'dev-server',
+    url: runtime.defaultUrl || null,
+    port: runtime.defaultPort || null,
+    source: options.source,
+  });
+
   let outputBuffer = '';
   let readyResolved = false;
   let cleanupInProgress = false;
@@ -404,6 +461,24 @@ async function runDaemon(runtime, projectDir, options, portConflict) {
   const cleanupLauncher = async (signal, reason) => {
     if (cleanupInProgress) return;
     cleanupInProgress = true;
+
+    // Kill all tracked PIDs in reverse order via session store
+    const activeSessions = sessionStore.getActiveSessions(projectDir);
+    for (let i = activeSessions.length - 1; i >= 0; i--) {
+      const s = activeSessions[i];
+      if (s.pid && isPidAlive(s.pid)) {
+        try {
+          process.kill(s.pid, signal || 'SIGTERM');
+          sessionStore.markStopped(projectDir, s.pid, `signal-${signal}`, null);
+        } catch (err) {
+          sessionStore.markStopped(projectDir, s.pid, `signal-${signal}`, err.message);
+        }
+      } else {
+        sessionStore.markStopped(projectDir, s.pid, 'already-dead', null);
+      }
+    }
+
+    // Also run the existing single-session cleanup
     const currentSession = readSession(projectDir) || {};
     const outcome = await cleanupTrackedSession(
       projectDir,
@@ -512,6 +587,13 @@ async function main() {
 
   const resolved = resolveProjectDirectory(options.projectRoot, options.projectName);
   const projectDir = resolved.projectDir;
+
+  // Refresh liveness and prune stale sessions before launching
+  sessionStore.refreshLiveness(projectDir);
+  const pruned = sessionStore.pruneStale(projectDir);
+  if (pruned > 0) {
+    console.log(`[motif] Pruned ${pruned} stale session(s) from store`);
+  }
 
   console.log(`[motif] Platform: ${options.platform}`);
   console.log(`[motif] Project: ${projectDir}`);
