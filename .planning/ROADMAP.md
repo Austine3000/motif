@@ -85,7 +85,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 **Milestone Goal:** Compose multiple screens in a single command with parallel execution, progress reporting, and automatic review — eliminating the tedium of running `/motif:compose` once per screen.
 
 - [x] Phase 29: Core Batch Orchestration — Parallel multi-screen composition with wave-based dispatch, orchestrator-owned commits, and failure isolation (completed 2026-03-24)
-- [ ] Phase 30: Progress Reporting and Batch Manifest — Per-screen status output, batch summary, and persistent BATCH-RESULT.md for cross-session reference
+- [x] Phase 30: Progress Reporting and Batch Manifest — Per-screen status output, batch summary, and persistent BATCH-RESULT.md for cross-session reference (completed 2026-03-24)
 - [ ] Phase 31: Auto-Review Integration — Automatic review after batch completion, gated auto-run on review pass
 - [ ] Phase 32: Reliability Enhancements — Batch resume after `/clear`, smart screen ordering, configurable concurrency
 
@@ -118,7 +118,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 30-01-PLAN.md — Progress reporting with timing, summary table, and BATCH-RESULT.md manifest
+- [x] 30-01-PLAN.md — Progress reporting with timing, summary table, and BATCH-RESULT.md manifest
 
 ### Phase 31: Auto-Review Integration
 **Goal**: Users get automatic design review across all composed screens after a batch completes, with auto-run gated on review results
@@ -182,6 +182,6 @@ Phases execute in numeric order: 29 -> 30 -> 31 -> 32
 | 27. Next.js Scaffold Execution | v1.4 | 1/1 | Complete | 2026-03-24 |
 | 28. Auto-Run Cleanup and Validation | v1.4 | 1/1 | Complete | 2026-03-24 |
 | 29. Core Batch Orchestration | v1.5 | 2/2 | Complete | 2026-03-24 |
-| 30. Progress Reporting and Batch Manifest | v1.5 | 0/1 | Not started | - |
+| 30. Progress Reporting and Batch Manifest | v1.5 | 1/1 | Complete | 2026-03-24 |
 | 31. Auto-Review Integration | v1.5 | 0/TBD | Not started | - |
 | 32. Reliability Enhancements | v1.5 | 0/TBD | Not started | - |
