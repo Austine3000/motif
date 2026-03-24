@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Batch Compose
-current_plan: 2
+current_plan: 1
 status: in-progress
-stopped_at: Completed 31-02-PLAN.md
-last_updated: "2026-03-24T10:05:21Z"
+stopped_at: Completed 32-01-PLAN.md
+last_updated: "2026-03-24T10:32:32Z"
 last_activity: 2026-03-24
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 5
-  completed_plans: 5
-  percent: 83
+  completed_plans: 6
+  percent: 92
 ---
 
 # Project State
@@ -22,21 +22,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** v1.5 Batch Compose — Phase 31 in progress (auto-review integration)
+**Current focus:** v1.5 Batch Compose — Phase 32 in progress (reliability enhancements)
 
 ## Current Position
 
-Phase: 31 of 32 (Auto-Review Integration)
-Plan: 2 of 2 complete — 31-01 done, 31-02 done
+Phase: 32 of 32 (Reliability Enhancements)
+Plan: 1 of 2 complete — 32-01 done
 Status: In Progress
-Last activity: 2026-03-24 — Completed 31-02 (review gate and review-aware guidance)
+Last activity: 2026-03-24 — Completed 32-01 (batch resume detection and stale file warnings)
 
-Progress: [████████░░] 83%
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 63 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 12, v1.4: 6, v1.5: 5)
+- Total plans completed: 64 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 12, v1.4: 6, v1.5: 6)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -47,6 +47,7 @@ Progress: [████████░░] 83%
 | 30-01 | progress-reporting | 2min | 2 | 1 |
 | 31-01 | auto-review-dispatch | 2min | 1 | 1 |
 | 31-02 | review-gate | 1min | 1 | 1 |
+| 32-01 | batch-resume-detection | 1min | 1 | 1 |
 
 ## Accumulated Context
 
@@ -62,6 +63,7 @@ Recent decisions affecting current work:
 - [30-01]: Subagents self-time via date -u in ## Timing section; BATCH-RESULT.md overwrites per run with git history preserving previous
 - [31-01]: Reviewer agents use review.md Step 2 template with BATCH AUTO-REVIEW INSTRUCTIONS; result extraction via Grep to avoid context bloat
 - [31-02]: Review gate offers override path; decline skips auto-run; 3b.10 no longer suggests manual /motif:review all
+- [32-01]: Step 1b uses 6 contiguous steps (no gap) with resume detection before wave calculation
 
 ### Pending Todos
 
@@ -73,6 +75,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-24T10:05:21Z
-Stopped at: Completed 31-02-PLAN.md — review gate and review-aware guidance added to compose-screen.md
+Last session: 2026-03-24T10:32:32Z
+Stopped at: Completed 32-01-PLAN.md — batch resume detection and stale file warnings added to compose-screen.md Step 1b
 Resume file: None
