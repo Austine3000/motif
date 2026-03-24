@@ -3,16 +3,16 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Batch Compose
 current_plan: 1
-status: phase-complete
-stopped_at: Completed 30-01-PLAN.md
-last_updated: "2026-03-24T09:42:48Z"
+status: in-progress
+stopped_at: Completed 31-01-PLAN.md
+last_updated: "2026-03-24T10:01:07Z"
 last_activity: 2026-03-24
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
-  percent: 50
+  total_plans: 5
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State
@@ -22,21 +22,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** v1.5 Batch Compose — Phase 30 complete (progress reporting added)
+**Current focus:** v1.5 Batch Compose — Phase 31 in progress (auto-review integration)
 
 ## Current Position
 
-Phase: 30 of 32 (Progress Reporting)
-Plan: 1 of 1 complete — phase complete
-Status: Phase Complete
-Last activity: 2026-03-24 — Completed 30-01 (progress reporting in compose-screen.md)
+Phase: 31 of 32 (Auto-Review Integration)
+Plan: 1 of 2 complete — 31-01 done, 31-02 pending
+Status: In Progress
+Last activity: 2026-03-24 — Completed 31-01 (auto-review dispatch and result collection)
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 61 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 12, v1.4: 6, v1.5: 3)
+- Total plans completed: 62 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 12, v1.4: 6, v1.5: 4)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -45,6 +45,7 @@ Progress: [█████░░░░░] 50%
 | 29-01 | batch-update-screens | 1min | 1 | 1 |
 | 29-02 | batch-orchestration | 2min | 2 | 1 |
 | 30-01 | progress-reporting | 2min | 2 | 1 |
+| 31-01 | auto-review-dispatch | 2min | 1 | 1 |
 
 ## Accumulated Context
 
@@ -58,6 +59,7 @@ Recent decisions affecting current work:
 - [v1.5 roadmap]: REL-01 (failure isolation) grouped with Phase 29 core — partial failure handling is architectural, not an enhancement
 - [v1.5 roadmap]: Auto-review is automatic after batch (REV-01), auto-run gated on review pass (REV-02)
 - [30-01]: Subagents self-time via date -u in ## Timing section; BATCH-RESULT.md overwrites per run with git history preserving previous
+- [31-01]: Reviewer agents use review.md Step 2 template with BATCH AUTO-REVIEW INSTRUCTIONS; result extraction via Grep to avoid context bloat
 
 ### Pending Todos
 
@@ -69,6 +71,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-24T09:42:48Z
-Stopped at: Completed 30-01-PLAN.md — progress reporting added to compose-screen.md (Phase 30 complete)
+Last session: 2026-03-24T10:01:07Z
+Stopped at: Completed 31-01-PLAN.md — auto-review dispatch and result collection added to compose-screen.md
 Resume file: None
