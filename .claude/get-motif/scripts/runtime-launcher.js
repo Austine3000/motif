@@ -565,6 +565,23 @@ async function runDaemon(runtime, projectDir, options, portConflict) {
     await cleanupLauncher('SIGTERM', 'sigterm');
     process.exit(1);
   });
+
+  // Synchronous exit handler -- best-effort cleanup for unclean exits
+  process.once('exit', () => {
+    if (cleanupInProgress) return;
+    const activeSessions = sessionStore.getActiveSessions(projectDir);
+    for (let i = activeSessions.length - 1; i >= 0; i--) {
+      const s = activeSessions[i];
+      if (s.pid && isPidAlive(s.pid)) {
+        try {
+          process.kill(s.pid, 'SIGTERM');
+        } catch {
+          // best-effort in exit handler
+        }
+        sessionStore.markStopped(projectDir, s.pid, 'exit-handler', null);
+      }
+    }
+  });
 }
 
 async function main() {

@@ -35,7 +35,8 @@
       "defaultUrl": "http://localhost:3000",
       "openStrategy": "browser",
       "defaultPort": 3000,
-      "portFlag": "--port"
+      "portFlag": "--port",
+      "cleanupTriggers": ["SIGINT", "SIGTERM", "exit"]
     },
     "tokens": {
       "formats": ["css", "ts"],
@@ -121,7 +122,8 @@
       "defaultUrl": "http://localhost:5173",
       "openStrategy": "browser",
       "defaultPort": 5173,
-      "portFlag": "--port"
+      "portFlag": "--port",
+      "cleanupTriggers": ["SIGINT", "SIGTERM", "exit"]
     },
     "tokens": {
       "formats": ["css", "ts"],
@@ -202,7 +204,8 @@
       "previewTarget": "index.html",
       "openStrategy": "file",
       "defaultPort": 3000,
-      "portFlag": "-l"
+      "portFlag": "-l",
+      "cleanupTriggers": ["SIGINT", "SIGTERM", "exit"]
     },
     "tokens": {
       "formats": ["css"],
@@ -254,7 +257,8 @@
       "defaultUrl": "http://localhost:19006",
       "openStrategy": "browser",
       "defaultPort": 19006,
-      "portFlag": "--port"
+      "portFlag": "--port",
+      "cleanupTriggers": ["SIGINT", "SIGTERM", "exit"]
     },
     "tokens": {
       "formats": ["css", "native-ts"],
