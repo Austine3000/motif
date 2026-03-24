@@ -77,11 +77,21 @@ This step runs only when BATCH_MODE is true.
 
 2. **Check for empty list.** If SCREEN_LIST is empty after removing unrecognized names: STOP with error "No valid screen names to compose."
 
-3. **Calculate waves.**
+3. **Detect resume scenario.** After collecting SCREEN_LIST (screens with status `planned` or `failed`), read the full `screens` array from STATE.md. Check if any screens have status `composed`, `reviewed`, or `fixed`. If so:
+   - SKIPPED_SCREENS = names of screens NOT in SCREEN_LIST (because their status is `composed`, `reviewed`, or `fixed`)
+   - If SKIPPED_SCREENS is not empty, print:
+     "Resuming batch -- skipping {SKIPPED_SCREENS.length} already-composed screen(s): {comma-separated names}"
+     "Composing remaining {SCREEN_LIST.length} screen(s): {comma-separated names}"
+
+4. **Check for stale files from previous attempt.** For each screen in SCREEN_LIST, check if `.planning/design/screens/{screen_name}-SUMMARY.md` exists on disk (use `test -f`). Collect any matches into STALE_SCREENS list.
+   - If STALE_SCREENS is not empty, print:
+     "Note: {STALE_SCREENS.length} screen(s) have files from a previous attempt: {comma-separated names}. These will be overwritten."
+
+5. **Calculate waves.**
    - WAVE_COUNT = ceil(SCREEN_LIST.length / CONCURRENCY)
    - WAVES = split SCREEN_LIST into chunks of CONCURRENCY size
 
-4. **Display batch plan:**
+6. **Display batch plan:**
    "Composing {N} screens in {WAVE_COUNT} wave(s) (concurrency: {CONCURRENCY}): {comma-separated screen names}"
 
 Proceed to Step 3b (batch wave dispatch). Skip Steps 2, 2b, 2c, 2d, and 3 -- these are single-screen only. In batch mode, context assembly happens inside Step 3b before the wave loop.
