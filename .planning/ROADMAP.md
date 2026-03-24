@@ -86,7 +86,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 
 - [x] Phase 29: Core Batch Orchestration — Parallel multi-screen composition with wave-based dispatch, orchestrator-owned commits, and failure isolation (completed 2026-03-24)
 - [x] Phase 30: Progress Reporting and Batch Manifest — Per-screen status output, batch summary, and persistent BATCH-RESULT.md for cross-session reference (completed 2026-03-24)
-- [ ] Phase 31: Auto-Review Integration — Automatic review after batch completion, gated auto-run on review pass
+- [x] Phase 31: Auto-Review Integration — Automatic review after batch completion, gated auto-run on review pass (completed 2026-03-24)
 - [ ] Phase 32: Reliability Enhancements — Batch resume after `/clear`, smart screen ordering, configurable concurrency
 
 ## Phase Details
@@ -130,8 +130,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 31-01-PLAN.md — Auto-review dispatch and result collection (Steps 3b.8c, 3b.8d)
-- [ ] 31-02-PLAN.md — Review gate and review-aware auto-run/next steps (Steps 3b.8e, 3b.9, 3b.10)
+- [x] 31-01-PLAN.md — Auto-review dispatch and result collection (Steps 3b.8c, 3b.8d)
+- [x] 31-02-PLAN.md — Review gate and review-aware auto-run/next steps (Steps 3b.8e, 3b.9, 3b.10)
 
 ### Phase 32: Reliability Enhancements
 **Goal**: Users can resume interrupted batches and get better composition quality through smart screen ordering
@@ -184,5 +184,5 @@ Phases execute in numeric order: 29 -> 30 -> 31 -> 32
 | 28. Auto-Run Cleanup and Validation | v1.4 | 1/1 | Complete | 2026-03-24 |
 | 29. Core Batch Orchestration | v1.5 | 2/2 | Complete | 2026-03-24 |
 | 30. Progress Reporting and Batch Manifest | v1.5 | 1/1 | Complete | 2026-03-24 |
-| 31. Auto-Review Integration | v1.5 | 0/TBD | Not started | - |
+| 31. Auto-Review Integration | v1.5 | 2/2 | Complete | 2026-03-24 |
 | 32. Reliability Enhancements | v1.5 | 0/TBD | Not started | - |
