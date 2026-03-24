@@ -6,7 +6,7 @@
 - v1.1 Icon Library Integration — Phases 9-12 (shipped 2026-03-04)
 - v1.2 Brownfield Intelligence — Phases 13-16 (shipped 2026-03-06)
 - v1.3 Global Reach — Phases 17-21 (shipped 2026-03-09)
-- v1.4 Cross-Platform App Builder — Phases 22-26 (in progress)
+- v1.4 Cross-Platform App Builder — Phases 22-28 (shipped 2026-03-24)
 
 ## Phases
 
@@ -76,7 +76,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 - [x] Phase 25: Auto-Run — Dev server launch, ready detection, browser opening, and process cleanup after composition (completed 2026-03-12)
 - [x] Phase 26: Expo and React Native — Mobile scaffolding, React Native component output, and cross-platform design consistency (completed 2026-03-12)
 - [x] Phase 27: Next.js Scaffold Execution — Next.js materialization in scaffold-project.js, workflow wiring (completed 2026-03-24)
-- [ ] Phase 28: Auto-Run Cleanup and Validation — gap closure planned (session tracking + cleanup)
+- [x] Phase 28: Auto-Run Cleanup and Validation — PID session store, signal-based cleanup, verification harness (completed 2026-03-24)
 
 ## Phase Details
 
@@ -184,7 +184,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 28-01: Session persistence, cleanup harness, and signal handlers
+- [x] 28-01: Session persistence, cleanup harness, and signal handlers
 
 ## Progress
 
@@ -223,4 +223,4 @@ Phases execute in numeric order: 22 → 23 → 24 → 25 → 26
 | 25. Auto-Run | v1.4 | 2/2 | Complete | 2026-03-12 |
 | 26. Expo and React Native | v1.4 | 3/3 | Complete | 2026-03-12 |
 | 27. Next.js Scaffold Execution | v1.4 | 1/1 | Complete | 2026-03-24 |
-| 28. Auto-Run Cleanup and Validation | v1.4 | 0/0 | Gap closure planned | - |
+| 28. Auto-Run Cleanup and Validation | v1.4 | 1/1 | Complete | 2026-03-24 |

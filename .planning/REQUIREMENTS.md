@@ -47,7 +47,7 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 
 - [x] **ARUN-01**: After composition, Motif can launch the project's dev server (`npm run dev`, `npx expo start --web`) as a background process
 - [x] **ARUN-02**: Dev server ready-detection via stdout parsing (framework-specific ready messages) — opens browser/preview only after server is ready
-- [ ] **ARUN-03**: PID tracking for launched dev servers — Motif records PIDs and cleans up zombie processes on exit
+- [x] **ARUN-03**: PID tracking for launched dev servers — Motif records PIDs and cleans up zombie processes on exit
 - [x] **ARUN-04**: Browser/simulator opening uses OS-native commands (open/xdg-open/cmd start) — zero npm dependencies
 
 ## Future Requirements
@@ -159,7 +159,7 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 | COMP-07 | Phase 23 | Satisfied |
 | ARUN-01 | Phase 25 | Complete |
 | ARUN-02 | Phase 25 | Complete |
-| ARUN-03 | Phase 28 | Pending |
+| ARUN-03 | Phase 28 | Complete |
 | ARUN-04 | Phase 25 | Complete |
 
 **Coverage:**
