@@ -416,7 +416,164 @@ IF status is "fail":
 - The orchestrator will report the failure to the user
 </agent_spawn>
 
-## Step 4: Collect Result
+## Step 3b: Batch Wave Dispatch (BATCH MODE only)
+
+This step executes ONLY when BATCH_MODE is true. When BATCH_MODE is true, the workflow skips Steps 2, 2b, 2c, 2d, and 3 (single-screen flow) and jumps from Step 1b directly here.
+
+**Pre-wave context assembly (run ONCE before the wave loop):**
+
+Read the same context files as Step 2 (REQUIRED_FILES and OPTIONAL_FILES) but read them once -- the orchestrator passes file paths to each Task(), not contents. Also run Step 2c logic (platform overlay resolution) and Step 2d logic (scaffold detection) once, storing the results as variables:
+- HAS_OVERLAY, OVERLAY_PATH (from Step 2c logic)
+- STACK (from checking PROJECT.md for technical stack)
+- BROWNFIELD (from checking PROJECT-SCAN.md existence)
+
+Initialize tracking lists:
+- ALL_RESULTS = [] (accumulates across all waves)
+- TOTAL_SUCCEEDED = 0
+- TOTAL_FAILED = 0
+
+**For each wave (wave_index from 0 to WAVE_COUNT - 1):**
+
+### 3b.1: Report wave start
+
+“Starting wave {wave_index + 1}/{WAVE_COUNT}: {comma-separated screen names in this wave}”
+
+### 3b.2: Spawn parallel Task() agents -- ALL in a single message
+
+For each screen in the current wave, spawn one Task() using the SAME agent_spawn template from Step 3, but with this ADDITIONAL block PREPENDED to the Task prompt (before “You are a senior frontend engineer...”):
+
+```
+## BATCH MODE INSTRUCTIONS
+You are composing in batch mode (wave {wave_index + 1} of {WAVE_COUNT}).
+
+CRITICAL DIFFERENCES from single-screen mode:
+1. After validation (compose-validator.js), do NOT run `git commit`. Leave validated files staged but NOT committed. The orchestrator will commit your work.
+2. Do NOT modify tokens.css or COMPONENT-SPECS.md. If a token is missing, note it in SUMMARY.md under “## Missing Tokens” and use the closest existing alternative.
+3. Your SUMMARY.md “## Files Created” section MUST list every file with its full path. The orchestrator uses this list to stage files for commit.
+4. If compose-validator.js returns “fail”: run `git reset HEAD [files]` to unstage. Write “Validation: FAILED” in SUMMARY.md. Do NOT delete files.
+5. If compose-validator.js returns “pass” or “warn”: leave files staged. Write “Validation: PASSED” (or “WARNED”) in SUMMARY.md.
+```
+
+Replace `{SCREEN_NAME}` in the agent_spawn template with the current screen's name. All other template variables (STACK, HAS_OVERLAY, OVERLAY_PATH, BROWNFIELD, etc.) use the values resolved in the pre-wave context assembly above.
+
+**Spawn ALL agents for this wave in a single message with multiple Task() calls.** Do NOT spawn them one at a time.
+
+### 3b.3: Wait for all agents in the wave to complete
+
+All Task() agents in the wave must finish before proceeding.
+
+### 3b.4: Collect wave results
+
+For each screen in the current wave:
+
+1. Check if `.planning/design/screens/{SCREEN_NAME}-SUMMARY.md` exists
+2. **If exists:** Read ONLY the `## Validation` and `## Files Created` sections (use targeted Read with line offsets or Grep -- do NOT read the full SUMMARY.md to avoid context bloat)
+3. **Classify the result:**
+   - `## Validation` contains “PASSED” -> status = PASSED (will commit)
+   - `## Validation` contains “WARNED” -> status = WARNED (will commit)
+   - `## Validation` contains “FAILED” -> status = FAILED (skip commit)
+   - SUMMARY.md does not exist -> status = CRASHED (skip commit)
+4. For PASSED or WARNED: parse the file paths from `## Files Created` section
+5. Track result: `{name, status, files[]}`
+
+### 3b.5: Commit successful screens SEQUENTIALLY
+
+For each screen with PASSED or WARNED status, in order:
+
+1. Parse file paths from the `## Files Created` section of that screen's SUMMARY.md
+2. Stage the created files with explicit paths:
+   ```bash
+   git add {file1} {file2} {file3} ...
+   ```
+   NEVER use `git add .` or `git add -A`. Always list files explicitly.
+3. Also stage the screen's SUMMARY.md and ANALYSIS.md:
+   ```bash
+   git add .planning/design/screens/{SCREEN_NAME}-SUMMARY.md .planning/design/screens/{SCREEN_NAME}-ANALYSIS.md
+   ```
+4. Commit:
+   ```bash
+   git commit -m “design(compose): implement {SCREEN_NAME} screen”
+   ```
+
+For FAILED or CRASHED screens: do NOT commit. If FAILED, the subagent already unstaged the files. Warn: “Screen '{SCREEN_NAME}' failed validation. Files remain on disk at [paths listed in SUMMARY.md] for inspection. They will NOT be committed.”
+
+### 3b.6: Update STATE.md atomically
+
+Build a JSON payload with all screen status changes from this wave:
+
+```json
+{
+  “updates”: [
+    {“name”: “login”, “status”: “composed”},
+    {“name”: “dashboard”, “status”: “composed”},
+    {“name”: “settings”, “status”: “failed”}
+  ],
+  “screens_composed”: N,
+  “phase”: “COMPOSING”
+}
+```
+
+Where:
+- Each screen in the wave gets an entry in `updates` with status `composed` (for PASSED/WARNED) or `failed` (for FAILED/CRASHED)
+- `screens_composed` = total composed so far (previous count from STATE.md + this wave's successes + prior waves' successes)
+- `phase` = “COMPOSING”
+
+Run: `node .claude/get-motif/scripts/motif-state.js batch-update-screens '{payload}'`
+
+Update tracking: TOTAL_SUCCEEDED += this wave's successes, TOTAL_FAILED += this wave's failures.
+
+### 3b.7: Report wave results
+
+“Wave {wave_index + 1} complete: login (OK), dashboard (OK), settings (FAILED - {reason from SUMMARY.md validation section})”
+
+---
+
+**After ALL waves complete:**
+
+### 3b.8: Batch summary
+
+Print a results table:
+
+```
+Batch complete: {TOTAL_SUCCEEDED}/{SCREEN_LIST.length} screens composed
+
+- login: OK (committed)
+- dashboard: OK (committed)
+- settings: FAILED (validation failure)
+- profile: OK (committed)
+- transactions: CRASHED (agent did not produce summary)
+```
+
+### 3b.9: Offer auto-run ONCE
+
+Offer auto-run preview ONCE for the entire batch (not per-screen). Use the same eligibility checks as Step 4b:
+
+- Determine `platform` from `.planning/design/STATE.md`
+- Read `.claude/get-motif/references/framework-registry.json` and locate the platform entry
+- Confirm the entry has `devServer` metadata with `mode` set to `daemon` or `static-preview`
+- If any checks fail: skip auto-run
+
+If eligible, prompt: “Batch composition complete. Do you want me to auto-run the preview now? (yes/no)”
+
+If user says yes: run the shared launcher:
+`node .claude/get-motif/scripts/runtime-launcher.js --platform {platform} --project-root {PROJECT_ROOT} --project-name {PROJECT_NAME} --source compose`
+
+Report results per Step 4b. Auto-run failure does not affect batch results.
+
+### 3b.10: Next step
+
+Check STATE.md for remaining `planned` screens:
+- If all screens are now `composed`: “All screens composed. Run `/motif:review all` to evaluate.”
+- If some screens are `failed`: list them and suggest: “To retry failed screens, run `/motif:compose {failed_name_1} {failed_name_2}`”
+- If some screens are still `planned` (were not in this batch): list them and suggest composing them next.
+
+**Batch mode ends here.** Do NOT proceed to Steps 4, 4b, 5, 6, or Final Step -- all result collection, state updates, and reporting are handled within Step 3b.
+
+---
+
+## Step 4: Collect Result (single-screen only)
+
+This step runs only in single-screen mode (BATCH_MODE is false). In batch mode, result collection happens in Step 3b.4.
 
 After the agent completes, read ONLY `.planning/design/screens/{SCREEN_NAME}-SUMMARY.md`.
 
@@ -424,7 +581,9 @@ Check:
 - Did the agent create the summary? If not, something went wrong — report to user.
 - Did the agent create screen files? Check with `git log --oneline -5`.
 
-## Step 4b: Optional Auto-Run (Post-Compose)
+## Step 4b: Optional Auto-Run (Post-Compose, single-screen only)
+
+This step runs only in single-screen mode. In batch mode, auto-run is offered once in Step 3b.9.
 
 If composition succeeded and the summary exists, you may offer a post-compose auto-run preview.
 
@@ -461,31 +620,35 @@ If composition succeeded and the summary exists, you may offer a post-compose au
 - Do NOT block static preview behind daemon-only logic.
 - Do NOT change the brownfield/overlay composition flow.
 
-## Step 5: Update State
+## Step 5: Update State (single-screen only)
+
+This step runs only in single-screen mode. In batch mode, state updates happen atomically in Step 3b.6 via batch-update-screens.
 
 Update `.planning/design/STATE.md`:
 - Phase → `COMPOSING` (if first screen) or leave as-is
 - Update Screens table: set {SCREEN_NAME} status to `composed`
 - Append to Decisions Log if relevant
 
-## Step 6: Next Step
+## Step 6: Next Step (single-screen only)
+
+This step runs only in single-screen mode. In batch mode, next-step guidance is provided in Step 3b.10.
 
 Check STATE.md for remaining `planned` screens.
-- If more screens remain: "Screen composed. Run `/motif:compose {next_screen}` for the next one."
-- If all screens composed: "All screens composed. Run `/motif:review all` to evaluate."
+- If more screens remain: “Screen composed. Run `/motif:compose {next_screen}` for the next one.”
+- If all screens composed: “All screens composed. Run `/motif:review all` to evaluate.”
 
 If context > 50%, suggest `/clear` first.
 
-## Parallel Composition
+## Multi-Screen Composition
 
-If the user wants to compose multiple screens at once, you CAN spawn multiple composer agents in parallel (one per screen) in a single message with multiple Task() calls. However, only do this if:
-1. The screens are independent (don't share unique components)
-2. The user explicitly requests it
-3. They understand the rate limit implications
+Multi-screen composition is handled via batch mode. See Step 1 for argument detection (Cases C and D) and Step 3b for wave dispatch. To compose multiple screens, use:
+- `/motif:compose login dashboard settings` -- named screens
+- `/motif:compose --all` -- all planned/failed screens
+- `/motif:compose --all --concurrency 2` -- with custom concurrency
 
-Default: one screen at a time, sequentially.
+## Final Step: Update State (single-screen only)
 
-## Final Step: Update State
+This step runs only in single-screen mode. In batch mode, state updates happen atomically in Step 3b.6 via `batch-update-screens`.
 
 Run `node .claude/get-motif/scripts/motif-state.js update phase COMPOSING` (if phase changed from SYSTEM_GENERATED).
 Run `node .claude/get-motif/scripts/motif-state.js update screens_composed {N}` where N is the new count.
