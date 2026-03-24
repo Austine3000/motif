@@ -442,6 +442,36 @@ Initialize tracking lists:
 - TOTAL_SUCCEEDED = 0
 - TOTAL_FAILED = 0
 
+**Pre-wave screen ordering (run ONCE before the wave loop):**
+
+1. Define classification patterns:
+   - FOUNDATION_PATTERNS = ["layout", "nav", "navigation", "home", "landing", "shell", "frame"]
+   - FOUNDATION_EXACT = ["header", "footer", "sidebar"]
+
+2. Classify each screen in SCREEN_LIST:
+   - name_lower = screen name lowercased
+   - If name_lower exactly matches any entry in FOUNDATION_EXACT, OR any pattern in FOUNDATION_PATTERNS is a substring of name_lower: classify as FOUNDATIONAL
+   - Otherwise: classify as FEATURE
+
+3. Separate into two lists:
+   - FOUNDATION_SCREENS = all screens classified as FOUNDATIONAL
+   - FEATURE_SCREENS = all screens classified as FEATURE
+
+4. Apply ordering only when it matters:
+   - If FOUNDATION_SCREENS is not empty AND SCREEN_LIST.length > CONCURRENCY:
+     - Print: "Smart ordering: {FOUNDATION_SCREENS.length} foundational screen(s) will compose first: {comma-separated names}"
+     - ORDERED_LIST = FOUNDATION_SCREENS + FEATURE_SCREENS
+   - Else:
+     - ORDERED_LIST = SCREEN_LIST (unchanged)
+
+5. Recalculate waves from ORDERED_LIST (overrides Step 1b step 6 calculation):
+   - WAVE_COUNT = ceil(ORDERED_LIST.length / CONCURRENCY)
+   - WAVES = split ORDERED_LIST into chunks of CONCURRENCY size
+
+6. Track foundation wave boundary:
+   - FOUNDATION_WAVE_COUNT = ceil(FOUNDATION_SCREENS.length / CONCURRENCY)
+   - This tells us waves 1 through FOUNDATION_WAVE_COUNT contain foundational screens
+
 **For each wave (wave_index from 0 to WAVE_COUNT - 1):**
 
 ### 3b.1: Report wave start
