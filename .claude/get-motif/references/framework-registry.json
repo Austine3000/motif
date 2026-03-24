@@ -40,7 +40,12 @@
     "tokens": {
       "formats": ["css", "ts"],
       "cssImportPath": "./tokens.css",
-      "tsImportPath": "./tokens"
+      "tsImportPath": "./tokens",
+      "designSystemSource": ".planning/design/system",
+      "runtimeDestinations": {
+        "tokensTs": "src/theme/tokens.ts",
+        "globalsCss": "src/app/globals.css"
+      }
     },
     "conventions": {
       "srcDir": "src",
@@ -48,6 +53,33 @@
       "layoutPattern": "src/app/{route}/layout.tsx",
       "componentDir": "src/components",
       "styleApproach": "tailwind+css-vars"
+    },
+    "materialization": {
+      "ownership": "contract-owned",
+      "preserveUserFiles": true,
+      "conflictPolicy": "skip-non-owned",
+      "ownedFiles": [
+        "src/app/globals.css",
+        "src/app/page.tsx",
+        "src/theme/tokens.ts",
+        "src/components/.gitkeep",
+        ".motif-scaffolded"
+      ],
+      "designArtifacts": {
+        "tokensTs": {
+          "source": "tokens.ts",
+          "destination": "src/theme/tokens.ts"
+        },
+        "globalsCss": {
+          "source": "globals.css",
+          "destination": "src/app/globals.css"
+        }
+      },
+      "templates": {
+        "src/app/page.tsx": "export default function HomePage() {\n  return (\n    <main className=\"mx-auto w-full max-w-6xl px-6 py-10\">\n      <section className=\"space-y-3\">\n        <p className=\"inline-flex rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-primary-700\">\n          Motif Next.js Starter\n        </p>\n        <h1 className=\"font-display text-3xl font-semibold tracking-tight text-text-primary\">\n          Design-forward Next.js foundation\n        </h1>\n        <p className=\"max-w-2xl font-body text-base text-text-secondary\">\n          Compose route screens into src/app, keep shared UI in src/components, and consume project-localized tokens from src/theme/tokens.ts.\n        </p>\n      </section>\n    </main>\n  );\n}\n",
+        "src/components/.gitkeep": "",
+        ".motif-scaffolded": "platform=web-nextjs\n"
+      }
     },
     "composition": {
       "overlay": "composer-nextjs.md",
