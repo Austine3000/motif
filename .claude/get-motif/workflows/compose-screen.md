@@ -501,6 +501,25 @@ CRITICAL DIFFERENCES from single-screen mode:
    This lets the orchestrator calculate per-screen duration accurately.
 ```
 
+**Foundation summary injection (wave 2+ only):**
+
+If wave_index >= FOUNDATION_WAVE_COUNT AND FOUNDATION_SCREENS is not empty:
+  Collect FOUNDATION_SUMMARIES = paths of SUMMARY.md files from foundational screens that were composed in earlier waves (check ALL_RESULTS for these screens with result PASSED or WARNED):
+  - For each foundation screen name in FOUNDATION_SCREENS:
+    - If the screen appears in ALL_RESULTS with result PASSED or WARNED:
+      - Add `.planning/design/screens/{foundation_screen_name}-SUMMARY.md` to FOUNDATION_SUMMARIES
+  - Cap FOUNDATION_SUMMARIES at 3 paths maximum (prioritize: layout-containing names first, then nav-containing, then others)
+
+  If FOUNDATION_SUMMARIES is not empty, append this block to the Task prompt AFTER the BATCH MODE INSTRUCTIONS block:
+
+  ```
+  ## Foundation Screen Summaries (for cross-screen consistency)
+  These foundational screens were composed in earlier waves. Read them for layout structure, navigation patterns, and visual consistency:
+  {for each path in FOUNDATION_SUMMARIES:}
+  - Read: `{path}`
+  {endfor}
+  ```
+
 Replace `{SCREEN_NAME}` in the agent_spawn template with the current screen's name. All other template variables (STACK, HAS_OVERLAY, OVERLAY_PATH, BROWNFIELD, etc.) use the values resolved in the pre-wave context assembly above.
 
 **Spawn ALL agents for this wave in a single message with multiple Task() calls.** Do NOT spawn them one at a time.
