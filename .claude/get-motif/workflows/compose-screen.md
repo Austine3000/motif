@@ -452,6 +452,13 @@ CRITICAL DIFFERENCES from single-screen mode:
 3. Your SUMMARY.md “## Files Created” section MUST list every file with its full path. The orchestrator uses this list to stage files for commit.
 4. If compose-validator.js returns “fail”: run `git reset HEAD [files]` to unstage. Write “Validation: FAILED” in SUMMARY.md. Do NOT delete files.
 5. If compose-validator.js returns “pass” or “warn”: leave files staged. Write “Validation: PASSED” (or “WARNED”) in SUMMARY.md.
+6. Record timing in SUMMARY.md. Add a `## Timing` section at the end:
+   ```
+   ## Timing
+   - Started: {run `date -u +%Y-%m-%dT%H:%M:%SZ` at the very start of your work, before reading context files}
+   - Completed: {run `date -u +%Y-%m-%dT%H:%M:%SZ` after validation completes}
+   ```
+   This lets the orchestrator calculate per-screen duration accurately.
 ```
 
 Replace `{SCREEN_NAME}` in the agent_spawn template with the current screen's name. All other template variables (STACK, HAS_OVERLAY, OVERLAY_PATH, BROWNFIELD, etc.) use the values resolved in the pre-wave context assembly above.
@@ -474,7 +481,9 @@ For each screen in the current wave:
    - `## Validation` contains “FAILED” -> status = FAILED (skip commit)
    - SUMMARY.md does not exist -> status = CRASHED (skip commit)
 4. For PASSED or WARNED: parse the file paths from `## Files Created` section
-5. Track result: `{name, status, files[]}`
+4b. **Parse timing (PASSED, WARNED, or FAILED screens only):** Read the `## Timing` section from SUMMARY.md. Extract the "Started" and "Completed" ISO timestamps. Calculate duration as the difference in seconds. Format as `Xm Ys` (e.g., "1m 12s" or "0m 45s"). If `## Timing` section is missing, set duration to "N/A".
+    For CRASHED screens (no SUMMARY.md): set duration to "N/A (crashed)".
+5. Track result: `{name, status, files[], duration}`
 
 ### 3b.5: Commit successful screens SEQUENTIALLY
 
@@ -524,7 +533,14 @@ Update tracking: TOTAL_SUCCEEDED += this wave's successes, TOTAL_FAILED += this 
 
 ### 3b.7: Report wave results
 
-“Wave {wave_index + 1} complete: login (OK), dashboard (OK), settings (FAILED - {reason from SUMMARY.md validation section})”
+Print per-screen results with duration:
+
+“Wave {wave_index + 1}/{WAVE_COUNT} complete:
+  - login: OK (1m 12s)
+  - dashboard: OK (1m 45s)
+  - settings: FAILED - validation failure (0m 58s)”
+
+Duration source: use the `duration` field parsed in Step 3b.4 from each screen's SUMMARY.md `## Timing` section. If duration is “N/A”, print it as-is.
 
 ---
 
