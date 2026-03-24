@@ -604,6 +604,148 @@ git commit -m "design(compose): batch result manifest"
 
 This file overwrites any previous BATCH-RESULT.md. Previous runs are preserved in git history.
 
+### 3b.8c: Auto-review dispatch
+
+Automatically review all successfully composed screens from this batch.
+
+1. **Collect reviewable screens:** Filter ALL_RESULTS for screens with status PASSED or WARNED. Store as REVIEWABLE_SCREENS.
+2. **Skip if none:** If REVIEWABLE_SCREENS is empty, print "No screens passed composition -- skipping auto-review." and skip to 3b.8e.
+3. **Announce:** "Auto-reviewing {N} composed screens..."
+4. **Calculate review waves:** REVIEW_WAVE_COUNT = ceil(REVIEWABLE_SCREENS.length / CONCURRENCY). REVIEW_WAVES = split into chunks of CONCURRENCY size.
+5. **For each review wave:** Spawn reviewer Task() agents using the template from review.md Step 2 (the full block from `<agent_spawn id="review-{SCREEN_NAME}">` through `</agent_spawn>`), but with BATCH AUTO-REVIEW INSTRUCTIONS prepended to the Task prompt:
+
+```
+## BATCH AUTO-REVIEW INSTRUCTIONS
+You are reviewing in auto-review mode (triggered automatically after batch compose).
+
+CRITICAL DIFFERENCES from standalone /motif:review:
+1. After writing {SCREEN_NAME}-REVIEW.md, do NOT run `git commit`. Leave the file on disk. The orchestrator commits.
+2. Do NOT modify STATE.md. The orchestrator handles state updates.
+3. Write REVIEW.md to `.planning/design/reviews/{SCREEN_NAME}-REVIEW.md` as normal.
+```
+
+Then include the full reviewer agent_spawn template from review.md Step 2:
+
+<agent_spawn id="review-{SCREEN_NAME}">
+**Task prompt:**
+
+You are a senior design critic and accessibility auditor. Review the `{SCREEN_NAME}` screen rigorously.
+
+## Context -- Read These First
+1. `.planning/design/system/tokens.css` -- the token source of truth
+2. `.planning/design/system/COMPONENT-SPECS.md` -- how components should look/behave
+3. `.planning/design/DESIGN-RESEARCH.md` -- domain-specific patterns (check LOCKED decisions)
+4. `.planning/design/PROJECT.md` -- product context
+5. The actual source code files for {SCREEN_NAME} (find them via git or file listing)
+6. `.planning/design/screens/{SCREEN_NAME}-SUMMARY.md` -- what the composer intended
+7. `.planning/design/system/ICON-CATALOG.md` -- icon name catalog (if it exists; skip icon checks if absent)
+
+## Review Framework -- Four Lenses
+
+### Lens 1: Nielsen's 10 Heuristics (/30 points)
+Score 0-3 per heuristic. Be specific about what's good and what's missing.
+
+### Lens 2: WCAG AA Accessibility (/25 points)
+Check: contrast ratios, keyboard access, ARIA attributes, semantic HTML, focus indicators, touch targets, heading hierarchy.
+**Actually check the code**, not just the visual concept.
+
+### Lens 3: Design System Compliance (/25 points)
+**Grep the source code** for violations:
+- `grep -n "color:" {files}` -- any hardcoded colors? (hex, rgb, hsl that aren't in comments)
+- `grep -n "font-family:" {files}` -- any hardcoded fonts?
+- `grep -n "border-radius:" {files}` -- hardcoded radii?
+- `grep -n "box-shadow:" {files}` -- hardcoded shadows?
+- `grep -n "margin\|padding" {files}` -- hardcoded spacing? (check for px values not from tokens)
+Cross-reference each component instance against COMPONENT-SPECS.md.
+
+If `.planning/design/system/ICON-CATALOG.md` exists:
+- `grep -n "ph-\|data-lucide=\|material-symbols-\|ti ti-" {files}` -- any icon references?
+- Cross-reference found icon names against ICON-CATALOG.md
+- Flag names not in the catalog as Critical
+
+### Lens 4: Vertical UX Compliance (/20 points)
+For each LOCKED decision in DESIGN-RESEARCH.md, verify the screen implements it.
+For each BLOCKED anti-pattern, verify the screen avoids it.
+If ICON-CATALOG.md exists, verify icon choices match the vertical (no cross-domain icons).
+
+## Output Format
+
+Save to `.planning/design/reviews/{SCREEN_NAME}-REVIEW.md`:
+
+```markdown
+# Design Review -- {SCREEN_NAME}
+
+## Score: [X]/100
+
+| Lens | Score | Key Finding |
+|------|-------|-------------|
+| Heuristics | X/30 | [one-line summary] |
+| Accessibility | X/25 | [one-line summary] |
+| System Compliance | X/25 | [one-line summary] |
+| Vertical UX | X/20 | [one-line summary] |
+
+## Critical Issues (must fix before shipping)
+[Each with: location, problem, exact fix]
+
+## Major Issues (should fix)
+[Each with: location, problem, exact fix]
+
+## Minor Issues (nice to fix)
+[Each with: problem, fix]
+
+## Commendations
+[What was done well]
+```
+
+**CRITICAL:** Every issue MUST include an exact fix. Not "improve contrast" but "Change --text-secondary from #9CA3AF to #6B7280 on --surface-primary (#FFFFFF) to achieve 5.4:1 ratio (currently 2.9:1)."
+</agent_spawn>
+
+Spawn ALL agents for each review wave in a single message with multiple Task() calls (same pattern as 3b.2).
+
+6. **Wait for all review agents in the wave to complete** before proceeding to the next wave.
+
+### 3b.8d: Review result collection
+
+Collect results from all reviewer agents, commit review files, update state, and update the batch manifest.
+
+1. **Initialize:** REVIEW_RESULTS = [].
+2. **For each screen in REVIEWABLE_SCREENS:**
+   a. Check if `.planning/design/reviews/{SCREEN_NAME}-REVIEW.md` exists.
+   b. **If exists:** Use Grep to find the `## Score:` line and extract the numeric score. Use Grep to check the `## Critical Issues` section -- count items that are NOT "None" or empty. Do NOT read the full REVIEW.md file (avoids context bloat).
+   c. **Classify:** REVIEW_PASSED if score >= 80 AND zero critical issues. REVIEW_FAILED otherwise.
+   d. **If REVIEW.md does not exist:** status = REVIEW_SKIPPED, score = 0, critical = "unknown".
+   e. **Track:** {name, score, critical_count, review_status}.
+3. **Commit all review files:**
+   ```bash
+   git add .planning/design/reviews/*-REVIEW.md
+   git commit -m "design(review): auto-review batch -- {N} screens reviewed"
+   ```
+4. **Update STATE.md** via batch-update-screens: set each reviewed screen to status `reviewed`.
+   ```json
+   {
+     "updates": [{"name": "{screen}", "status": "reviewed"}, ...],
+     "phase": "REVIEWING"
+   }
+   ```
+   Run: `node .claude/get-motif/scripts/motif-state.js batch-update-screens '{payload}'`
+5. **Append review results to BATCH-RESULT.md.** Read the file, append the following section to the end:
+   ```markdown
+   ## Review Results
+
+   **Reviewed:** {N} screens | **Passed:** {pass_count} | **Failed:** {fail_count}
+
+   | Screen | Score | Critical | Status |
+   |--------|-------|----------|--------|
+   | {name} | {score}/100 | {critical_count} | PASS/FAIL |
+   ```
+   Then commit the updated manifest:
+   ```bash
+   git add .planning/design/BATCH-RESULT.md
+   git commit -m "design(review): update batch manifest with review results"
+   ```
+6. **Print review summary table** to output (same format as the BATCH-RESULT.md table above).
+7. **Store REVIEW_ALL_PASSED** = true if ALL screens have review_status REVIEW_PASSED.
+
 ### 3b.9: Offer auto-run ONCE
 
 Offer auto-run preview ONCE for the entire batch (not per-screen). Use the same eligibility checks as Step 4b:
