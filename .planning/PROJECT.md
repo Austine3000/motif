@@ -12,16 +12,17 @@ Domain-intelligent design delivered through fresh context — a fintech app must
 
 ## Current State
 
-**Shipped:** v1.3 (2026-03-09)
+**Shipped:** v1.4 (2026-03-24)
 **Published:** motif-design@0.2.3 on npm
 
-Four milestones delivered:
+Five milestones delivered:
 - **v1.0 Core Design System** — Full pipeline (research → system → compose → review → fix), 4 verticals, installer, hooks, CI/CD, npm publishing
 - **v1.1 Icon Library Integration** — 4 curated icon libraries, per-vertical vocabularies, ICON-CATALOG.md generation, composer anti-slop enforcement, reviewer icon checks, aria-check icon detection
 - **v1.2 Brownfield Intelligence** — Project scanning, token extraction, brownfield compose/review integration
 - **v1.3 Global Reach** — Context resilience (SessionStart hooks, 3-layer defense), 4 new verticals (8 total), global CLI (init/status/update/doctor/list), package source sync
+- **v1.4 Cross-Platform App Builder** — Smart framework scaffolding (Next.js, Vite, Expo, static HTML), platform-aware composition, cross-platform token bridge, auto-run with PID cleanup
 
-**Stats:** 21 phases, 52 plans executed across 4 milestones
+**Stats:** 28 phases, 58 plans executed across 5 milestones
 
 ## Requirements
 
@@ -51,20 +52,22 @@ Four milestones delivered:
 - ✓ 8 verticals (fintech, health, SaaS, e-commerce, social, education, marketplace, devtools) — v1.3
 - ✓ Global CLI (motif init/status/update/doctor/list) — v1.3
 - ✓ Package source sync with E2E verification — v1.3
+- ✓ Smart framework scaffolding (Next.js, Vite/React, Expo, static HTML) — v1.4
+- ✓ Platform-aware composition (JSX, React Native Views/StyleSheet) — v1.4
+- ✓ Cross-platform token bridge (CSS vars, TypeScript, React Native StyleSheet) — v1.4
+- ✓ Auto-run with PID tracking and cleanup — v1.4
 
 ### Active
 
-**Current Milestone: v1.4 Cross-Platform App Builder**
+**Current Milestone: v1.5 Batch Compose**
 
-**Goal:** Transform Motif from a design system generator into a full design-to-running-app pipeline — smart framework scaffolding, platform-aware component composition, and auto-run that takes users from zero to seeing their app running.
+**Goal:** Compose multiple screens in a single command with parallel execution and automatic review — eliminating the tedium of running `/motif:compose` once per screen.
 
 **Target features:**
-- Smart scaffolding: `motif init` asks what you're building, recommends a framework (Next.js, Vite/React, Expo/React Native, static HTML), creates the actual project with dependencies installed
-- Platform-aware composition: screens output real framework components (JSX for React/Next.js, React Native Views/StyleSheet for mobile) instead of raw HTML/CSS
-- Cross-platform design consistency: shared design tokens adapted per platform (CSS custom properties for web, StyleSheet constants for React Native), consistent visual language across platforms
-- Auto-run: after composition, Motif runs the project's start command (`npm run dev`, `npx expo start`) and opens it in browser/simulator
-- Web platforms: Next.js, Vite/React, static HTML landing pages
-- Mobile platforms: React Native with Expo
+- Batch compose by name: `/motif:compose login dashboard settings` composes listed screens in parallel
+- Batch compose all pending: `/motif:compose --all` composes every screen defined in STATE.md that hasn't been composed yet
+- Progress tracking as screens complete (wave-style reporting)
+- Automatic `/motif:review` across all composed screens after the batch finishes
 
 ### Out of Scope
 
@@ -118,7 +121,8 @@ Four milestones delivered:
 | CSS class + CDN delivery | Inline SVG is anti-pattern for agents; CDN is zero-config | ✓ Good |
 | Icon size as system invariant | Fixed 8px-multiple scale, not project-adjustable | ✓ Good |
 
-| v1.4 cross-platform scope | Web (Next.js, Vite/React, static HTML) + Mobile (React Native/Expo). Desktop deferred. | — Pending |
+| v1.4 cross-platform scope | Web (Next.js, Vite/React, static HTML) + Mobile (React Native/Expo). Desktop deferred. | ✓ Good |
+| v1.5 batch compose scope | Parallel multi-screen composition + auto-review. No architecture changes to per-screen agents. | — Pending |
 
 ---
-*Last updated: 2026-03-09 after v1.4 milestone start*
+*Last updated: 2026-03-24 after v1.5 milestone start*

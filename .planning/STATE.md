@@ -1,38 +1,37 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: Cross-Platform App Builder
-current_plan: 1
-status: executing
-stopped_at: Completed 28-auto-run-cleanup-and-validation-01-PLAN.md
-last_updated: "2026-03-24T07:51:23Z"
+milestone: v1.5
+milestone_name: Batch Compose
+current_plan: 0
+status: defining_requirements
+stopped_at: Milestone v1.5 started
+last_updated: "2026-03-24T08:30:00Z"
 last_activity: 2026-03-24
 progress:
-  total_phases: 6
-  completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-09)
+See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** v1.4 Cross-Platform App Builder — Phase 28 (Auto-Run Cleanup and Validation)
+**Current focus:** v1.5 Batch Compose — Defining requirements
 
 ## Current Position
 
-Phase: 28 of 28 (Auto-Run Cleanup and Validation)
-Current Plan: 1 (completed)
-Total Plans in Phase: 1
-Status: Phase 28 Plan 01 complete
-Last Activity: 2026-03-24
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-24 — Milestone v1.5 started
 
-Progress: [██████████] 100% (all currently planned work)
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -41,30 +40,6 @@ Progress: [██████████] 100% (all currently planned work)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
-**By Phase (v1.3 — most recent):**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 17. Context Resilience | 3/3 | 8min | 2.7min |
-| 18. New Verticals | 3/3 | 12min | 4.0min |
-| 19. Global CLI Core | 2/2 | 6min | 3.0min |
-| 20. CLI Commands | 2/2 | 6min | 3.0min |
-| 21. Package Source Sync | 2/2 | 4min | 2.0min |
-| Phase 22 P01 | 3min | 2 tasks | 3 files |
-| Phase 22 P02 | 3min | 2 tasks | 2 files |
-| Phase 23 P01 | 1min | 2 tasks | 2 files |
-| Phase 23 P02 | 3min | 2 tasks | 2 files |
-| Phase 23 P03 | 3min | 2 tasks | 2 files |
-| Phase 24-vite-static-and-brownfield P01 | 5 min | 3 tasks | 11 files |
-| Phase 24-vite-static-and-brownfield P02 | 7 min | 3 tasks | 8 files |
-| Phase 25-auto-run P01 | 5965 | 3 tasks | 13 files |
-| Phase 26 P01 | 2m 34s | 2 tasks | 2 files |
-| Phase 26-expo-and-react-native P02 | 3m 48s | 2 tasks | 2 files |
-| Phase 26-expo-and-react-native P03 | 1m 9s | 2 tasks | 2 files |
-| Phase 03 P04 | 34s | 2 tasks | 3 files |
-| Phase 27-nextjs-scaffold-execution P01 | 5min | 2 tasks | 3 files |
-| Phase 28-auto-run-cleanup-and-validation P01 | 4m 30s | 2 tasks | 4 files |
-
 ## Accumulated Context
 
 ### Decisions
@@ -72,38 +47,10 @@ Progress: [██████████] 100% (all currently planned work)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [v1.4 roadmap]: Platform foundation first — everything depends on platform field and token transformer
-- [v1.4 roadmap]: Next.js first to validate platform adapter pattern before harder platforms
-- [v1.4 roadmap]: Auto-run after scaffolding — cannot start what is not scaffolded
-- [v1.4 roadmap]: Expo/RN last — hardest platform (CSS-to-RN gaps), defer risk
-- [v1.4 roadmap]: Vite grouped with static HTML and brownfield — reuses web-react infrastructure from Phase 23
-- [v1.4 roadmap]: SCAF-01 (framework recommendation) in Phase 23 with Next.js — first user-facing scaffolding experience
-- [v1.4 roadmap]: COMP-06 (cross-platform consistency) in Phase 26 — cannot verify until both web and mobile exist
-- [Phase 22]: Framework registry is static JSON; platform enum: web-nextjs, web-vite, web-static, mobile-expo
-- [Phase 22]: Colors category preserves text-/surface-/border- prefixes in token keys; only color- prefix stripped
-- [Phase 22]: text-* disambiguation: suffix pattern matching (size suffixes = typography, all else = colors)
-- [Phase 22]: Token transformer is non-blocking in pipeline; failure warns but does not stop design system generation
-- [Phase 23]: Brownfield detection takes priority over keyword framework recommendation
-- [Phase 23]: web-nextjs is default recommendation for ambiguous project descriptions
-- [Phase 23]: Scaffold sequence: create-next-app -> shadcn init -> shadcn add -> Motif globals.css (order matters)
-- [Phase 23]: Three-layer token bridge: Motif :root vars -> shadcn semantic mapping -> Tailwind @theme inline
-- [Phase 23]: color-* tokens map directly in @theme; surface-/text-/border- tokens remap to --color-* namespace
-- [Phase 23]: Platform overlay uses OVERRIDE semantics -- overlay rules take precedence over base composition rules
-- [Phase 23]: HAS_OVERLAY conditional pattern preserves backward compatibility for web-static
-- [Phase 23]: Server Component by default -- push use client to child components
-- [Phase 24-vite-static-and-brownfield]: Scaffold execution centralized in scaffold-project.js with registry-driven contracts
-- [Phase 24-vite-static-and-brownfield]: web-vite now materializes project-local router/bootstrap and token bridge runtime files
-- [Phase 24-vite-static-and-brownfield]: Treat generic or conflicting React signatures as confirmation-required instead of auto-adopt.
-- [Phase 24-vite-static-and-brownfield]: Expose scanner adoption intent directly in PROJECT-SCAN.md so init can consume one explicit decision surface.
-- [Phase 24-vite-static-and-brownfield]: Route web-static composition to root HTML + shared css/js files while preserving non-static fallback behavior.
-- [Phase 26]: Place Expo tokens at theme/tokens.native.ts with a theme/index.ts re-export for RN composition.
-- [Phase 26]: Use runtime-launcher devServer metadata for Expo with explicit ready matchers and web default URL.
-- [Phase 27]: Next.js materialization owns src/app/globals.css and src/theme/tokens.ts as design artifact destinations
-- [Phase 27]: .motif-scaffolded marker file enables compose-screen to detect real scaffold output
-- [Phase 27]: Starter page.tsx uses Tailwind utilities matching composer-nextjs overlay conventions
-- [Phase 28]: Session store persists at .planning/runtime/session-store.json alongside active-session.json
-- [Phase 28]: Cleanup kills tracked PIDs in reverse spawn order for orderly shutdown
-- [Phase 28]: cleanupTriggers field documents the cleanup contract in registry metadata
+- [v1.5 milestone]: Batch compose is the full scope — no other features
+- [v1.5 milestone]: Both named screens and --all flag supported
+- [v1.5 milestone]: Auto-review runs after batch completes
+- [v1.5 milestone]: Each screen still gets fresh agent context — no architecture change
 
 ### Pending Todos
 
@@ -113,10 +60,9 @@ Recent decisions affecting current work:
 
 - NativeWind v5 in preview (March 2026) — may need StyleSheet.create fallback for Expo+Tailwind path
 - Windows spawn compatibility unverified — shell:true and npx.cmd patterns documented but not tested
-- Next.js 16.1 App Router conventions still evolving — validate file placement before Phase 23 planning
 
 ## Session Continuity
 
-Last session: 2026-03-24T07:51:23Z
-Stopped at: Completed 28-auto-run-cleanup-and-validation-01-PLAN.md
+Last session: 2026-03-24T08:30:00Z
+Stopped at: Milestone v1.5 started
 Resume file: None
