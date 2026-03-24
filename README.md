@@ -2,7 +2,7 @@
 
 > Domain-intelligent design system for AI coding assistants
 
-AI coding tools produce generic, domain-inappropriate UI -- a fintech dashboard that looks like a meditation app, a health portal with e-commerce patterns. Motif fixes this by injecting domain intelligence from vertical databases (fintech, health, SaaS, e-commerce) and composing each screen with a fresh agent context window, so screen 10 is as sharp as screen 1.
+AI coding tools produce generic, domain-inappropriate UI -- a fintech dashboard that looks like a meditation app, a health portal with e-commerce patterns. Motif fixes this by injecting domain intelligence from vertical databases (fintech, health, SaaS, e-commerce, social, education, marketplace, devtools) and composing each screen with a fresh agent context window, so screen 10 is as sharp as screen 1.
 
 ## Quick Start
 
@@ -10,7 +10,7 @@ AI coding tools produce generic, domain-inappropriate UI -- a fintech dashboard 
 npx motif-design@latest
 ```
 
-This auto-detects your AI runtime (Claude Code for v1), installs design intelligence into your project, and sets up slash commands. Start designing with `/motif:init`.
+This auto-detects your AI runtime (Claude Code for v1), installs design intelligence into your project, and sets up slash commands. Then run `/motif:init` to start designing.
 
 ## Commands
 
@@ -18,10 +18,12 @@ This auto-detects your AI runtime (Claude Code for v1), installs design intellig
 
 | Command | What it does |
 |---------|-------------|
-| `/motif:init` | Interview, vertical detection, design brief |
+| `/motif:init` | Interview, vertical detection, design brief, framework scaffolding |
 | `/motif:research` | 4-agent parallel research, locked design decisions |
 | `/motif:system` | Generate tokens + component specs + icon catalog + visual showcase |
 | `/motif:compose [screen]` | Build screen with fresh agent context |
+| `/motif:compose [s1] [s2] [s3]` | Batch compose multiple screens in parallel waves |
+| `/motif:compose --all` | Compose all pending screens (resumes after `/clear`) |
 | `/motif:review [screen\|all]` | 4-lens heuristic evaluation, scored /100 |
 | `/motif:fix [screen]` | Fix review findings systematically |
 
@@ -41,20 +43,22 @@ This auto-detects your AI runtime (Claude Code for v1), installs design intellig
 
 ## How It Works
 
-Four things make Motif different from generic UI generation:
+Five things make Motif different from generic UI generation:
 
-**Domain intelligence.** Vertical databases contain domain-specific color palettes, typography scales, component patterns, layout conventions, and anti-patterns. When you tell Motif you are building a fintech app, every design decision draws from established fintech patterns -- not random defaults.
+**Domain intelligence.** 8 vertical databases contain domain-specific color palettes, typography scales, component patterns, layout conventions, and anti-patterns. When you tell Motif you are building a fintech app, every design decision draws from established fintech patterns -- not random defaults.
 
 **Fresh context per screen.** Each screen is composed by a fresh subagent with a full 200K token context window loaded with your design system, research decisions, and domain knowledge. There is no context degradation over time. The tenth screen gets the same quality as the first.
 
-**Icon library integration.** The system architect selects icons from curated libraries (Phosphor, Lucide, Heroicons) based on your domain vertical, generates an `ICON-CATALOG.md` with CDN links and usage syntax, and the composer consumes it -- so every screen uses real, consistent icons instead of placeholder text or hallucinated class names.
+**Batch composition.** Compose multiple screens in parallel with wave-based dispatch. Foundational screens (layout, navigation) are automatically ordered first so feature screens can reference their established patterns. If interrupted, `/motif:compose --all` resumes from where it left off -- already-composed screens are skipped.
 
-**Design system enforcement.** Hooks and validators run during composition to catch hardcoded color values, banned fonts, spacing violations, import cycles, naming conflicts, and accessibility issues before they ship. The design system is not advisory -- it is enforced.
+**Icon library integration.** The system architect selects icons from curated libraries (Phosphor, Lucide, Material Symbols, Tabler) based on your domain vertical, generates an `ICON-CATALOG.md` with CDN links and usage syntax, and the composer consumes it -- so every screen uses real, consistent icons instead of placeholder text or hallucinated class names.
+
+**Design system enforcement.** Hooks and validators run during composition to catch hardcoded color values, banned fonts, spacing violations, import cycles, naming conflicts, and accessibility issues before they ship. Automatic design review runs after batch composition, and auto-run is gated on review pass.
 
 ## Architecture
 
 ```
-User runs /motif:compose login
+User runs /motif:compose login dashboard settings
          |
          v
   Runtime Adapter (Claude Code)
@@ -62,12 +66,19 @@ User runs /motif:compose login
          |
          v
   Core Workflow (compose-screen.md)
-  orchestrator reads design system, spawns fresh subagent
+  orchestrator classifies screens, builds wave plan
          |
          v
-  Fresh Subagent (200K context)
+  Wave 1: Foundational screens (layout, nav)
+  Wave 2: Feature screens (with foundation summaries)
+         |  (parallel within each wave, sequential across waves)
+         v
+  Fresh Subagent per screen (200K context)
   loads tokens.css + COMPONENT-SPECS.md + ICON-CATALOG.md + vertical DB
-  builds screen -> validates -> commits atomically
+  builds screen -> validates -> orchestrator commits atomically
+         |
+         v
+  Auto-review across all screens -> gated auto-run
 ```
 
 Motif uses a **core + adapters** architecture:
@@ -86,7 +97,7 @@ Installed file layout (Claude Code):
 
 ## Verticals
 
-Motif ships with domain intelligence for:
+Motif ships with domain intelligence for 8 verticals:
 
 | Vertical | File |
 |----------|------|
@@ -94,8 +105,24 @@ Motif ships with domain intelligence for:
 | Health | `core/references/verticals/health.md` |
 | SaaS | `core/references/verticals/saas.md` |
 | E-commerce | `core/references/verticals/ecommerce.md` |
+| Social | `core/references/verticals/social.md` |
+| Education | `core/references/verticals/education.md` |
+| Marketplace | `core/references/verticals/marketplace.md` |
+| DevTools | `core/references/verticals/devtools.md` |
 
 Each vertical contains color palettes, typography guidance, component patterns, layout conventions, icon recommendations, and anti-patterns specific to that domain. New verticals can be added using `core/templates/VERTICAL-TEMPLATE.md`.
+
+## Platforms
+
+Motif auto-detects your project framework and adapts composition output:
+
+| Platform | Scaffolding | Output |
+|----------|-------------|--------|
+| Next.js | `create-next-app` with App Router | JSX + Tailwind + shadcn/ui |
+| Vite/React | `create-vite` React template | JSX + CSS modules |
+| Expo/React Native | `create-expo-app` | React Native Views + StyleSheet |
+| Static HTML | Minimal structure | HTML + CSS custom properties |
+| Brownfield | Auto-detected from package.json | Adapts to existing framework |
 
 ## Requirements
 
