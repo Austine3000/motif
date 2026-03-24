@@ -1,170 +1,183 @@
 # Project Research Summary
 
-**Project:** Motif v1.4 -- Cross-Platform App Builder
-**Domain:** AI-powered design-to-code with framework-aware output, project scaffolding, and auto-run
-**Researched:** 2026-03-09
+**Project:** Motif v1.5 -- Batch Multi-Screen Composition
+**Domain:** AI-powered design system tooling -- parallel orchestration
+**Researched:** 2026-03-24
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Motif v1.4 transforms the tool from a design system generator that outputs HTML/CSS into a cross-platform app builder that scaffolds real framework projects (Next.js, Vite+React, Expo/React Native), outputs framework-native components, and auto-runs the result. The core architectural insight is that Motif's design intelligence -- vertical references, research workflows, COMPONENT-SPECS.md -- is entirely platform-agnostic. Only the final output layer (token delivery format and component code format) needs to change. This means the upgrade is a FORMAT change at the edges, not a fundamental restructuring.
+Motif currently composes one screen at a time via `/motif:compose [screen-name]`. Each invocation spawns a fresh 200K-token subagent via Claude Code's Task() primitive, validates the output with compose-validator.js, and commits atomically. For a 6-screen project, the user must issue 6 separate commands and wait for each to complete sequentially -- 12-30 minutes of wall-clock time. The batch compose feature eliminates this friction: a single `/motif:compose --all` command spawns multiple composer agents in parallel, collects results, and offers to chain into the review pipeline. Research confirms this is entirely achievable using existing Motif infrastructure with minimal additions.
 
-The recommended approach is a "Platform Adapter" pattern: tokens.css remains the canonical source of truth for all design decisions. A deterministic transformer script (not LLM-generated) produces platform-specific token files (tokens.ts for React, tokens.native.ts for React Native). Composer agent prompts receive platform-specific overlays (composer-react.md, composer-rn.md) that teach the agent correct output patterns without forking the agent definition. Scaffolding delegates to official CLI tools (create-next-app, create-expo-app, create-vite) via child_process.spawn, keeping Motif at zero npm dependencies. This "canonical + derived" pattern is the single most important architectural decision -- it prevents token drift, keeps the design architect focused on design, and makes adding new platforms a matter of writing one overlay file.
+The recommended approach is wave-based parallel Task() dispatch with a default concurrency of 3 agents per wave. The existing motif-screen-composer.md agent, compose-validator.js, and STATE.md schema require zero changes. All batch logic lives in two places: a modified argument-parsing and orchestration section in compose-screen.md, and a new `batch-update-screens` command (~35 lines) in motif-state.js. This minimal footprint is the finding with the highest confidence across all four research areas: the feature is an orchestration concern, not a new subsystem.
 
-The primary risks are: (1) CSS-to-React-Native translation silently dropping unsupported properties (grid, box-shadow, pseudo-elements, position:fixed), producing components that render but look broken; (2) zombie dev server processes after crashes or aborts, locking ports; and (3) cross-platform path/spawn issues breaking Windows and Linux users. Mitigation for each is well-understood: a property compatibility matrix with inline TODO comments for untranslatable CSS, PID file management with cleanup handlers for dev servers, and path.posix for generated source code with shell:true for Windows spawning.
+The most significant risks are architectural rather than algorithmic. Parallel git commits from concurrent subagents will trigger index.lock contention, and concurrent STATE.md reads will produce lost updates. Both are solved by the same design decision: defer all writes (commits and state updates) to the orchestrator, which executes them in a single atomic operation after all agents complete. This "batch-commit-by-orchestrator" strategy collapses three critical pitfalls into one resolved architectural choice and is the non-negotiable foundation of the implementation.
 
 ## Key Findings
 
 ### Recommended Stack
 
-Motif itself adds zero new npm dependencies. All new capabilities use Node.js built-ins (child_process.spawn, node:fs, node:path) and CLI tool spawning. Three new scripts are needed: `scripts/scaffold.js` (~120 lines, framework project scaffolding), `scripts/tokens-to-rn.js` (~60 lines, CSS-to-TypeScript token transpilation), and `scripts/auto-run.js` (~80 lines, dev server launch + browser opening).
+The batch feature requires no new dependencies and no new script files. Node.js >=22 (existing), Claude Code's Task() primitive (existing), motif-state.js (extended with one command), and compose-validator.js (unchanged) are the complete stack. Claude Code supports up to 10 concurrent Task() calls per message; the practical safe limit for Opus-class subagents is 3-5 due to concurrent request rate limits. All parallelism is managed by the Claude Code runtime -- no p-limit, no Worker Threads, no external orchestration libraries.
 
-**Core technologies (spawned, not imported):**
-- `create-next-app@latest` (Next.js 16.1.x): Web app scaffolding with App Router, TypeScript, Tailwind -- the primary target framework
-- `create-expo-app@latest` (Expo SDK 55, RN 0.83): Mobile app scaffolding with blank-typescript template
-- `npm create vite@latest` (Vite 7.3.x): Lightweight web alternative with react-ts template
-- `npx serve .`: Static HTML serving for non-framework projects
-
-**Critical version note:** All frameworks require Node.js >=18 or >=20. Motif requires >=22. No conflicts -- Motif's requirement is the strictest and satisfies all frameworks.
+**Core technologies:**
+- **Claude Code Task()**: parallel subagent spawning -- native support for multiple concurrent calls in a single message, no library needed
+- **motif-state.js** (extended): STATE.md atomic read/write -- add `batch-update-screens` command for single-write batch state updates
+- **compose-screen.md** (modified): batch orchestration -- argument parsing for multi-screen/all, wave management, result collection, auto-review trigger
+- **compose-validator.js** (unchanged): per-screen validation -- already runs inside each subagent; no batch awareness required
+- **STATE.md frontmatter**: batch configuration -- `batch_concurrency` (default 3) and `batch_auto_review` (default false) stored in existing state file
 
 ### Expected Features
 
+Both researchers converge on the same MVP scope with consistent priorities.
+
 **Must have (table stakes):**
-- Framework recommendation during /motif:init -- conversational, domain-aware, with override support
-- Project scaffolding via official create-X tools with non-interactive flags
-- JSX/TSX component output -- compose-screen.md branches on framework for correct output format
-- Tailwind config extension with semantic token mapping (bg-primary, not bg-[var(--color-primary)])
-- Next.js framework reference file -- import patterns, file placement, "use client" directive rules
-- launch.json generation for Claude Code Desktop preview
-- Auto-run offer after composition with dev server management
+- Multi-screen argument parsing (`/motif:compose dashboard settings profile`) -- entry point to the feature
+- `--all` flag (compose every screen with status `planned`) -- the convenience shortcut; every batch tool has it
+- Parallel Task() dispatch (default concurrency 3, max 5) -- core value proposition; sequential is 5x slower
+- Per-screen success/failure reporting -- users need a clear pass/fail table after the batch
+- Failure isolation -- failed screens must not block successful ones; STATE.md marks failures, others commit normally
+- STATE.md batch update (atomic, single write after all agents complete) -- prevents corruption
+- Auto-review offer after batch completion ("Run review? yes/no") -- natural pipeline continuation
 
 **Should have (differentiators):**
-- Domain-intelligent framework recommendation (fintech -> Next.js for SSR, social -> Expo for native scroll)
-- Token-first Tailwind integration (semantic classes backed by CSS variables, like shadcn/ui)
-- Unified token file for web + mobile (single tokens.css source, mechanical derivation)
-- Design-system-then-components pipeline (Motif's unique advantage over v0/Bolt.new/Lovable)
+- Live progress updates between waves ("Wave 1 complete: login OK, dashboard OK, settings OK. Starting wave 2...")
+- Batch summary report (consolidated BATCH-SUMMARY.md aggregating all individual screen summaries)
+- Context-aware screen ordering (compose foundation screens in wave 1, feature screens in wave 2 with wave 1 summaries available)
+- Configurable concurrency via STATE.md frontmatter (`batch_concurrency: 3`)
+- Smart auto-run offer once after full batch (not per screen)
 
 **Defer (v2+):**
-- shadcn/ui component library integration
-- Cross-platform single project (web + mobile from one design system simultaneously)
-- Pre-built project templates (SaaS dashboard, social feed, marketplace)
-- Additional frameworks (Svelte, Angular, Flutter, SwiftUI)
-- Full-stack scaffolding (database, auth, API routes)
-- Visual drag-and-drop editor
-- Framework migration tooling
+- Full compose-review-fix pipeline (`/motif:compose --all --review --fix`) -- too ambitious for v1
+- Dependency-aware ordering (graph scheduling to detect shared components) -- medium complexity, low marginal value
+- Parallel auto-review waves (same orchestration pattern, adds scope for v1)
 
 ### Architecture Approach
 
-The architecture follows three core patterns: (1) **Canonical + Derived** -- tokens.css is always generated first by the design architect, then mechanically transformed to platform-specific formats by a deterministic script; (2) **Overlay, Don't Fork** -- platform-specific composition rules are appended to the composer agent prompt as overlay files, not baked into separate agent definitions; (3) **Platform Detection Flows Down** -- platform is detected once at init, stored in STATE.md, and read by all downstream workflows. This minimizes changes to existing components: only 8 files are modified (mostly small changes), 7-8 new files are added, and the entire design intelligence layer (verticals, research, COMPONENT-SPECS.md, review) remains untouched.
+The architecture is an orchestrator/subagent fan-out pattern. The batch orchestrator assembles a shared context profile once (file paths, not contents), calculates waves, and spawns N Task() calls in a single message. Subagents run in fully isolated 200K-token context windows and are screen-agnostic -- each receives only its screen name and the shared context paths. After all agents in a wave complete, the orchestrator reads only the SUMMARY.md from each screen (never TaskOutput), updates STATE.md in a single atomic write, reports wave results, and starts the next wave. The orchestrator stays thin (estimated peak ~14K tokens for a 5-screen batch with auto-review, well under the 30% context budget).
 
 **Major components:**
-1. **Platform Adapters Reference** (core/references/platform-adapters.md) -- registry of supported platforms, token format specs, element mapping tables
-2. **Token Transformer Script** (scripts/token-transformer.js) -- deterministic CSS-to-platform token conversion, ~300 lines
-3. **Composer Platform Overlays** (core/templates/composer-react.md, composer-rn.md) -- platform-specific composition rules injected into agent prompts
-4. **Scaffolding Script** (scripts/scaffold.js) -- spawns official CLI tools, post-processes with Motif file overlay
-5. **Auto-Run Script** (scripts/auto-run.js) -- dev server launch, stdout-based ready detection, browser/simulator opening
+
+1. **Batch Orchestrator** (`compose-screen.md` Step 1 + new batch section) -- argument parsing, wave calculation, parallel Task() dispatch, result collection, deferred state update, auto-review prompt
+2. **Composer Agent** (`motif-screen-composer.md`, unchanged) -- single-screen composition; batch is invisible to it; receives screen name + context paths
+3. **State Utility** (`motif-state.js`, +35 lines) -- adds `batch-update-screens` command; performs one atomic read/write for all screen status updates
+4. **Wave Coordinator** (logic within compose-screen.md) -- groups screens into waves of N (default 3), reports progress between waves, rebuilds state from STATE.md on resume after `/clear`
+5. **Result Collector** (logic within compose-screen.md) -- reads SUMMARY.md per screen, classifies as passed/warned/failed, aggregates into batch result table
 
 ### Critical Pitfalls
 
-1. **CSS-to-RN silent property drops** -- Grid, box-shadow, pseudo-elements, position:fixed, calc(), CSS variables all have no React Native equivalent. Build a property compatibility matrix; emit inline TODO comments for untranslatable properties; never silently drop.
-2. **Zombie dev server processes** -- Spawned child processes survive parent crashes, locking ports. Use PID files, cleanup handlers on exit/SIGINT/SIGTERM, and tree-kill (process.kill(-pid)) to kill process groups.
-3. **Cross-platform spawn failures** -- `npx` is `npx.cmd` on Windows; path.join produces backslashes; case-insensitive macOS hides import case mismatches that crash on Linux. Use shell:true on Windows, path.posix for generated code, exact case matching in imports.
-4. **Token file drift (two sources of truth)** -- tokens.css and tokens.ts/tokens.native.ts can diverge if the LLM generates them independently. Always derive platform files from tokens.css via deterministic script, never LLM-generated.
-5. **Port conflicts on auto-run** -- Port 3000 is commonly in use; framework prompts for alternative port hang in non-TTY child processes. Pre-check port availability, auto-increment, pass explicit --port flag, set CI=true to suppress prompts.
+1. **Git index.lock contention from parallel commits** -- parallel agents committing simultaneously race on the git index lock file, causing `fatal: Unable to create '.git/index.lock'` failures even when files were generated correctly. Solution: agents write files but do NOT commit. The orchestrator stages and commits all successful screens in a single batch commit after all agents complete.
+
+2. **STATE.md concurrent write corruption** -- if the orchestrator updates STATE.md after each individual agent completion, overlapping read-modify-write cycles silently drop updates (`screens_composed` becomes wrong; screen statuses are lost). Solution: single `batch-update-screens` call that reads once, updates all statuses, writes once atomically.
+
+3. **Rate limit cascade failure** -- spawning 5+ concurrent Opus-class Task() agents exhausts the API's concurrent request cap, causing an entire wave to fail simultaneously. Solution: default concurrency of 3, hard cap at 5. Wave-based batching ensures partial progress is preserved if a wave fails.
+
+4. **Orchestrator context bloat** -- reading full SUMMARY.md files and TaskOutput across multiple waves accumulates 1K+ tokens per wave. For 12+ screen batches the orchestrator may exhaust useful context mid-batch. Solution: read only the validation status line (PASSED/FAILED/WARN) from each SUMMARY.md; write a persistent BATCH-RESULT.md manifest so context loss does not mean result loss.
+
+5. **Cross-screen shared component duplication** -- parallel agents composing related screens (e.g., dashboard + analytics) may both generate the same component (StatCard.tsx), resulting in naming conflicts or silent overwrites. Solution: compose foundation screens in wave 1 first; prohibit agents from modifying shared files like tokens.css during batch (note gaps in SUMMARY.md instead).
 
 ## Implications for Roadmap
 
 Based on research, suggested phase structure:
 
-### Phase 1: Platform Foundation
-**Rationale:** Everything downstream depends on platform detection and token transformation. This is pure infrastructure with no user-facing output, but without it, no other phase can function correctly.
-**Delivers:** Platform detection in init, STATE.md platform field, token-transformer.js script, platform-adapters.md reference
-**Addresses:** Stack persistence to PROJECT.md/STATE.md (table stakes), token delivery format per platform
-**Avoids:** Token drift (Pitfall 6) by establishing canonical+derived pattern from the start
+### Phase 1: Core Batch Orchestration Infrastructure
 
-### Phase 2: Next.js Scaffolding and Output
-**Rationale:** Next.js is the highest-demand framework and the simplest cross-platform target (web-only, no RN translation complexity). Validates the entire platform adapter pattern with the least-risky framework first.
-**Delivers:** create-next-app scaffolding via spawn, Next.js framework reference file, composer-react.md overlay, Tailwind config extension with token mapping, JSX/TSX component output from /motif:compose
-**Addresses:** Framework recommendation (table stakes), project scaffolding (table stakes), JSX component output (table stakes), Tailwind token integration (table stakes + differentiator)
-**Avoids:** Interactive prompt hanging (Pitfall 12) via non-interactive flags; cross-platform spawn issues (Pitfall 4) via shell:true on Windows
+**Rationale:** The commit strategy and state update strategy are the architectural foundation. Both researchers independently identify these as "must solve first before any parallel spawning is implemented." Getting these wrong requires rewriting dependent phases. The batch-commit-by-orchestrator decision resolves the git lock pitfall, the state race pitfall, and the partial failure recovery pitfall simultaneously.
 
-### Phase 3: Auto-Run and Preview
-**Rationale:** Auto-run depends on a scaffolded, composable project (Phase 2). It is the "wow moment" that completes the zero-to-running story but is useless without working scaffolding and component output.
-**Delivers:** scripts/auto-run.js, dev server management with PID tracking, browser opening, launch.json generation, port conflict resolution
-**Addresses:** Auto-run offer after composition (table stakes), launch.json for Claude Code Desktop (table stakes)
-**Avoids:** Zombie processes (Pitfall 3) via PID files and cleanup handlers; port conflicts (Pitfall 9) via pre-check and auto-increment
+**Delivers:** Working batch compose with correct git history and STATE.md integrity; deferred atomic commits; `batch-update-screens` command in motif-state.js; argument parsing for multi-screen and `--all`; parallel Task() dispatch in waves of 3
 
-### Phase 4: Expo / React Native Support
-**Rationale:** Mobile is the second platform and involves the hardest translation challenges (CSS-to-RN property gaps, different responsive paradigm, simulator prerequisites). Shipping this AFTER Next.js is proven reduces risk.
-**Delivers:** create-expo-app scaffolding, tokens.native.ts generation, composer-rn.md overlay, React Native component output, icon delivery via lucide-react-native
-**Addresses:** Expo/RN scaffolding and output (P2 feature), tokens.ts for React Native (P2), NativeWind configuration (P2)
-**Avoids:** CSS-to-RN silent drops (Pitfall 2) via property compatibility matrix; Text-in-View crashes (Pitfall 13) via strict Text wrapping; incorrect imports (Pitfall 10) via curated import map
+**Addresses:** Multi-screen argument parsing, `--all` flag, parallel Task() dispatch, STATE.md batch update, failure isolation
 
-### Phase 5: Vite + React and Polish
-**Rationale:** Vite+React is a lightweight web alternative that reuses nearly all of Phase 2's web-react infrastructure. Low incremental cost, broadens framework coverage.
-**Delivers:** Vite scaffolding, Vite-specific dev server handling in auto-run, hook updates for platform-aware validation
-**Addresses:** Vite+React support (P2 feature)
-**Avoids:** Version mismatch (Pitfall 1) -- by this phase, the environment detection pattern is battle-tested
+**Avoids:** Git index.lock contention (Critical Pitfall 1), STATE.md concurrent write corruption (Critical Pitfall 2), partial batch failure with no recovery (Critical Pitfall 3)
+
+### Phase 2: Progress Reporting and UX
+
+**Rationale:** With correct infrastructure in place, the user experience layer can be built safely. Wave-based progress feedback prevents users from interrupting batches they think are frozen. Research notes that silent batch execution is a moderate UX pitfall that causes users to abort mid-batch and spawn duplicate agents for the same screens.
+
+**Delivers:** Wave progress reports between Task() completions, pre-spawn expectation setting ("Composing 5 screens in parallel. This typically takes 2-4 minutes. Do not interrupt."), final batch result table (pass/fail per screen), persistent BATCH-RESULT.md manifest
+
+**Addresses:** Per-screen success/failure reporting, progress updates between waves
+
+**Avoids:** Silent batch execution causing user interruption (Moderate Pitfall 6), orphaned files from premature aborts
+
+### Phase 3: Auto-Review Integration and Pipeline Completion
+
+**Rationale:** The review workflow already supports `/motif:review all`. Wiring it to batch compose is additive logic -- a prompt and a trigger. This phase is low risk because it calls existing, validated infrastructure. Research consensus: offer auto-review as opt-in after batch completion (never auto-trigger) due to API budget implications.
+
+**Delivers:** Post-batch auto-review prompt, context budget check before offering review, smart auto-run offer once after full batch (never per-screen)
+
+**Addresses:** Automatic review trigger, auto-run after batch
+
+**Avoids:** Rate budget exhaustion from automatic review (Moderate Pitfall 3), auto-run offered before batch fully resolves (Minor Pitfall 9)
+
+### Phase 4: Reliability Enhancements
+
+**Rationale:** Context-aware screen ordering (wave 1 = foundation screens, wave 2 = feature screens with wave 1 summaries available) and configurable concurrency improve quality and safety for power users but are not required for the core feature to work. These are differentiators that can ship independently after core functionality is validated.
+
+**Delivers:** Wave-aware screen ordering (classify foundation vs feature screens), `batch_concurrency` frontmatter configuration, batch state resume after `/clear` (stateless orchestrator design that rebuilds wave plan from STATE.md screen statuses)
+
+**Addresses:** Context-aware screen ordering, configurable concurrency, resume interrupted batch
+
+**Avoids:** Cross-screen inconsistency within same wave (Moderate Pitfall 1), stale context files (Minor Pitfall 2)
 
 ### Phase Ordering Rationale
 
-- **Foundation first:** Platform detection and token transformation are dependencies for every subsequent phase. Building them first prevents rework.
-- **Next.js before Expo:** Web output is simpler (no CSS-to-RN translation), higher demand, and validates the platform adapter pattern with lower risk. If the pattern works for Next.js, it will work for RN with predictable additions.
-- **Auto-run after scaffolding:** Cannot start a dev server without a scaffolded project. Auto-run is also the most isolated capability -- it can be developed and tested independently once scaffolding works.
-- **Expo last among major platforms:** RN has the most pitfalls (4 of 13 are RN-specific), the hardest translation challenges, and the heaviest prerequisites (Xcode, simulators). Deferring it de-risks the milestone.
-- **Vite last:** Near-zero incremental cost given web-react infrastructure from Phase 2. Can be squeezed in or deferred without affecting the milestone story.
+- Phase 1 must precede everything because the commit and state strategies dictate all subsequent design choices. Getting these wrong requires rewriting dependent phases.
+- Phase 2 can begin as soon as Phase 1's Task() spawning is wired up -- progress reporting is purely additive output logic with no state impact.
+- Phase 3 depends on Phase 2's result collection being accurate (auto-review should only be offered when the pass/fail table is complete and correct).
+- Phase 4 is decoupled from 1-3 and could ship incrementally or be deferred entirely without breaking the core feature.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 2 (Next.js Scaffolding):** Needs research on exact file placement conventions for Next.js 16 App Router, especially the co-location pattern for _components/ directories and how next/font/google integrates with Motif's token-based font selection.
-- **Phase 4 (Expo/RN):** Needs significant research on CSS property compatibility matrix, RN font loading (expo-font vs config plugin), and NativeWind v5 configuration specifics. The responsive design paradigm shift (CSS media queries to useWindowDimensions) requires careful design.
+
+- **Phase 1 (commit strategy):** The "batch commit by orchestrator" pattern has not been validated against compose-validator.js's current per-screen file expectations. Verify that the validator can be run per-screen by each subagent before the orchestrator stages files, and that the orchestrator's batch commit includes correct `design(compose):` attribution format.
+- **Phase 1 (shared file writes):** The tokens.css concurrent modification scenario needs a concrete rule about what agents are permitted to write during batch mode. The existing composer agent instructions allow token creation -- this must be explicitly overridden in the batch prompt without breaking single-screen composition behavior.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1 (Platform Foundation):** Well-documented patterns -- STATE.md field addition, CSS parsing via regex, TypeScript code generation. No unknowns.
-- **Phase 3 (Auto-Run):** child_process.spawn, stdout parsing, PID file management -- all standard Node.js patterns with extensive documentation.
-- **Phase 5 (Vite):** Reuses Phase 2 infrastructure. Vite scaffolding is simpler than Next.js (fewer flags, no App Router complexity).
+
+- **Phase 2 (progress reporting):** Text output between waves is documented and straightforward; no new API surface or script changes required.
+- **Phase 3 (auto-review):** The review workflow's `all` argument is already validated. Triggering it is a one-line workflow transition.
+- **Phase 4 (STATE.md config):** Adding frontmatter keys follows the established Motif pattern exactly; no research needed.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All framework versions verified against official docs (March 2026). CLI flags confirmed. Zero-dependency constraint validated. |
-| Features | MEDIUM-HIGH | Feature set grounded in real competitor analysis (v0, Bolt.new, Lovable). MVP scoping is opinionated and clear. NativeWind v5 status is "preview" which adds uncertainty to Expo+Tailwind path. |
-| Architecture | HIGH | Platform adapter pattern is well-established in cross-platform tooling. Canonical+derived token approach prevents the most dangerous pitfall (token drift). Codebase analysis confirms minimal modification footprint. |
-| Pitfalls | HIGH | Critical pitfalls verified against official RN docs, Node.js child_process docs, and npm ecosystem behavior. CSS-to-RN gap is extensively documented. Auto-run pitfalls follow known patterns from the Node.js community. |
+| Stack | HIGH | No new dependencies. All tools are existing and validated in production across 58+ compose plans. The only addition is ~35 lines to motif-state.js. Zero ambiguity about what is needed. |
+| Features | HIGH | Two independent researchers converged on identical MVP scope and identical defer list with no conflicting signals. Prioritization matrix is well-reasoned. |
+| Architecture | HIGH | Both architecture research files are grounded in direct codebase analysis (not inference). Component boundaries, data flow, and integration points are specified at file/function level. |
+| Pitfalls | HIGH (critical), MEDIUM (moderate) | Critical pitfalls (git lock, state race, partial failure) are verified against git documentation and Node.js concurrency patterns. Moderate pitfalls (context pressure, rate limits) are based on Claude Code subagent architecture patterns, which are less formally documented. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **NativeWind v5 stability:** NativeWind v5 is in preview as of March 2026. If it ships unstable, the Expo+Tailwind path may need to fall back to StyleSheet.create with raw token imports. Monitor before Phase 4 planning.
-- **Windows testing:** All research was conducted on macOS. The cross-platform spawn and path pitfalls are well-documented but need actual Windows testing before claiming Windows support. Consider deferring Windows support to a patch release with dedicated testing.
-- **Next.js 16 App Router conventions:** Next.js 16.1 is recent. Some community conventions around co-location and route groups may still be evolving. Validate file placement patterns against real Next.js 16 projects before finalizing the framework reference file.
-- **Expo SDK 55 + React 19.2 maturity:** Expo SDK 55 shipped January 2026 with React 19.2. Some third-party Expo libraries may not yet be fully compatible. Run expo-doctor as part of scaffold validation.
-- **Nuxt/Vue support scope:** FEATURES.md lists Nuxt/Vue as P3, but STACK.md does not research it. If Vue support is desired for v1.4.x, a separate stack research pass is needed for Nuxt 4 scaffolding and Vue SFC composition patterns.
+- **tokens.css write prohibition during batch:** The existing composer agent instructions allow adding missing tokens during composition. For batch mode this must be explicitly overridden in the batch prompt. Validate during Phase 1 planning that the override does not inadvertently affect single-screen composition.
+- **compose-validator.js batch mode behavior:** The validator was designed for per-screen file sets. Research identifies potential cross-screen naming conflict false positives when run on combined file sets. The per-screen-only approach is safe for MVP but a cross-screen conflict detection pass should be scoped before batch compose ships to users.
+- **Rate limit detection threshold:** No concrete API for detecting rate limit proximity was identified in research. The concurrency cap (3 default) is the primary mitigation. Proactive detection would require access to usage metrics that may not be available in Claude Code context.
+- **6-screen batch size UX cap:** Research suggests capping batch at 6 screens as a UX recommendation, but this threshold is an estimate based on context budget math, not empirical measurement. Validate against a real 6-screen compose run before publishing the cap as user-facing guidance.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Next.js create-next-app CLI Reference](https://nextjs.org/docs/app/api-reference/cli/create-next-app) -- scaffolding flags, version 16.1.6
-- [Vite Getting Started Guide](https://vite.dev/guide/) -- scaffolding, templates, version 7.3.1
-- [Expo create-expo-app Documentation](https://docs.expo.dev/more/create-expo/) -- flags, templates, SDK 55
-- [Expo SDK 55 Changelog](https://expo.dev/changelog/sdk-55) -- React Native 0.83, React 19.2
-- [React Native StyleSheet Documentation](https://reactnative.dev/docs/stylesheet) -- styling API, platform differences
-- [React Native Flexbox Layout](https://reactnative.dev/docs/flexbox) -- flexDirection defaults, flex behavior
-- [Node.js child_process Documentation](https://nodejs.org/api/child_process.html) -- spawn, stdio, process groups
-- [Expo CLI Documentation](https://docs.expo.dev/more/expo-cli/) -- start, run:ios, run:android commands
-- Existing Motif codebase analysis (direct source code inspection, March 2026)
+- `compose-screen.md` workflow (codebase) -- orchestrator flow, parallel Task() support documentation (lines 429-437), context budget rules
+- `motif-screen-composer.md` agent spec (codebase) -- subagent definition, context profile, existing anti-patterns
+- `motif-state.js` implementation (codebase) -- atomic write behavior, existing CLI command patterns, `atomicWrite`/`parseFrontmatter`/`serializeFrontmatter` functions
+- `compose-validator.js` (codebase) -- validation scope, import cycle detection, naming conflict checks
+- Claude Code Subagents Documentation (code.claude.com/docs/en/sub-agents) -- Task() parallelism model, subagent isolation, concurrency behavior
+- MDN Promise.allSettled() (developer.mozilla.org) -- conceptual model for failure-tolerant parallel execution
 
 ### Secondary (MEDIUM confidence)
-- [NativeWind v5 overview](https://www.nativewind.dev/v5) -- Tailwind CSS for React Native (preview status)
-- [cross-spawn npm package](https://www.npmjs.com/package/cross-spawn) -- Windows spawn patterns
-- [css-to-react-native](https://github.com/styled-components/css-to-react-native) -- property compatibility reference
-- [Bolt.new GitHub repository](https://github.com/stackblitz/bolt.new) -- competitor architecture patterns
-- [Claude Code Desktop documentation](https://code.claude.com/docs/en/desktop) -- launch.json configuration
-- Competitor analysis sources (v0, Lovable, Replit comparisons)
+- Claude Code Sub-Agents: Parallel vs Sequential Patterns (claudefa.st/blog) -- concurrency limits, rate limit observations from community testing
+- Claude Code Rate Limits Explained (clawport.dev) -- concurrent request cap behavior with multiple agents
+- CLI UX Best Practices: Progress Displays (evilmartians.com) -- batch progress reporting patterns
+- Git worktrees with Claude Code (docs.bswen.com) -- parallel agent patterns, conflict rates
+- Error handling in distributed systems (temporal.io) -- fan-out/fan-in orchestration, partial failure handling
+- AI Agent Orchestration Patterns (Microsoft Azure) -- concurrent agent patterns, graceful degradation
+
+### Tertiary (LOW confidence)
+- Clash (github.com/clash-sh/clash) -- 3.1% git conflict rate with parallel AI agents; used as supporting evidence for the index.lock pitfall, not primary source
 
 ---
-*Research completed: 2026-03-09*
+*Research completed: 2026-03-24*
 *Ready for roadmap: yes*
