@@ -4,9 +4,9 @@ milestone: v1.4
 milestone_name: Cross-Platform App Builder
 current_plan: 2
 status: executing
-stopped_at: Completed 03-installer-04-PLAN.md
-last_updated: "2026-03-12T16:10:50.129Z"
-last_activity: 2026-03-12
+stopped_at: Completed 27-nextjs-scaffold-execution-01-PLAN.md
+last_updated: "2026-03-24T07:33:49Z"
+last_activity: 2026-03-24
 progress:
   total_phases: 5
   completed_phases: 5
@@ -22,15 +22,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** v1.4 Cross-Platform App Builder — Phase 25 (Auto-Run)
+**Current focus:** v1.4 Cross-Platform App Builder — Phase 27 (Next.js Scaffold Execution)
 
 ## Current Position
 
-Phase: 25 of 26 (Auto-Run)
-Current Plan: 2
-Total Plans in Phase: 2
-Status: Ready to execute (25-02 next)
-Last Activity: 2026-03-12
+Phase: 27 of 28 (Next.js Scaffold Execution)
+Current Plan: 1 (completed)
+Total Plans in Phase: 1
+Status: Phase 27 Plan 01 complete
+Last Activity: 2026-03-24
 
 Progress: [██████████] 100% (all currently planned work)
 
@@ -62,6 +62,7 @@ Progress: [██████████] 100% (all currently planned work)
 | Phase 26-expo-and-react-native P02 | 3m 48s | 2 tasks | 2 files |
 | Phase 26-expo-and-react-native P03 | 1m 9s | 2 tasks | 2 files |
 | Phase 03 P04 | 34s | 2 tasks | 3 files |
+| Phase 27-nextjs-scaffold-execution P01 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,9 @@ Recent decisions affecting current work:
 - [Phase 24-vite-static-and-brownfield]: Route web-static composition to root HTML + shared css/js files while preserving non-static fallback behavior.
 - [Phase 26]: Place Expo tokens at theme/tokens.native.ts with a theme/index.ts re-export for RN composition.
 - [Phase 26]: Use runtime-launcher devServer metadata for Expo with explicit ready matchers and web default URL.
+- [Phase 27]: Next.js materialization owns src/app/globals.css and src/theme/tokens.ts as design artifact destinations
+- [Phase 27]: .motif-scaffolded marker file enables compose-screen to detect real scaffold output
+- [Phase 27]: Starter page.tsx uses Tailwind utilities matching composer-nextjs overlay conventions
 
 ### Pending Todos
 
@@ -109,6 +113,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-12T15:50:23.751Z
-Stopped at: Completed 03-installer-04-PLAN.md
+Last session: 2026-03-24T07:33:49Z
+Stopped at: Completed 27-nextjs-scaffold-execution-01-PLAN.md
 Resume file: None
