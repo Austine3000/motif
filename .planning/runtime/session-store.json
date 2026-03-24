@@ -1,0 +1,19 @@
+{
+  "sessions": [
+    {
+      "pid": 93318,
+      "platform": "web-nextjs",
+      "role": "dev-server",
+      "url": "http://localhost:3000",
+      "port": 3000,
+      "source": "compose",
+      "osPlatform": "darwin",
+      "startedAt": "2026-03-24T07:55:07.548Z",
+      "status": "stopped",
+      "stoppedAt": "2026-03-24T07:55:07.550Z",
+      "cleanupMethod": "simulated-SIGINT",
+      "cleanupError": null
+    }
+  ],
+  "updatedAt": "2026-03-24T07:55:07.550Z"
+}
