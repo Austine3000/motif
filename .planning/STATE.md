@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Cross-Platform App Builder
-current_plan: 2
+current_plan: 1
 status: executing
-stopped_at: Completed 27-nextjs-scaffold-execution-01-PLAN.md
-last_updated: "2026-03-24T07:33:49Z"
+stopped_at: Completed 28-auto-run-cleanup-and-validation-01-PLAN.md
+last_updated: "2026-03-24T07:51:23Z"
 last_activity: 2026-03-24
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 5
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 13
+  completed_plans: 13
   percent: 100
 ---
 
@@ -22,14 +22,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Domain-intelligent design delivered through fresh context — a fintech app must look like fintech, not meditation, and screen 5 must be as good as screen 1.
-**Current focus:** v1.4 Cross-Platform App Builder — Phase 27 (Next.js Scaffold Execution)
+**Current focus:** v1.4 Cross-Platform App Builder — Phase 28 (Auto-Run Cleanup and Validation)
 
 ## Current Position
 
-Phase: 27 of 28 (Next.js Scaffold Execution)
+Phase: 28 of 28 (Auto-Run Cleanup and Validation)
 Current Plan: 1 (completed)
 Total Plans in Phase: 1
-Status: Phase 27 Plan 01 complete
+Status: Phase 28 Plan 01 complete
 Last Activity: 2026-03-24
 
 Progress: [██████████] 100% (all currently planned work)
@@ -37,7 +37,7 @@ Progress: [██████████] 100% (all currently planned work)
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 57 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 12, v1.4: 5)
+- Total plans completed: 58 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 12, v1.4: 6)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -63,6 +63,7 @@ Progress: [██████████] 100% (all currently planned work)
 | Phase 26-expo-and-react-native P03 | 1m 9s | 2 tasks | 2 files |
 | Phase 03 P04 | 34s | 2 tasks | 3 files |
 | Phase 27-nextjs-scaffold-execution P01 | 5min | 2 tasks | 3 files |
+| Phase 28-auto-run-cleanup-and-validation P01 | 4m 30s | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,9 @@ Recent decisions affecting current work:
 - [Phase 27]: Next.js materialization owns src/app/globals.css and src/theme/tokens.ts as design artifact destinations
 - [Phase 27]: .motif-scaffolded marker file enables compose-screen to detect real scaffold output
 - [Phase 27]: Starter page.tsx uses Tailwind utilities matching composer-nextjs overlay conventions
+- [Phase 28]: Session store persists at .planning/runtime/session-store.json alongside active-session.json
+- [Phase 28]: Cleanup kills tracked PIDs in reverse spawn order for orderly shutdown
+- [Phase 28]: cleanupTriggers field documents the cleanup contract in registry metadata
 
 ### Pending Todos
 
@@ -113,6 +117,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-24T07:33:49Z
-Stopped at: Completed 27-nextjs-scaffold-execution-01-PLAN.md
+Last session: 2026-03-24T07:51:23Z
+Stopped at: Completed 28-auto-run-cleanup-and-validation-01-PLAN.md
 Resume file: None
