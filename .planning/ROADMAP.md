@@ -143,7 +143,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 32-01: TBD
+- [ ] 32-01-PLAN.md — Batch resume detection and user messaging in Step 1b (REL-02)
+- [ ] 32-02-PLAN.md — Smart screen ordering and foundation summary injection in Step 3b (REL-03)
 
 ## Progress
 
