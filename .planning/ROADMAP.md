@@ -84,7 +84,7 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 
 **Milestone Goal:** Compose multiple screens in a single command with parallel execution, progress reporting, and automatic review — eliminating the tedium of running `/motif:compose` once per screen.
 
-- [ ] Phase 29: Core Batch Orchestration — Parallel multi-screen composition with wave-based dispatch, orchestrator-owned commits, and failure isolation
+- [x] Phase 29: Core Batch Orchestration — Parallel multi-screen composition with wave-based dispatch, orchestrator-owned commits, and failure isolation (completed 2026-03-24)
 - [ ] Phase 30: Progress Reporting and Batch Manifest — Per-screen status output, batch summary, and persistent BATCH-RESULT.md for cross-session reference
 - [ ] Phase 31: Auto-Review Integration — Automatic review after batch completion, gated auto-run on review pass
 - [ ] Phase 32: Reliability Enhancements — Batch resume after `/clear`, smart screen ordering, configurable concurrency
@@ -104,8 +104,8 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 **Plans**: 2 plans
 
 Plans:
-- [ ] 29-01-PLAN.md — Atomic batch state update command (batch-update-screens in motif-state.js)
-- [ ] 29-02-PLAN.md — Batch orchestration in compose-screen.md (argument parsing, wave dispatch, deferred commits, failure isolation)
+- [x] 29-01-PLAN.md — Atomic batch state update command (batch-update-screens in motif-state.js)
+- [x] 29-02-PLAN.md — Batch orchestration in compose-screen.md (argument parsing, wave dispatch, deferred commits, failure isolation)
 
 ### Phase 30: Progress Reporting and Batch Manifest
 **Goal**: Users see clear, real-time feedback as screens compose and get a persistent summary they can reference after the batch finishes
@@ -181,7 +181,7 @@ Phases execute in numeric order: 29 -> 30 -> 31 -> 32
 | 26. Expo and React Native | v1.4 | 3/3 | Complete | 2026-03-12 |
 | 27. Next.js Scaffold Execution | v1.4 | 1/1 | Complete | 2026-03-24 |
 | 28. Auto-Run Cleanup and Validation | v1.4 | 1/1 | Complete | 2026-03-24 |
-| 29. Core Batch Orchestration | v1.5 | 0/2 | Planned | - |
+| 29. Core Batch Orchestration | v1.5 | 2/2 | Complete | 2026-03-24 |
 | 30. Progress Reporting and Batch Manifest | v1.5 | 0/TBD | Not started | - |
 | 31. Auto-Review Integration | v1.5 | 0/TBD | Not started | - |
 | 32. Reliability Enhancements | v1.5 | 0/TBD | Not started | - |
