@@ -26,7 +26,7 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 ### Scaffolding
 
 - [ ] **SCAF-01**: `motif init` asks what the user is building and recommends a framework (Next.js, Vite/React, Expo, static HTML) based on project type and vertical
-- [ ] **SCAF-02**: User can scaffold a Next.js project with `create-next-app` — correct App Router structure, dependencies installed, ready to run
+- [x] **SCAF-02**: User can scaffold a Next.js project with `create-next-app` — correct App Router structure, dependencies installed, ready to run
 - [x] **SCAF-03**: User can scaffold a Vite/React project with `create-vite` — React template, dependencies installed, ready to run
 - [x] **SCAF-04**: User can scaffold an Expo/React Native project with `create-expo-app` — Expo SDK, dependencies installed, ready to run
 - [x] **SCAF-05**: User can scaffold a static HTML landing page — minimal structure with design tokens linked, ready to open in browser
@@ -144,7 +144,7 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 | PLAT-04 | Phase 22 | Satisfied |
 | PLAT-05 | Phase 23 | Satisfied |
 | SCAF-01 | Phase 23 | Satisfied |
-| SCAF-02 | Phase 23 | Satisfied |
+| SCAF-02 | Phase 27 | Complete |
 | SCAF-03 | Phase 24 | Complete |
 | SCAF-04 | Phase 26 | Complete |
 | SCAF-05 | Phase 24 | Complete |
@@ -159,7 +159,7 @@ Requirements for Cross-Platform App Builder milestone. Each maps to roadmap phas
 | COMP-07 | Phase 23 | Satisfied |
 | ARUN-01 | Phase 25 | Complete |
 | ARUN-02 | Phase 25 | Complete |
-| ARUN-03 | Phase 25 | Pending |
+| ARUN-03 | Phase 28 | Pending |
 | ARUN-04 | Phase 25 | Complete |
 
 **Coverage:**

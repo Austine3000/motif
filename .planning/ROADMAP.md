@@ -75,6 +75,8 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 - [x] Phase 24: Vite, Static, and Brownfield — Vite/React scaffolding, static HTML preservation, and brownfield framework detection for web projects (completed 2026-03-11)
 - [x] Phase 25: Auto-Run — Dev server launch, ready detection, browser opening, and process cleanup after composition (completed 2026-03-12)
 - [x] Phase 26: Expo and React Native — Mobile scaffolding, React Native component output, and cross-platform design consistency (completed 2026-03-12)
+- [x] Phase 27: Next.js Scaffold Execution — Next.js materialization in scaffold-project.js, workflow wiring (completed 2026-03-24)
+- [ ] Phase 28: Auto-Run Cleanup and Validation — gap closure planned (session tracking + cleanup)
 
 ## Phase Details
 
@@ -156,6 +158,34 @@ Plans:
 - [ ] 26-02: Composer-rn.md overlay, React Native component output, CSS-to-RN property matrix
 - [ ] 26-03: Cross-platform consistency validation, COMP-06 verification
 
+### Phase 27: Next.js Scaffold Execution
+**Goal**: Run a real `create-next-app` (App Router + Tailwind + shadcn) and feed that project directly into the existing composition and auto-run conveyor belt so the Next.js flow is executable end-to-end.
+**Depends on**: Phase 23 (registry/contracts for web-nextjs)
+**Requirements**: SCAF-02, COMP-01
+**Success Criteria** (what must be TRUE):
+  1. `/motif:init` triggers a scaffold step that produces a Next.js project with `app`/`package.json`/Tailwind + shadcn dependencies and copies `composer-nextjs.md` overlays.
+  2. The registry-driven scaffold runner logs a deterministic project path and drops a verification marker so downstream phases can confirm the output exists.
+  3. `compose-screen` recognizes the project, uses the Next.js overlay, and exposes the same project path for auto-run.
+  4. The Next.js integration flow (scaffold → compose → auto-run) can be executed without manual scaffolding steps.
+**Plans**: 1 plan
+
+Plans:
+- [x] 27-01: Next.js scaffold runner, registry metadata, and compose hand-off
+
+### Phase 28: Auto-Run Cleanup and Validation
+**Goal**: Ensure every auto-run session records its spawned PIDs, persists them, and kills them on SIGINT/unclean exits or before a new session starts so `ARUN-03` and the auto-run integration gap are satisfied.
+**Depends on**: Phase 25 (runtime launcher and auto-run flow)
+**Requirements**: ARUN-03
+**Success Criteria** (what must be TRUE):
+  1. The runtime launcher records each PID/preview session into a lightweight store anchored near `.planning/STATE.md`.
+  2. Signal handlers (SIGINT/SIGTERM/exit) read the store and terminate tracked daemons/preview processes before exiting, freeing the ports for the next auto-run.
+  3. The cleanup harness proves the launcher works across macOS, Linux, and Windows opener semantics.
+  4. The audit's integration note for auto-run now reports the cleanup flow as automated.
+**Plans**: 1 plan
+
+Plans:
+- [ ] 28-01: Session persistence, cleanup harness, and signal handlers
+
 ## Progress
 
 **Execution Order:**
@@ -190,5 +220,7 @@ Phases execute in numeric order: 22 → 23 → 24 → 25 → 26
 | 22. Platform Foundation | v1.4 | 2/2 | Complete | 2026-03-09 |
 | 23. Next.js Scaffolding and Web Composition | v1.4 | 3/3 | Complete | 2026-03-10 |
 | 24. Vite, Static, and Brownfield | v1.4 | 2/2 | Complete | 2026-03-11 |
-| 25. Auto-Run | 2/2 | Complete    | 2026-03-12 | - |
-| 26. Expo and React Native | 3/3 | Complete   | 2026-03-12 | - |
+| 25. Auto-Run | v1.4 | 2/2 | Complete | 2026-03-12 |
+| 26. Expo and React Native | v1.4 | 3/3 | Complete | 2026-03-12 |
+| 27. Next.js Scaffold Execution | v1.4 | 1/1 | Complete | 2026-03-24 |
+| 28. Auto-Run Cleanup and Validation | v1.4 | 0/0 | Gap closure planned | - |
