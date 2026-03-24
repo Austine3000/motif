@@ -746,7 +746,33 @@ Collect results from all reviewer agents, commit review files, update state, and
 6. **Print review summary table** to output (same format as the BATCH-RESULT.md table above).
 7. **Store REVIEW_ALL_PASSED** = true if ALL screens have review_status REVIEW_PASSED.
 
+### 3b.8e: Review gate (auto-run decision)
+
+This step gates auto-run on review results. It reads REVIEW_ALL_PASSED (set by 3b.8d) and determines whether to proceed to auto-run, offer an override, or skip.
+
+1. **If no screens were reviewed** (REVIEWABLE_SCREENS was empty in 3b.8c -- all screens failed composition): Skip this step entirely. Proceed to 3b.9 as before (unchanged behavior for all-failed batches).
+
+2. **If REVIEW_ALL_PASSED is true:**
+   Print: "All screens passed review. Proceeding to auto-run."
+   Continue to Step 3b.9.
+
+3. **If REVIEW_ALL_PASSED is false:**
+   List failing screens with their scores and critical issue counts from REVIEW_RESULTS:
+   ```
+   Review found issues that should be fixed before running:
+     - {screen_name}: {score}/100 ({critical_count} critical issues)
+     - ...
+
+   Recommended: Run `/motif:fix {space-separated failing screen names}` to address critical issues.
+
+   Override: Would you like to launch the preview anyway? (yes/no)
+   ```
+   - If user says **yes**: Continue to Step 3b.9.
+   - If user says **no**: Print "Skipping auto-run. Fix issues and re-compose, or run `/motif:review` after fixing." Skip 3b.9, go directly to 3b.10.
+
 ### 3b.9: Offer auto-run ONCE
+
+This step is reached only if the review gate (3b.8e) passed or the user overrode a failed review.
 
 Offer auto-run preview ONCE for the entire batch (not per-screen). Use the same eligibility checks as Step 4b:
 
@@ -764,10 +790,25 @@ Report results per Step 4b. Auto-run failure does not affect batch results.
 
 ### 3b.10: Next step
 
-Check STATE.md for remaining `planned` screens:
-- If all screens are now `composed`: “All screens composed. Run `/motif:review all` to evaluate.”
-- If some screens are `failed`: list them and suggest: “To retry failed screens, run `/motif:compose {failed_name_1} {failed_name_2}`”
-- If some screens are still `planned` (were not in this batch): list them and suggest composing them next.
+Check STATE.md for remaining `planned` screens AND review status:
+
+**If all screens are composed AND review passed (REVIEW_ALL_PASSED is true):**
+  “All screens composed and reviewed. Your design is production-ready.”
+  If auto-run was launched: “Preview is running -- check the browser.”
+  If auto-run was not launched or skipped: “Run the preview manually or proceed to development.”
+
+**If all screens are composed but review found issues (REVIEW_ALL_PASSED is false):**
+  “All screens composed. Review found issues on {N} screens.”
+  List failing screens.
+  “Run `/motif:fix {failing_screen_names}` to address critical issues, then `/motif:compose {failing_screen_names}` to re-compose.”
+
+**If some screens are `failed` (composition failures):**
+  List them and suggest: “To retry failed screens, run `/motif:compose {failed_name_1} {failed_name_2}`”
+
+**If some screens are still `planned` (were not in this batch):**
+  List them and suggest composing them next.
+
+If context > 50%, suggest `/clear` first.
 
 **Batch mode ends here.** Do NOT proceed to Steps 4, 4b, 5, 6, or Final Step -- all result collection, state updates, and reporting are handled within Step 3b.
 
