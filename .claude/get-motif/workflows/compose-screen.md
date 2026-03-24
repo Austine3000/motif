@@ -93,6 +93,16 @@ If platform is set and is NOT `web-static`:
 If platform is `web-static` or not set:
 - Set HAS_OVERLAY = false (no overlay needed; use static/file-output rules below)
 
+## Step 2d: Scaffold Detection
+
+If platform is set and HAS_OVERLAY is true:
+1. Check for `.motif-scaffolded` marker file in the project root (current working directory or its parent).
+2. If marker exists: the scaffold runner has produced a real project. The compose agent will write files directly into the scaffolded project tree (e.g., `src/app/{route}/page.tsx` for `web-nextjs`, `src/pages/{RouteName}Page.tsx` for `web-vite`).
+3. If marker does NOT exist: WARN "No scaffolded project detected. Composition will use fallback file placement (`.planning/design/screens/`). Run `/motif:system` to scaffold first."
+4. For `web-nextjs`, additionally verify `package.json` and `src/app/` exist in the project root. If they do, confirm the scaffold output is ready for composition.
+
+This step ensures the compose flow consumes the real scaffold output (closing the integration gap) rather than falling back to stub behavior.
+
 ## Step 3: Spawn Composer Agent
 
 Spawn ONE fresh agent with Task():

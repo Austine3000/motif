@@ -507,7 +507,7 @@ After token-transformer and globals generation finish, run scaffold/materializat
    - Expo scaffolding is greenfield by default; only skip when a brownfield scan exists.
 3. Only continue if `platform` exists in `.claude/get-motif/references/framework-registry.json` and has scaffold/materialization metadata.
 4. Invoke the shared scaffold runner (do not re-implement scaffold logic in this workflow):
-   - Expo scaffolding uses this shared runner (no platform-specific scaffold script).
+   - All platforms (web-nextjs, web-vite, mobile-expo) use this shared runner — no platform-specific scaffold scripts.
 
 ```bash
 node .claude/get-motif/scripts/scaffold-project.js \
@@ -526,6 +526,15 @@ For `web-vite`, verify scaffold/materialization outputs:
 - Router/bootstrap files live under `src/app/` (for example `src/app/router.tsx`, `src/app/AppShell.tsx`).
 - Runtime CSS entry imports project-localized bridge output (for example `src/index.css` importing `src/styles/globals.css`).
 - `tokens.ts` materializes into a project-local path (for example `src/theme/tokens.ts`) when declared in the Vite contract.
+
+For `web-nextjs`, verify scaffold/materialization outputs:
+- `package.json` exists in the project root (created by `create-next-app`).
+- `src/app/` directory exists with App Router page files.
+- shadcn components are installed (e.g., `src/components/ui/button.tsx` exists after `shadcn add`).
+- `src/app/globals.css` contains the Motif Tailwind token bridge (materialized from design system `globals.css`).
+- `src/theme/tokens.ts` materializes into the project (TypeScript token exports from design system).
+- `.motif-scaffolded` marker exists at the project root, confirming scaffold completion.
+- The scaffold path `init -> scaffold -> compose -> auto-run` is now executable for Next.js.
 
 For `mobile-expo`, verify scaffold/materialization outputs:
 - The tokens native artifact exists at the registry-defined destination (for example `theme/tokens.native.ts`).
