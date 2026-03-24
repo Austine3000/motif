@@ -7,6 +7,7 @@
 - v1.2 Brownfield Intelligence — Phases 13-16 (shipped 2026-03-06)
 - v1.3 Global Reach — Phases 17-21 (shipped 2026-03-09)
 - v1.4 Cross-Platform App Builder — Phases 22-28 (shipped 2026-03-24)
+- v1.5 Batch Compose — Phases 29-32 (in progress)
 
 ## Phases
 
@@ -66,132 +67,88 @@ See: `.planning/milestones/v1.1-ROADMAP.md`
 
 </details>
 
-### v1.4 Cross-Platform App Builder (In Progress)
-
-**Milestone Goal:** Transform Motif from a design system generator into a full design-to-running-app pipeline — smart framework scaffolding, platform-aware component composition, and auto-run that takes users from zero to seeing their app running.
+<details>
+<summary>v1.4 Cross-Platform App Builder (Phases 22-28) — SHIPPED 2026-03-24</summary>
 
 - [x] Phase 22: Platform Foundation (2/2 plans) — completed 2026-03-09
 - [x] Phase 23: Next.js Scaffolding and Web Composition (3/3 plans) — completed 2026-03-10
-- [x] Phase 24: Vite, Static, and Brownfield — Vite/React scaffolding, static HTML preservation, and brownfield framework detection for web projects (completed 2026-03-11)
-- [x] Phase 25: Auto-Run — Dev server launch, ready detection, browser opening, and process cleanup after composition (completed 2026-03-12)
-- [x] Phase 26: Expo and React Native — Mobile scaffolding, React Native component output, and cross-platform design consistency (completed 2026-03-12)
-- [x] Phase 27: Next.js Scaffold Execution — Next.js materialization in scaffold-project.js, workflow wiring (completed 2026-03-24)
-- [x] Phase 28: Auto-Run Cleanup and Validation — PID session store, signal-based cleanup, verification harness (completed 2026-03-24)
+- [x] Phase 24: Vite, Static, and Brownfield (2/2 plans) — completed 2026-03-11
+- [x] Phase 25: Auto-Run (2/2 plans) — completed 2026-03-12
+- [x] Phase 26: Expo and React Native (3/3 plans) — completed 2026-03-12
+- [x] Phase 27: Next.js Scaffold Execution (1/1 plan) — completed 2026-03-24
+- [x] Phase 28: Auto-Run Cleanup and Validation (1/1 plan) — completed 2026-03-24
+
+</details>
+
+### v1.5 Batch Compose (In Progress)
+
+**Milestone Goal:** Compose multiple screens in a single command with parallel execution, progress reporting, and automatic review — eliminating the tedium of running `/motif:compose` once per screen.
+
+- [ ] Phase 29: Core Batch Orchestration — Parallel multi-screen composition with wave-based dispatch, orchestrator-owned commits, and failure isolation
+- [ ] Phase 30: Progress Reporting and Batch Manifest — Per-screen status output, batch summary, and persistent BATCH-RESULT.md for cross-session reference
+- [ ] Phase 31: Auto-Review Integration — Automatic review after batch completion, gated auto-run on review pass
+- [ ] Phase 32: Reliability Enhancements — Batch resume after `/clear`, smart screen ordering, configurable concurrency
 
 ## Phase Details
 
-### Phase 22: Platform Foundation
-**Goal**: Users select a target platform during init, and Motif's design system pipeline automatically produces platform-appropriate token files alongside the canonical tokens.css
-**Depends on**: Phase 21 (v1.3 complete)
-**Requirements**: PLAT-01, PLAT-02, PLAT-03, PLAT-04
+### Phase 29: Core Batch Orchestration
+**Goal**: Users can compose multiple screens in one command and get correct, atomic git history with isolated failure handling — the architectural foundation for all batch features
+**Depends on**: Phase 28 (v1.4 complete)
+**Requirements**: BATCH-01, BATCH-02, BATCH-03, BATCH-04, BATCH-05, REL-01
 **Success Criteria** (what must be TRUE):
-  1. User can run `/motif:init`, select a platform (web-nextjs, web-vite, web-static, mobile-expo), and see that choice persisted in STATE.md across `/clear`
-  2. After design system generation, user finds platform-specific token files (tokens.ts for React web, tokens.native.ts for React Native) alongside tokens.css, with values matching exactly
-  3. User can inspect the framework registry and see complete mappings for each platform: scaffolding commands, file conventions, component patterns, and dev server commands
-  4. Token files are deterministically generated from tokens.css by a script — never LLM-generated, never drifting from the source of truth
-**Plans**: 2 plans
+  1. User runs `/motif:compose login dashboard settings` and all three screens are composed in parallel, each in a fresh agent context, without interfering with each other
+  2. User runs `/motif:compose --all` and every screen in STATE.md with status `planned` is composed without the user naming each one
+  3. Git history shows one clean commit per screen (authored by orchestrator, not subagents) with correct `design(compose):` prefix and attribution — no index.lock errors, no interleaved commits
+  4. If 2 of 5 screens fail during a batch, the 3 successful screens are committed and STATE.md reflects accurate per-screen status (composed vs failed) — failures do not block successes
+  5. User can set concurrency cap via command argument (e.g., `/motif:compose --all --concurrency 2`) and observe waves dispatched at the specified parallelism
+**Plans**: TBD
 
 Plans:
-- [x] 22-01: Platform field in STATE.md, init flow updates, framework registry reference
-- [x] 22-02: Token transformer script, design system pipeline integration
+- [ ] 29-01: TBD
+- [ ] 29-02: TBD
 
-### Phase 23: Next.js Scaffolding and Web Composition
-**Goal**: Users can go from `/motif:init` to a real Next.js project with composed screens that are actual JSX components using Tailwind utility classes and shadcn/ui primitives
-**Depends on**: Phase 22
-**Requirements**: SCAF-01, SCAF-02, SCAF-07, PLAT-05, COMP-01, COMP-05, COMP-07
+### Phase 30: Progress Reporting and Batch Manifest
+**Goal**: Users see clear, real-time feedback as screens compose and get a persistent summary they can reference after the batch finishes
+**Depends on**: Phase 29
+**Requirements**: PROG-01, PROG-02, PROG-03
 **Success Criteria** (what must be TRUE):
-  1. User runs `/motif:init`, answers what they are building, and receives a framework recommendation (Next.js for SSR apps, Vite for SPAs, Expo for mobile) with the ability to override
-  2. User scaffolds a Next.js project that is immediately runnable (`npm run dev` works) with App Router structure, TypeScript, Tailwind CSS, and shadcn/ui installed and configured with Motif's design tokens
-  3. User runs `/motif:compose` and gets real Next.js page components (proper imports, next/font, next/image, "use client" where needed, App Router file conventions) instead of raw HTML files
-  4. Composed components use Tailwind utility classes (bg-primary, text-lg) and shadcn/ui primitives (Button, Card, Input) rather than inline styles or raw HTML elements
-  5. A tailwind.config.ts file extends Tailwind's theme with all Motif design tokens (colors, spacing, typography, radii, shadows) as semantic classes
-**Plans**: 3 plans
+  1. As each screen completes, the user sees its name, pass/fail status, and duration printed to output — no silent waiting
+  2. After all screens complete, a batch summary table is displayed showing total screens, succeeded count, failed count, and total duration
+  3. A BATCH-RESULT.md file exists in `.planning/design/` after every batch, containing the per-screen results and timestamps — readable in a new session after `/clear`
+**Plans**: TBD
 
 Plans:
-- [x] 23-01-PLAN.md — Framework recommendation logic in init, registry shadcn config
-- [x] 23-02-PLAN.md — Tailwind config generator script (tokens.css to globals.css bridge)
-- [x] 23-03-PLAN.md — Composer platform overlay (composer-nextjs.md), orchestrator injection
+- [ ] 30-01: TBD
 
-### Phase 24: Vite, Static, and Brownfield
-**Goal**: Users building lightweight web apps or landing pages get the same scaffolding and composition quality as Next.js, and users with existing framework projects skip scaffolding entirely
-**Depends on**: Phase 23 (reuses web-react composition infrastructure)
-**Requirements**: SCAF-03, SCAF-05, SCAF-06, COMP-02, COMP-04
+### Phase 31: Auto-Review Integration
+**Goal**: Users get automatic design review across all composed screens after a batch completes, with auto-run gated on review results
+**Depends on**: Phase 30 (needs accurate pass/fail results before offering review)
+**Requirements**: REV-01, REV-02
 **Success Criteria** (what must be TRUE):
-  1. User scaffolds a Vite/React project that is immediately runnable (`npm run dev` works) with React Router, TypeScript, and Tailwind CSS configured
-  2. User runs `/motif:compose` on a Vite project and gets React components with proper imports and React Router conventions (not Next.js App Router conventions)
-  3. User scaffolds a static HTML landing page project and gets a minimal structure with design tokens linked, openable directly in a browser
-  4. User runs `/motif:init` in a directory with an existing Next.js/Vite/Expo project and Motif detects the framework, skips scaffolding, and adopts the existing platform automatically
-**Plans**: 2 plans
+  1. After a batch compose completes successfully, Motif automatically triggers `/motif:review` across all screens that were just composed — the user does not need to run review manually
+  2. Auto-run (dev server launch) is only offered if the review passes or the user explicitly overrides — a failed review blocks auto-run with a clear explanation of what failed
+**Plans**: TBD
 
 Plans:
-- [x] 24-01: Vite scaffolding, composer-vite.md overlay, Vite-specific JSX output
-- [x] 24-02: Static HTML scaffolding, brownfield detection logic (SCAF-06)
+- [ ] 31-01: TBD
 
-### Phase 25: Auto-Run
-**Goal**: After composition, users see their app running in the browser with a single command — Motif handles dev server launch, ready detection, and cleanup
-**Depends on**: Phase 23 (needs a scaffolded, composable project to run)
-**Requirements**: ARUN-01, ARUN-02, ARUN-03, ARUN-04
+### Phase 32: Reliability Enhancements
+**Goal**: Users can resume interrupted batches and get better composition quality through smart screen ordering
+**Depends on**: Phase 29 (uses batch state infrastructure)
+**Requirements**: REL-02, REL-03
 **Success Criteria** (what must be TRUE):
-  1. User is offered the option to auto-run after `/motif:compose` completes, and the dev server starts as a background process without blocking the terminal
-  2. Browser opens automatically only after the dev server is ready (detected via stdout parsing for framework-specific ready messages like "Ready on http://localhost:3000")
-  3. User can see tracked dev server PIDs, and zombie processes are cleaned up on exit, SIGINT, and SIGTERM — no orphaned servers locking ports
-  4. Browser/simulator opening works on macOS (open), Linux (xdg-open), and Windows (cmd start) with zero npm dependencies
-**Plans**: 2 plans
+  1. After a `/clear` mid-batch, running `/motif:compose --all` reads STATE.md and resumes from only the incomplete screens — already-composed screens are not re-composed
+  2. Foundational screens (layout, navigation, shared components) are automatically placed in earlier waves, and feature screens that depend on them compose in later waves with access to the foundation screen summaries
+**Plans**: TBD
 
 Plans:
-- [ ] 25-01: Auto-run script (dev server launch, stdout ready detection, browser opening)
-- [ ] 25-02: PID tracking, cleanup handlers, port conflict resolution
-
-### Phase 26: Expo and React Native
-**Goal**: Users building mobile apps get the same zero-to-running experience as web — Expo scaffolding, React Native component output, and consistent design language across platforms
-**Depends on**: Phase 22 (token transformer), Phase 24 (brownfield detection pattern)
-**Requirements**: SCAF-04, COMP-03, COMP-06
-**Success Criteria** (what must be TRUE):
-  1. User scaffolds an Expo/React Native project that is immediately runnable (`npx expo start --web` works) with TypeScript and Expo SDK configured
-  2. User runs `/motif:compose` on an Expo project and gets React Native components using View, Text, ScrollView, StyleSheet.create — no CSS, no div/span, no className
-  3. Composed mobile screens produce visually consistent results with their web counterparts — same color palette, same typography scale, same spacing rhythm, same component patterns adapted to native primitives
-  4. Unsupported CSS properties (grid, box-shadow, pseudo-elements, position:fixed) are handled explicitly with inline TODO comments — never silently dropped
-**Plans**: 2 plans
-
-Plans:
-- [ ] 26-01: Expo scaffolding via create-expo-app, tokens.native.ts verification
-- [ ] 26-02: Composer-rn.md overlay, React Native component output, CSS-to-RN property matrix
-- [ ] 26-03: Cross-platform consistency validation, COMP-06 verification
-
-### Phase 27: Next.js Scaffold Execution
-**Goal**: Run a real `create-next-app` (App Router + Tailwind + shadcn) and feed that project directly into the existing composition and auto-run conveyor belt so the Next.js flow is executable end-to-end.
-**Depends on**: Phase 23 (registry/contracts for web-nextjs)
-**Requirements**: SCAF-02, COMP-01
-**Success Criteria** (what must be TRUE):
-  1. `/motif:init` triggers a scaffold step that produces a Next.js project with `app`/`package.json`/Tailwind + shadcn dependencies and copies `composer-nextjs.md` overlays.
-  2. The registry-driven scaffold runner logs a deterministic project path and drops a verification marker so downstream phases can confirm the output exists.
-  3. `compose-screen` recognizes the project, uses the Next.js overlay, and exposes the same project path for auto-run.
-  4. The Next.js integration flow (scaffold → compose → auto-run) can be executed without manual scaffolding steps.
-**Plans**: 1 plan
-
-Plans:
-- [x] 27-01: Next.js scaffold runner, registry metadata, and compose hand-off
-
-### Phase 28: Auto-Run Cleanup and Validation
-**Goal**: Ensure every auto-run session records its spawned PIDs, persists them, and kills them on SIGINT/unclean exits or before a new session starts so `ARUN-03` and the auto-run integration gap are satisfied.
-**Depends on**: Phase 25 (runtime launcher and auto-run flow)
-**Requirements**: ARUN-03
-**Success Criteria** (what must be TRUE):
-  1. The runtime launcher records each PID/preview session into a lightweight store anchored near `.planning/STATE.md`.
-  2. Signal handlers (SIGINT/SIGTERM/exit) read the store and terminate tracked daemons/preview processes before exiting, freeing the ports for the next auto-run.
-  3. The cleanup harness proves the launcher works across macOS, Linux, and Windows opener semantics.
-  4. The audit's integration note for auto-run now reports the cleanup flow as automated.
-**Plans**: 1 plan
-
-Plans:
-- [x] 28-01: Session persistence, cleanup harness, and signal handlers
+- [ ] 32-01: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 22 → 23 → 24 → 25 → 26
-(Note: Phase 24 and Phase 25 have no mutual dependency and could be parallelized after Phase 23)
-(Note: Phase 26 depends on Phase 22 directly but benefits from Phase 24's brownfield pattern)
+Phases execute in numeric order: 29 -> 30 -> 31 -> 32
+(Note: Phase 32 depends on Phase 29 directly and could potentially run after Phase 29, but benefits from Phase 30's manifest)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -224,3 +181,7 @@ Phases execute in numeric order: 22 → 23 → 24 → 25 → 26
 | 26. Expo and React Native | v1.4 | 3/3 | Complete | 2026-03-12 |
 | 27. Next.js Scaffold Execution | v1.4 | 1/1 | Complete | 2026-03-24 |
 | 28. Auto-Run Cleanup and Validation | v1.4 | 1/1 | Complete | 2026-03-24 |
+| 29. Core Batch Orchestration | v1.5 | 0/TBD | Not started | - |
+| 30. Progress Reporting and Batch Manifest | v1.5 | 0/TBD | Not started | - |
+| 31. Auto-Review Integration | v1.5 | 0/TBD | Not started | - |
+| 32. Reliability Enhancements | v1.5 | 0/TBD | Not started | - |

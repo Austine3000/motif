@@ -163,7 +163,7 @@ Requirements for Batch Compose milestone. Each maps to roadmap phases.
 | GCLI-05 | Phase 20 | Satisfied |
 | VERT-07 | Phase 20 | Satisfied |
 
-### v1.4
+### v1.4 (Complete)
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -200,25 +200,25 @@ Requirements for Batch Compose milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BATCH-01 | TBD | Pending |
-| BATCH-02 | TBD | Pending |
-| BATCH-03 | TBD | Pending |
-| BATCH-04 | TBD | Pending |
-| BATCH-05 | TBD | Pending |
-| PROG-01 | TBD | Pending |
-| PROG-02 | TBD | Pending |
-| PROG-03 | TBD | Pending |
-| REL-01 | TBD | Pending |
-| REL-02 | TBD | Pending |
-| REL-03 | TBD | Pending |
-| REV-01 | TBD | Pending |
-| REV-02 | TBD | Pending |
+| BATCH-01 | Phase 29 | Pending |
+| BATCH-02 | Phase 29 | Pending |
+| BATCH-03 | Phase 29 | Pending |
+| BATCH-04 | Phase 29 | Pending |
+| BATCH-05 | Phase 29 | Pending |
+| PROG-01 | Phase 30 | Pending |
+| PROG-02 | Phase 30 | Pending |
+| PROG-03 | Phase 30 | Pending |
+| REL-01 | Phase 29 | Pending |
+| REL-02 | Phase 32 | Pending |
+| REL-03 | Phase 32 | Pending |
+| REV-01 | Phase 31 | Pending |
+| REV-02 | Phase 31 | Pending |
 
 **Coverage:**
 - v1.5 requirements: 13 total
-- Mapped to phases: 0
-- Unmapped: 13 ⚠️
+- Mapped to phases: 13/13
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-04*
-*Last updated: 2026-03-24 after v1.5 requirements defined*
+*Last updated: 2026-03-24 after v1.5 roadmap created*
