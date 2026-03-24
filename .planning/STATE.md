@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Batch Compose
-current_plan: 1
+current_plan: 2
 status: in-progress
-stopped_at: Completed 31-01-PLAN.md
-last_updated: "2026-03-24T10:01:07Z"
+stopped_at: Completed 31-02-PLAN.md
+last_updated: "2026-03-24T10:05:21Z"
 last_activity: 2026-03-24
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 5
-  completed_plans: 4
-  percent: 67
+  completed_plans: 5
+  percent: 83
 ---
 
 # Project State
@@ -27,16 +27,16 @@ See: .planning/PROJECT.md (updated 2026-03-24)
 ## Current Position
 
 Phase: 31 of 32 (Auto-Review Integration)
-Plan: 1 of 2 complete — 31-01 done, 31-02 pending
+Plan: 2 of 2 complete — 31-01 done, 31-02 done
 Status: In Progress
-Last activity: 2026-03-24 — Completed 31-01 (auto-review dispatch and result collection)
+Last activity: 2026-03-24 — Completed 31-02 (review gate and review-aware guidance)
 
-Progress: [██████░░░░] 67%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 62 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 12, v1.4: 6, v1.5: 4)
+- Total plans completed: 63 (v1.0: 24, v1.1: 8, v1.2: 8, v1.3: 12, v1.4: 6, v1.5: 5)
 - Average duration: ~2.4 min
 - Total execution time: ~2 hours
 
@@ -46,6 +46,7 @@ Progress: [██████░░░░] 67%
 | 29-02 | batch-orchestration | 2min | 2 | 1 |
 | 30-01 | progress-reporting | 2min | 2 | 1 |
 | 31-01 | auto-review-dispatch | 2min | 1 | 1 |
+| 31-02 | review-gate | 1min | 1 | 1 |
 
 ## Accumulated Context
 
@@ -60,6 +61,7 @@ Recent decisions affecting current work:
 - [v1.5 roadmap]: Auto-review is automatic after batch (REV-01), auto-run gated on review pass (REV-02)
 - [30-01]: Subagents self-time via date -u in ## Timing section; BATCH-RESULT.md overwrites per run with git history preserving previous
 - [31-01]: Reviewer agents use review.md Step 2 template with BATCH AUTO-REVIEW INSTRUCTIONS; result extraction via Grep to avoid context bloat
+- [31-02]: Review gate offers override path; decline skips auto-run; 3b.10 no longer suggests manual /motif:review all
 
 ### Pending Todos
 
@@ -71,6 +73,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-24T10:01:07Z
-Stopped at: Completed 31-01-PLAN.md — auto-review dispatch and result collection added to compose-screen.md
+Last session: 2026-03-24T10:05:21Z
+Stopped at: Completed 31-02-PLAN.md — review gate and review-aware guidance added to compose-screen.md
 Resume file: None
