@@ -115,10 +115,10 @@ Plans:
   1. As each screen completes, the user sees its name, pass/fail status, and duration printed to output — no silent waiting
   2. After all screens complete, a batch summary table is displayed showing total screens, succeeded count, failed count, and total duration
   3. A BATCH-RESULT.md file exists in `.planning/design/` after every batch, containing the per-screen results and timestamps — readable in a new session after `/clear`
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 30-01: TBD
+- [ ] 30-01-PLAN.md — Progress reporting with timing, summary table, and BATCH-RESULT.md manifest
 
 ### Phase 31: Auto-Review Integration
 **Goal**: Users get automatic design review across all composed screens after a batch completes, with auto-run gated on review results
@@ -182,6 +182,6 @@ Phases execute in numeric order: 29 -> 30 -> 31 -> 32
 | 27. Next.js Scaffold Execution | v1.4 | 1/1 | Complete | 2026-03-24 |
 | 28. Auto-Run Cleanup and Validation | v1.4 | 1/1 | Complete | 2026-03-24 |
 | 29. Core Batch Orchestration | v1.5 | 2/2 | Complete | 2026-03-24 |
-| 30. Progress Reporting and Batch Manifest | v1.5 | 0/TBD | Not started | - |
+| 30. Progress Reporting and Batch Manifest | v1.5 | 0/1 | Not started | - |
 | 31. Auto-Review Integration | v1.5 | 0/TBD | Not started | - |
 | 32. Reliability Enhancements | v1.5 | 0/TBD | Not started | - |
