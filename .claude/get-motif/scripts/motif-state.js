@@ -441,6 +441,63 @@ function cmdRecover() {
   }
 }
 
+function cmdBatchUpdateScreens(jsonStr) {
+  if (!jsonStr) {
+    process.stderr.write('[Motif] Usage: motif-state.js batch-update-screens <json>\n');
+    process.exit(1);
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(jsonStr);
+  } catch (err) {
+    process.stderr.write(`[Motif] Invalid JSON: ${err.message}\n`);
+    process.exit(1);
+  }
+
+  const { updates, screens_composed, phase } = payload;
+  if (!Array.isArray(updates)) {
+    process.stderr.write('[Motif] "updates" must be an array of {name, status} objects\n');
+    process.exit(1);
+  }
+
+  // Single atomic read
+  let currentContent = '';
+  let body = '';
+  let state = {};
+  try {
+    if (fs.existsSync(statePath)) {
+      currentContent = fs.readFileSync(statePath, 'utf8');
+      state = parseFrontmatter(currentContent) || {};
+      body = getMarkdownBody(currentContent);
+    }
+  } catch (err) {
+    process.stderr.write(`[Motif] Warning: could not read state: ${err.message}\n`);
+  }
+
+  // Apply screen status updates
+  if (Array.isArray(state.screens)) {
+    for (const update of updates) {
+      const screen = state.screens.find(s => s && s.name === update.name);
+      if (screen) {
+        screen.status = update.status;
+      }
+    }
+  }
+
+  // Apply scalar updates
+  if (screens_composed !== undefined) state.screens_composed = screens_composed;
+  if (phase) state.phase = phase;
+  state.updated = new Date().toISOString().split('T')[0];
+  state.last_command = '/motif:compose';
+  state.last_outcome = 'batch';
+
+  // Single atomic write
+  const frontmatter = serializeFrontmatter(state);
+  atomicWrite(statePath, frontmatter + '\n' + body);
+  process.stdout.write(JSON.stringify({ ok: true, updated: updates.length }) + '\n');
+}
+
 function cmdHelp() {
   const usage = `motif-state.js — Motif state management utility
 
@@ -448,11 +505,12 @@ Usage:
   node motif-state.js <command> [args]
 
 Commands:
-  read                   Read STATE.md, output JSON
-  update <key> <value>   Update a single field in STATE.md
-  write <json>           Full state write from JSON
-  status-line            Output formatted status for hook
-  recover                Rebuild state from artifacts
+  read                          Read STATE.md, output JSON
+  update <key> <value>          Update a single field in STATE.md
+  write <json>                  Full state write from JSON
+  status-line                   Output formatted status for hook
+  recover                       Rebuild state from artifacts
+  batch-update-screens <json>   Atomic batch screen status update
 
 State file: .planning/design/STATE.md
 `;
@@ -479,6 +537,9 @@ switch (command) {
     break;
   case 'recover':
     cmdRecover();
+    break;
+  case 'batch-update-screens':
+    cmdBatchUpdateScreens(args.slice(1).join(' '));
     break;
   case '--help':
   case '-h':
